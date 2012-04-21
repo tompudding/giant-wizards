@@ -70,6 +70,8 @@ class Tiles(object):
 
 
         self.SetViewpos(Point(0,0)) 
+        self.selected      = None
+        self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
 
     def SetViewpos(self,viewpos):
         #viewpos = list(viewpos)
@@ -84,13 +86,15 @@ class Tiles(object):
 
         #now the left
         viewgrid = GridCoords((viewpos+top_left).to_float())
-        if viewgrid.x < 0:
+        if viewgrid.x < -(self.width/4):
+            print 'vga',viewgrid
             viewgrid.x += self.width
             viewpos = (WorldCoords(viewgrid).to_int())-top_left
 
         #right
         viewgrid = GridCoords((viewpos+bottom_right).to_float())
         if viewgrid.x > (self.width + gamedata.screen.x/gamedata.tile_dimensions.x):
+            print 'vgb',viewgrid
             viewgrid.x -= self.width
             viewpos = (WorldCoords(viewgrid).to_int())-bottom_right
 
@@ -111,6 +115,13 @@ class Tiles(object):
         glBindTexture(GL_TEXTURE_2D, self.atlas.texture.texture)
         glLoadIdentity()
         glTranslate(-self.viewpos.x,-self.viewpos.y,0)
+
+
+        if self.selected:
+            world = WorldCoords(self.selected)
+            utils.setvertices(self.selected_quad.vertex,world,world + gamedata.tile_dimensions,zcoord+1)
+
+
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
@@ -120,6 +131,11 @@ class Tiles(object):
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
         #draw it again for the wrapping
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+
+        #And the other side. It would be nice if this wasn't necessary, but we need some overlap
+        #an obvious efficiency saving would be to only draw part of it, but for now draw it all
+        glTranslate((-2*self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
@@ -141,13 +157,17 @@ class Tiles(object):
             #if difference is non-zero it means that we didn't get what we requested for some reason,
             #so we should update dragging so it still points at the right place
             self.dragging = self.viewpos + pos
+            self.selected = GridCoords(self.viewpos + pos).to_int()
+        else:
+            self.selected = GridCoords(self.viewpos + pos).to_int()
+            #print self.selected
 
 class GameWindow(object):
     def __init__(self):
         self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
                            'tiles.png'  ,
                            'tiles.data' ,
-                           (64,24)     )
+                           (48,24)     )
 
     def Update(self):
         self.tiles.Draw()
