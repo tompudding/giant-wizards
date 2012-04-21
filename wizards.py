@@ -6,6 +6,11 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
 import game_window,wizard,texture
+#some sort of hack to get py2exe to work
+try:
+    from OpenGL.platform import win32
+except AttributeError:
+    pass
 
 pygame.init()
 
@@ -13,7 +18,7 @@ class GameData(object):
     screen = None
     quad_buffer = utils.QuadBuffer(131072)
     ui_buffer   = utils.QuadBuffer(131072)
-    text_manager = texture.TextManager()
+    text_manager = None
 
 def Init(gamedata):
     w,h = (1280,720)
@@ -40,10 +45,11 @@ if __name__ == '__main__':
     #first make a gamedata struct and set it up in the other modules so they can access it
     #not at all sure that this is best practice.
     gamedata = GameData()
-    for module in utils,game_window,wizard:
+    for module in utils,game_window,wizard,texture:
         setattr(module,'gamedata',gamedata)
     
     Init(gamedata)
+    gamedata.text_manager = texture.TextManager()
     done = False
     last = 0
     clock = pygame.time.Clock()
@@ -60,6 +66,7 @@ if __name__ == '__main__':
 
         glLoadIdentity()
         current_view.Update(t)
+        gamedata.text_manager.Draw()
         pygame.display.flip()
 
         eventlist = pygame.event.get()

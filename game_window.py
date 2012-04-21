@@ -93,7 +93,10 @@ class Tiles(object):
                 temp_quad = utils.Quad(gamedata.quad_buffer,tc = tex_coords,index = index)
                 index += 4
                 utils.setvertices(temp_quad.vertex,world,world + gamedata.tile_dimensions,0)
+                
 
+        self.text = texture.TextObject('a',gamedata.text_manager)
+        self.text.Position(Point(10,10))
 
         self.SetViewpos(Point(0,0)) 
         self.selected      = None
@@ -150,7 +153,10 @@ class Tiles(object):
             self.current_player_index += 1
             self.current_player_index %= len(self.wizards)
             self.current_player = self.wizards[self.current_player_index]
-        print 'It\'s %s\'s turn.' % (self.current_player.name)
+        #self.text.Delete()
+        #self.text = texture.TextObject('It\'s %s\'s turn.' % (self.current_player.name),gamedata.text_manager) 
+        #self.text.Position(Point(10,10))
+        self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
         self.current_player.StartTurn()
         
     def Draw(self):

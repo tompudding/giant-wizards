@@ -3,6 +3,8 @@ import pygame,math,numpy,itertools
 
 gamedata = None
 
+text_level = 10
+
 class QuadBuffer(object):
     def __init__(self,size):
         self.vertex_data  = numpy.zeros((size*4,3),numpy.float32)
@@ -65,6 +67,7 @@ class Quad(object):
             self.index = source.next()
         else:
             self.index = index
+        self.source = source
         self.vertex = QuadVertex(self.index,source.vertex_data)
         self.tc     = QuadVertex(self.index,source.tc_data)
         self.colour = QuadVertex(self.index,source.colour_data)
@@ -72,6 +75,9 @@ class Quad(object):
             self.vertex[0:4] = vertex
         if tc != None:
             self.tc[0:4] = tc
+
+    def Delete(self):
+        self.source.RemoveQuad(self.index)
 
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)
