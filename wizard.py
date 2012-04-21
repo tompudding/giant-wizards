@@ -25,6 +25,15 @@ class Wizard(object):
         self.pos = pos
         self.type = type
         self.quad = utils.Quad(gamedata.quad_buffer)
+        self.uiquad = utils.Quad(gamedata.ui_buffer)
+        utils.setcolour(self.uiquad.colour,(0,0,0,1))
+        utils.setvertices(self.uiquad.vertex,
+                          Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
+                          utils.ui_level)
+        self.uiquad.Disable()
+        
+                          
         self.isPlayer = isPlayer
         self.name = name
         self.action_list = None
@@ -38,6 +47,12 @@ class Wizard(object):
         full_type = wizard_types[self.type] + '_' + tile_type
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)
+
+    def Select(self):
+        self.uiquad.Enable()
+    
+    def Unselect(self):
+        self.uiquad.Disable()
         
 
     def IsPlayer(self):

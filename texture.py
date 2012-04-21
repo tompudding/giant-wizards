@@ -71,14 +71,15 @@ class TextObject(object):
         self.textmanager = textmanager
         #that sets the texture coords for us
 
-    def Position(self,pos):
+    def Position(self,pos,scale):
         #set up the position for the characters
         self.pos = pos
+        self.scale = scale
         for (i,quad) in enumerate(self.quads):
             utils.setvertices(quad.vertex,
-                              pos+Point(self.textmanager.font_width*i,0),
-                              pos+Point((self.textmanager.font_width*(i+1)),
-                                        self.textmanager.font_height),
+                              pos+Point(self.textmanager.font_width*i*scale,0),
+                              pos+Point((self.textmanager.font_width*(i+1)*scale),
+                                        self.textmanager.font_height*scale),
                               utils.text_level)
             #utils.setvertices(quad.vertex,
             #                  Point(0,0),
@@ -95,24 +96,20 @@ class TextObject(object):
         self.text = text
         print self.text
         self.quads = [self.textmanager.Letter(char) for char in self.text]
-        self.Position(self.pos)
+        self.Position(self.pos,self.scale)
             
 
 class TextManager(object):
     def __init__(self):
-        font = pygame.font.SysFont ("monospace", 48)
+        font = pygame.font.SysFont ("monospace", 64)
         #go with 8 rows of 16 characters
         widths = {}
         data = []
-        print 'ff'
         for i in xrange(8):
             text = ''.join([chr(j) if (chr(j) in string.printable and chr(j) not in '\r\n\t\x0b\x0c') else ' ' for j in xrange(i*16,(i+1)*16)])
             textSurface = font.render(text, True, (255,255,255,255))
             #textSurface = font.render('a', True, (255,255,255,255), (0,0,0,255))
             data.append(pygame.image.tostring(textSurface, 'RGBA', 1))
-            import hashlib
-            print hashlib.md5(data[-1]).hexdigest()
-            
             widths[textSurface.get_width()] = True
 
         assert(len(widths.keys()) == 1)
@@ -121,13 +118,12 @@ class TextManager(object):
         self.textData = ''.join(data)
         
         self.font_width  = widths.keys()[0]/16
-        self.font_height = 55
+        self.font_height = 64+9
         self.width = widths.keys()[0]
         self.height = self.font_height*8
 
         #self.width  = self.textureSurface.get_width()
         #self.height = self.textureSurface.get_height()
-        print self.width,self.height
         #self.textData = pygame.image.tostring(self.textureSurface, 'RGBA', 1)
         self.texture = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.texture)

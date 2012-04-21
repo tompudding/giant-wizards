@@ -96,7 +96,7 @@ class Tiles(object):
                 
 
         self.text = texture.TextObject('a',gamedata.text_manager)
-        self.text.Position(Point(10,10))
+        self.text.Position(Point(10,10),0.5)
 
         self.SetViewpos(Point(0,0)) 
         self.selected      = None
@@ -189,6 +189,22 @@ class Tiles(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
+        self.DrawUI()
+
+    def DrawUI(self):
+        glLoadIdentity()
+
+        glDisable(GL_TEXTURE_2D)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glVertexPointerf(gamedata.ui_buffer.vertex_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
+        glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glEnable(GL_TEXTURE_2D)
+        
+        
 
     def MouseButtonDown(self,pos,button):
         if button == 3:
@@ -204,6 +220,12 @@ class Tiles(object):
                 if self.hovered_player is self.current_player and self.current_player.IsPlayer():
                     #select them!
                     self.selected_player = self.current_player
+                    self.selected_player.Select()
+
+            else:
+                if self.hovered_player is not self.current_player:
+                    self.selected_player.Unselect()
+                    self.selected_player = None
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
@@ -214,7 +236,9 @@ class Tiles(object):
             #so we should update dragging so it still points at the right place
             self.dragging = self.viewpos + pos
             
-        self.selected = GridCoords(self.viewpos + pos).to_int()
+        current_viewpos = self.viewpos + pos
+        current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
+        self.selected = GridCoords(current_viewpos).to_int()
         self.selected.x = self.selected.x % self.width
         self.hovered_player = self.GetTile(self.selected).GetActor()
         if self.hovered_player is self.current_player:

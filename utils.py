@@ -3,6 +3,7 @@ import pygame,math,numpy,itertools
 
 gamedata = None
 
+ui_level   = 2
 text_level = 10
 
 class QuadBuffer(object):
@@ -79,11 +80,28 @@ class Quad(object):
     def Delete(self):
         self.source.RemoveQuad(self.index)
 
+    def Disable(self):
+        #It still gets drawn, but just in a single dot in a corner.
+        #not very efficient!
+        self.old_vertices = numpy.copy(self.vertex[0:4])
+        for i in xrange(4):
+            self.vertex[i] = (0,0,0)
+
+    def Enable(self):
+        for i in xrange(4):
+            self.vertex[i] = self.old_vertices[i]
+
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)
     vertex[1] = (bl.x,tr.y,z)
     vertex[2] = (tr.x,tr.y,z)
     vertex[3] = (tr.x,bl.y,z)
+
+def setcolour(colour,value):
+    for i in xrange(4):
+        for j in xrange(4):
+            colour[i][j] = value[j]
+
 
 class Point(object):
     def __init__(self,x = None, y = None):
