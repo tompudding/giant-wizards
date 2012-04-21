@@ -56,7 +56,7 @@ if __name__ == '__main__':
             last = t
 
         glLoadIdentity()
-        current_view.Update()
+        current_view.Update(t)
         pygame.display.flip()
 
         eventlist = pygame.event.get()

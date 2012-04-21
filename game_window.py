@@ -3,7 +3,7 @@ import utils
 from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard
+import texture,numpy,random,perlin,wizard,pygame
 
 gamedata = None
 
@@ -21,6 +21,8 @@ class Tiles(object):
         self.width = map_size[0]
         self.height = map_size[1]
         self.wizards = []
+        self.current_player = None
+        self.current_player_index = 0
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -114,7 +116,23 @@ class Tiles(object):
         
         self.viewpos = viewpos
 
+    def Update(self,t):
+        if not self.current_player.IsPlayer():
+            #it's the computers turn
+            done = self.current_player.TakeAction(t)
+            if done:
+                self.NextPlayer()
 
+    def NextPlayer(self):
+        if self.current_player == None:
+            self.current_player_index = 0
+            self.current_player = self.wizards[0]
+        else:
+            self.current_player_index += 1
+            self.current_player_index %= len(self.wizards)
+            self.current_player = self.wizards[self.current_player_index]
+        print 'It\'s %s\'s turn.' % (self.current_player.name)
+        
     def Draw(self):
         zcoord = 0
         glBindTexture(GL_TEXTURE_2D, self.atlas.texture.texture)
@@ -138,7 +156,7 @@ class Tiles(object):
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
 
-        #And the other side. It would be nice if this wasn't necessary, but we need some overlap
+        #And the other side. It would be nice if this wasn't necessary, but we need some overlap.
         #an obvious efficiency saving would be to only draw part of it, but for now draw it all
         glTranslate((-2*self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
@@ -167,10 +185,18 @@ class Tiles(object):
             self.selected = GridCoords(self.viewpos + pos).to_int()
             #print self.selected
 
-    def AddWizard(self,pos,type):
-        new_wizard = wizard.Wizard(pos,type)
-        new_wizard.SetPos(pos,self.map[pos.x][pos.y].name,self.tex_coords)
+    def AddWizard(self,pos,type,isPlayer,name):
+        new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
+        new_wizard.SetPos(pos)
         self.wizards.append(new_wizard)
+
+    def KeyDown(self,key):
+        if key == pygame.locals.K_RETURN:
+            if self.current_player.IsPlayer():
+                self.NextPlayer()
+
+    def GetTile(self,pos):
+        return self.map[pos.x][pos.y]
 
 class GameWindow(object):
     def __init__(self):
@@ -180,12 +206,22 @@ class GameWindow(object):
                            'tiles.data' ,
                            map_size     )
         #this will get passed in eventually, but for now configure statically
+        names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         for i in xrange(4):
-            self.tiles.AddWizard(Point(*[random.randint(0,v-1) for v in map_size]),i)
+            self.tiles.AddWizard(pos  = Point(*[random.randint(0,v-1) for v in map_size]),
+                                 type = i,
+                                 isPlayer = True if i == 0 else False,
+                                 name = names[i])
+        self.tiles.NextPlayer()
         
 
-    def Update(self):
+    def Update(self,t):
+        self.tiles.Update(t)
         self.tiles.Draw()
+
+    def KeyDown(self,key):
+        hovered_element = self.tiles
+        hovered_element.KeyDown(key)
 
     def MouseMotion(self,pos,rel):
         hovered_element = self.tiles
