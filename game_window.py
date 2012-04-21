@@ -118,6 +118,9 @@ class Tiles(object):
         glTexCoordPointerf(gamedata.quad_buffer.tc_data)
         glColorPointer(4,GL_FLOAT,0,gamedata.quad_buffer.colour_data)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+        #draw it again for the wrapping
+        glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
