@@ -29,7 +29,7 @@ class Tiles(object):
         
         #Read the tile data from the tiles.data file
         data = {}
-        gamedata.tile_dimensions = Point(64,64)
+        gamedata.tile_dimensions = Point(48,48)
         with open(data_filename) as f:
             for line in f:
                 line = line.split('#')[0].strip()
@@ -76,40 +76,35 @@ class Tiles(object):
         top_left= Point(0,gamedata.screen.y)
         top_right = gamedata.screen
         bottom_right = Point(gamedata.screen.x,0)
-        #check the bottom left
+        #check the bottom 
         viewgrid = GridCoords(viewpos.to_float())
         if viewgrid.y < 0:
             viewgrid.y = 0
             viewpos = WorldCoords(viewgrid).to_int()
 
-        #now the top left
+        #now the left
         viewgrid = GridCoords((viewpos+top_left).to_float())
         if viewgrid.x < 0:
-            viewgrid.x = 0
+            viewgrid.x += self.width
             viewpos = (WorldCoords(viewgrid).to_int())-top_left
 
+        #right
         viewgrid = GridCoords((viewpos+bottom_right).to_float())
-        if viewgrid.x > self.width:
-            viewgrid.x = self.width
+        if viewgrid.x > (self.width + gamedata.screen.x/gamedata.tile_dimensions.x):
+            viewgrid.x -= self.width
             viewpos = (WorldCoords(viewgrid).to_int())-bottom_right
 
+        #top
         viewgrid = GridCoords((viewpos+top_right).to_float())
         if viewgrid.y > self.height:
             viewgrid.y = self.height
             viewpos = (WorldCoords(viewgrid).to_int())-top_right
-
+        
 
         #print viewpos
         
         self.viewpos = viewpos
-        #self.miny = int(GridCoordsY(viewpos))
-        #self.maxy = int(GridCoordsY(viewpos + gamedata.screen)+1)
-        #self.minx = int(GridCoordsX(Point(viewpos.x,viewpos.y+gamedata.screen.y/self.zoom)))
-        #self.maxx = int(GridCoordsX(Point(viewpos.x+gamedata.screen.x/self.zoom,viewpos.y))+1)
-        #if self.minx < 0:
-        #    self.minx = 0
-        #if self.miny < 0:
-        #    self.miny = 0
+
 
     def Draw(self):
         zcoord = 0
