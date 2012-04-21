@@ -3,7 +3,7 @@ import utils
 from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random
+import texture,numpy,random,perlin
 
 gamedata = None
 
@@ -47,13 +47,17 @@ class Tiles(object):
             self.atlas.TransformCoords(self.tiles_name,tc)
             self.tex_coords[name] = tc
 
+            
+        self.noise = perlin.SimplexNoise()
+
         #Set up the map
         self.map = []
         for x in xrange(0,map_size[0]):
             col = []
             for y in xrange(0,map_size[1]):
                 w,h = gamedata.tile_dimensions
-                col.append( TileData(Point(x,y),random.choice(['grass','water'])) )
+                noise_level = self.noise.noise2(x*0.1,y*0.1)
+                col.append( TileData(Point(x,y),'grass' if noise_level >= 0.2 else 'water'))
             self.map.append(col)
 
         #Fill in the fixed vertices for the tiles
