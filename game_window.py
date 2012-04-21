@@ -48,7 +48,7 @@ class Tiles(object):
             self.tex_coords[name] = tc
 
             
-        self.noise = perlin.SimplexNoise()
+        self.noise = perlin.SimplexNoise(256)
 
         #Set up the map
         self.map = []
@@ -167,7 +167,7 @@ class Tiles(object):
             #print self.selected
 
 class GameWindow(object):
-    def __init__(self):
+    def __init__(self,):
         self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
                            'tiles.png'  ,
                            'tiles.data' ,
