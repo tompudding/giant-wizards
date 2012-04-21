@@ -3,7 +3,7 @@ import utils
 from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin
+import texture,numpy,random,perlin,wizard
 
 gamedata = None
 
@@ -20,6 +20,7 @@ class Tiles(object):
         self.map_size = map_size
         self.width = map_size[0]
         self.height = map_size[1]
+        self.wizards = []
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -166,12 +167,20 @@ class Tiles(object):
             self.selected = GridCoords(self.viewpos + pos).to_int()
             #print self.selected
 
+    def AddWizard(self,pos,type):
+        self.wizards.append(wizard.Wizard(pos,type,self.tex_coords))
+
 class GameWindow(object):
-    def __init__(self,):
+    def __init__(self):
+        map_size = (48,24)
         self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
                            'tiles.png'  ,
                            'tiles.data' ,
-                           (48,24)     )
+                           map_size     )
+        #this will get passed in eventually, but for now configure statically
+        for i in xrange(4):
+            self.tiles.AddWizard(Point(*[random.randint(0,v-1) for v in map_size]),i)
+        
 
     def Update(self):
         self.tiles.Draw()

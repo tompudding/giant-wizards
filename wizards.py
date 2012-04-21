@@ -5,7 +5,7 @@ import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window
+import game_window,wizard
 
 class GameData(object):
     screen = None
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     #first make a gamedata struct and set it up in the other modules so they can access it
     #not at all sure that this is best practice.
     gamedata = GameData()
-    utils.gamedata       = gamedata
-    game_window.gamedata = gamedata
+    for module in utils,game_window,wizard:
+        setattr(module,'gamedata',gamedata)
     
     Init(gamedata)
     done = False
