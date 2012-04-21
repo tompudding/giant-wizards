@@ -5,12 +5,15 @@ import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window,wizard
+import game_window,wizard,texture
+
+pygame.init()
 
 class GameData(object):
     screen = None
     quad_buffer = utils.QuadBuffer(131072)
     ui_buffer   = utils.QuadBuffer(131072)
+    text_manager = texture.TextManager()
 
 def Init(gamedata):
     w,h = (1280,720)

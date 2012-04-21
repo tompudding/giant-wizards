@@ -1,4 +1,4 @@
-import pygame
+import pygame,string
 from pygame.locals import *
 from OpenGL.GL.framebufferobjects import *
 from OpenGL.GL import *
@@ -60,3 +60,17 @@ class TextureAtlas(object):
         #print subimage.pos
         for i in xrange(len(tc)):
             self.TransformCoord(subimage,tc[i])
+
+class TextManager(object):
+    def __init__(self):
+        font = pygame.font.SysFont ("monospace", 64)
+        #go with 8 rows of 16 characters
+        for i in xrange(8):
+            textSurface = font.render(''.join([chr(i) if chr(i) in string.printable else ' ' for i in xrange(i*16,(i+1)*16)]), True, (255,255,255,255), (0,0,0,255))
+            print textSurface.get_width(),textSurface.get_height()
+        raise SystemExit
+        textData = pygame.image.tostring(textSurface, "RGBA", True)
+        self.width  = self.textureSurface.get_width()
+        self.height = self.textureSurface.get_height()
+
+        self.texture = glGenTextures(1)
