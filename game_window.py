@@ -168,7 +168,9 @@ class Tiles(object):
             #print self.selected
 
     def AddWizard(self,pos,type):
-        self.wizards.append(wizard.Wizard(pos,type,self.tex_coords))
+        new_wizard = wizard.Wizard(pos,type)
+        new_wizard.SetPos(pos,self.map[pos.x][pos.y].name,self.tex_coords)
+        self.wizards.append(new_wizard)
 
 class GameWindow(object):
     def __init__(self):
