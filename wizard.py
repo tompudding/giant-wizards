@@ -32,10 +32,13 @@ class Wizard(object):
         
     def SetPos(self,pos):
         self.pos = pos
-        tile_type = self.tiles.GetTile(pos).name
+        tile_data = self.tiles.GetTile(pos)
+        tile_type = tile_data.name
         utils.setvertices(self.quad.vertex,utils.WorldCoords(self.pos),utils.WorldCoords(self.pos)+gamedata.tile_dimensions,0.5)
         full_type = wizard_types[self.type] + '_' + tile_type
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
+        tile_data.SetActor(self)
+        
 
     def IsPlayer(self):
         return self.isPlayer
@@ -44,7 +47,7 @@ class Wizard(object):
         if self.action_list == None:
             #decide what to do!
             #for now just move right 1 square
-            self.action_list = [ MoveAction(Point(1,0),t) ]
+            self.action_list = [ MoveAction(Point(1,0),t),MoveAction(Point(1,0),t) ]
         else:
             #do the actions according to the times in them
             if len(self.action_list) == 0:
@@ -66,4 +69,12 @@ class Wizard(object):
             target.y = self.tiles.height-1
         if target.y < 0:
             target.y = 0
-        self.SetPos(target)
+        target_tile = self.tiles.GetTile(target)
+        if self.movement_allowance >= target_tile.movement_cost and target_tile.Empty():
+            self.movement_allowance -= target_tile.movement_cost
+            self.tiles.GetTile(self.pos).SetActor(None)
+            self.SetPos(target)
+            
+
+    def StartTurn(self):
+        self.movement_allowance = 2

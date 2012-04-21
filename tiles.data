@@ -1,7 +1,8 @@
 #name:top_left_x:top_left_y:width:height
-grass         : 0,0,1,1
-water         : 0,1,1,1
-selected      : 0,2,1,1
+grass               : 0,0,1,1
+water               : 0,1,1,1
+selected            : 0,2,1,1
+selected_hover      : 1,2,1,1
 purple_wizard_grass : 0,3,1,1
 red_wizard_grass    : 0,4,1,1
 yellow_wizard_grass : 0,5,1,1

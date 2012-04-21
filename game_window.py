@@ -8,9 +8,21 @@ import texture,numpy,random,perlin,wizard,pygame
 gamedata = None
 
 class TileData(object):
-    def __init__(self,pos,name):
+    def __init__(self,pos,name,movement_cost):
         self.pos = pos
         self.name = name
+        self.movement_cost = movement_cost
+        self.actor = None
+
+    def GetActor(self):
+        return self.actor
+
+    def SetActor(self,actor):
+        self.actor = actor
+
+    def Empty(self):
+        return self.actor == None
+        
 
 class Tiles(object):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
@@ -23,6 +35,7 @@ class Tiles(object):
         self.wizards = []
         self.current_player = None
         self.current_player_index = 0
+        self.selected_player = None
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -60,7 +73,13 @@ class Tiles(object):
             for y in xrange(0,map_size[1]):
                 w,h = gamedata.tile_dimensions
                 noise_level = self.noise.noise2(x*0.1,y*0.1)
-                col.append( TileData(Point(x,y),'grass' if noise_level >= 0.2 else 'water'))
+                if noise_level >= 0.2:
+                    type = 'grass'
+                    movement_cost = 1
+                else:
+                    type = 'water'
+                    movement_cost = 2
+                col.append( TileData(Point(x,y),type,movement_cost))
             self.map.append(col)
 
         #Fill in the fixed vertices for the tiles
@@ -132,6 +151,7 @@ class Tiles(object):
             self.current_player_index %= len(self.wizards)
             self.current_player = self.wizards[self.current_player_index]
         print 'It\'s %s\'s turn.' % (self.current_player.name)
+        self.current_player.StartTurn()
         
     def Draw(self):
         zcoord = 0
@@ -171,6 +191,13 @@ class Tiles(object):
     def MouseButtonUp(self,pos,button):
         if button == 3:
             self.dragging = None
+        if button == 1:
+            #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
+            #select them for movement
+            if self.selected_player == None:
+                if self.hovered_player is self.current_player and self.current_player.IsPlayer():
+                    #select them!
+                    self.selected_player = self.current_player
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
@@ -180,10 +207,15 @@ class Tiles(object):
             #if difference is non-zero it means that we didn't get what we requested for some reason,
             #so we should update dragging so it still points at the right place
             self.dragging = self.viewpos + pos
-            self.selected = GridCoords(self.viewpos + pos).to_int()
+            
+        self.selected = GridCoords(self.viewpos + pos).to_int()
+        self.selected.x = self.selected.x % self.width
+        self.hovered_player = self.GetTile(self.selected).GetActor()
+        if self.hovered_player is self.current_player:
+            self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
         else:
-            self.selected = GridCoords(self.viewpos + pos).to_int()
-            #print self.selected
+            self.selected_quad.tc[0:4] = self.tex_coords['selected']
+            
 
     def AddWizard(self,pos,type,isPlayer,name):
         new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
