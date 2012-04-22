@@ -20,6 +20,8 @@ class GameData(object):
     ui_buffer   = utils.QuadBuffer(131072)
     nonstatic_text_buffer = utils.QuadBuffer(131072)
     text_manager = None
+    main_menu = None
+    current_view = None
 
 def Init(gamedata):
     w,h = (1280,720)
@@ -55,7 +57,7 @@ if __name__ == '__main__':
     last = 0
     clock = pygame.time.Clock()
 
-    current_view = game_window.GameWindow()
+    gamedata.current_view = game_window.GameWindow()
 
     while not done:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -66,7 +68,7 @@ if __name__ == '__main__':
             last = t
 
         glLoadIdentity()
-        current_view.Update(t)
+        gamedata.current_view.Update(t)
         gamedata.text_manager.Draw()
         pygame.display.flip()
 
@@ -76,10 +78,10 @@ if __name__ == '__main__':
                 done = True
                 break
             elif event.type == pygame.MOUSEMOTION:
-                current_view.MouseMotion(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),Point(event.rel[0],-event.rel[1]))
+                gamedata.current_view.MouseMotion(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),Point(event.rel[0],-event.rel[1]))
             elif (event.type == KEYDOWN):
-                current_view.KeyDown(event.key)
+                gamedata.current_view.KeyDown(event.key)
             elif (event.type == MOUSEBUTTONDOWN):
-                current_view.MouseButtonDown(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
+                gamedata.current_view.MouseButtonDown(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
             elif (event.type == MOUSEBUTTONUP):
-                current_view.MouseButtonUp(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
+                gamedata.current_view.MouseButtonUp(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)

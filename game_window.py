@@ -380,9 +380,12 @@ class Tiles(object):
         self.RegisterUIElement(self.backdrop,0)
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = 3)
+        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.selected_quad.Delete()
+
+    def Quit(self,pos):
+        gamedata.current_view = gamedata.main_menu
         
 
         
