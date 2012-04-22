@@ -12,13 +12,27 @@ class Action(object):
     pass
 
 class MoveAction(Action):
-    def __init__(self,vector,t,duration = 200):
+    name = 'Move'
+    cost = 1
+    def __init__(self,vector,t,wizard,duration = 200):
         self.vector = vector
         self.start_time = t
         self.end_time = t + duration
-
-    def Action(self,wizard):
-        wizard.MoveRelative(self.vector)
+        self.wizard = wizard
+        
+    def Update(self,t):
+        if t > self.end_time:
+            self.wizard.MoveRelative(self.vector)
+            return True
+        return False
+        
+        
+class WizardBlastaction(Action):
+    name = 'Wizard Blast'
+    cost = 2
+    def __init__(self,vector,t,speed=4):
+        self.vector = vector
+        
 
 class Wizard(object):
     def __init__(self,pos,type,tiles,isPlayer,name):
@@ -35,6 +49,8 @@ class Wizard(object):
         self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
         self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(10),'Cost'.rjust(10)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
+
+        self.actions = [MoveAction]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
         self.options_box.Disable()
@@ -46,7 +62,7 @@ class Wizard(object):
                           
         self.isPlayer = isPlayer
         self.name = name
-        self.action_list = None
+        self.action_list = [] if self.IsPlayer() else None
         self.tiles = tiles
         self.selected = False
         
@@ -83,19 +99,23 @@ class Wizard(object):
 
     def TakeAction(self,t):
         if self.action_list == None:
-            #decide what to do!
+            #For a computer player, decide what to do
+            #regular players populate this list themselves
             #for now just move right 1 square
-            self.action_list = [ MoveAction(Point(1,0),t),MoveAction(Point(1,0),t) ]
+            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self) ]
+                      
+        #do the actions according to the times in them
+        
+        if len(self.action_list) == 0:
+            self.action_list = [] if self.IsPlayer() else None
+            #returning none means no action to perform, returning False means
+            #that the turn should be ended
+            return None if self.IsPlayer() else False
         else:
-            #do the actions according to the times in them
-            if len(self.action_list) == 0:
-                self.action_list = None
-                return True
-            else:
-                if t >= self.action_list[0].end_time:
-                    action = self.action_list.pop(0)
-                    action.Action(self)
-        return False
+            #if t >= self.action_list[0].end_time:
+            action = self.action_list.pop(0)
+            return action
+        
 
     def MoveRelative(self,offset):
         target = self.pos + offset

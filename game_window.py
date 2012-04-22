@@ -38,6 +38,7 @@ class Tiles(object):
         self.selected_player = None
         self.uielements = {}
         self.hovered_ui = None
+        self.current_action = None
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -141,11 +142,17 @@ class Tiles(object):
         self.viewpos = viewpos
 
     def Update(self,t):
-        if not self.current_player.IsPlayer():
-            #it's the computers turn
-            done = self.current_player.TakeAction(t)
-            if done:
+        if self.current_action:
+            finished = self.current_action.Update(t)
+            if finished:
+                self.current_action = None
+        else:
+            action = self.current_player.TakeAction(t)
+            if action == False:
                 self.NextPlayer()
+            if action != None:
+                self.current_action = action
+        
 
     def NextPlayer(self):
         if self.current_player == None:
