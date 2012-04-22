@@ -7,9 +7,10 @@ This is my entry into Ludum Dare 23, my first time!
 
 How to play
 -----------
-
+  - Extract the archive and run the "wizards" file
   - At the menu screen choose the configuration and press play
   - At the game screen, wait until it's your turn. Find your Wizard and choose an action (currently just move and blast. I had such grand plans :( )
+  - Note that the world wraps around (because it's Tiny, duh!) and your wizards can walk through the ocean, on account of them being giants
   - Click a square to perform that action on it. Move only works on adjacent squares, and the movement cost into water is actually 2, so you can't move in when you only have 1 action point
   - Press end turn when you're done
   - The last survivor wins!
