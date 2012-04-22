@@ -144,6 +144,9 @@ class TextManager(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
+    def Purge(self):
+        self.quads.truncate(0)
+
 
 class UIElement(object):
     def __init__(self,pos,tr):
@@ -186,44 +189,53 @@ class BoxUI(UIElement):
         print 'Got a click at',pos,button
 
 class TextButtonUI(UIElement):
-    def __init__(self,text,pos,size=0.5,callback = None):
+    def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
         self.text = TextObject(text,gamedata.text_manager)
         self.text.Position(pos,size)
         self.pos = pos
         self.callback = callback
         super(TextButtonUI,self).__init__(pos,self.text.top_right)
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
+        self.line_width = line_width
+        self.SetVertices()
+        self.hovered = False
+        self.selected = False
+        for i in xrange(4):
+            self.hover_quads[i].Disable()
+
+    def SetVertices(self):
         for i in xrange(4):
             utils.setcolour(self.hover_quads[i].colour,(1,0,0,1))
         
         #top bar
-        line_width = 2
         utils.setvertices(self.hover_quads[0].vertex,
-                          Point(self.pos.x,self.top_right.y-line_width),
+                          Point(self.pos.x,self.top_right.y-self.line_width),
                           self.top_right,
                           utils.ui_level+1)
         #right bar
         utils.setvertices(self.hover_quads[1].vertex,
-                          Point(self.top_right.x-line_width,self.pos.y),
+                          Point(self.top_right.x-self.line_width,self.pos.y),
                           self.top_right,
                           utils.ui_level+1)
         
         #bottom bar
         utils.setvertices(self.hover_quads[2].vertex,
                           self.pos,
-                          Point(self.top_right.x,self.pos.y+line_width),
+                          Point(self.top_right.x,self.pos.y+self.line_width),
                           utils.ui_level+1)
 
         #left bar
         utils.setvertices(self.hover_quads[3].vertex,
                           self.pos,
-                          Point(self.pos.x+line_width,self.top_right.y),
+                          Point(self.pos.x+self.line_width,self.top_right.y),
                           utils.ui_level+1)
                           
-        for i in xrange(4):
-            self.hover_quads[i].Disable()
-        self.hovered = False
-        self.selected = False
+        
+
+    def SetText(self,newtext):
+        self.text.SetText(newtext)
+        self.top_right = self.text.top_right
+        self.SetVertices()
 
     def Hover(self):
         self.hovered = True

@@ -6,6 +6,8 @@ gamedata = None
 ui_level   = 2
 text_level = 10
 
+full_tc       = numpy.array([(0,0),(0,1),(1,1),(1,0)],numpy.float32)
+
 class QuadBuffer(object):
     def __init__(self,size):
         self.vertex_data  = numpy.zeros((size*4,3),numpy.float32)

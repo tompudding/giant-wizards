@@ -3,7 +3,7 @@ import utils
 from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard,pygame
+import texture,numpy,random,perlin,wizard,pygame,main_menu
 
 gamedata = None
 
@@ -383,11 +383,12 @@ class Tiles(object):
         self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.selected_quad.Delete()
+        gamedata.textmanager.Purge()
 
     def Quit(self,pos):
-        gamedata.current_view = gamedata.main_menu
+        gamedata.current_view = main_menu.MainMenu()
         
-
+names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         
 
 class GameWindow(object):
@@ -398,7 +399,6 @@ class GameWindow(object):
                            'tiles.data' ,
                            map_size     )
         #this will get passed in eventually, but for now configure statically
-        names = ['Purple Wizard','Red Wizard']#,'Yellow Wizard','Green Wizard']
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
         positions = []
         total_tried = 0

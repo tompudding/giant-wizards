@@ -5,7 +5,7 @@ import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window,wizard,texture
+import game_window,wizard,texture,main_menu
 #some sort of hack to get py2exe to work
 try:
     from OpenGL.platform import win32
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     #first make a gamedata struct and set it up in the other modules so they can access it
     #not at all sure that this is best practice.
     gamedata = GameData()
-    for module in utils,game_window,wizard,texture:
+    for module in utils,game_window,wizard,texture,main_menu:
         setattr(module,'gamedata',gamedata)
     
     Init(gamedata)
@@ -57,7 +57,9 @@ if __name__ == '__main__':
     last = 0
     clock = pygame.time.Clock()
 
-    gamedata.current_view = game_window.GameWindow()
+    #gamedata.current_view = game_window.GameWindow()
+    gamedata.main_menu = main_menu.MainMenu()
+    gamedata.current_view = gamedata.main_menu
 
     while not done:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
