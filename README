@@ -1,8 +1,21 @@
 Giant Wizards from the Outer Rim!
 
 When you're a giant wizard,
-The world seems tiny...
+All worlds seems tiny...
 
-This is my entry into Ludum Dare 23, my first time! Here's hoping I finish.
+This is my entry into Ludum Dare 23, my first time! 
 
-The idea is to have something a little bit like chaos, except where the board is a full world because all the wizards are giants (obviously). 
+How to play
+-----------
+
+  - At the menu screen choose the configuration and press play
+  - At the game screen, wait until it's your turn. Find your Wizard and choose an action (currently just move and blast. I had such grand plans :( )
+  - Click a square to perform that action on it. Move only works on adjacent squares, and the movement cost into water is actually 2, so you can't move in when you only have 1 action point
+  - Press end turn when you're done
+  - The last survivor wins!
+
+Known Bugs
+---------
+  - The enemies are exceptionally stupid (They move towards their nearest wizard and blast them when in range)
+  - Blasts go through mountains
+  - Trees are just decoration 
