@@ -284,10 +284,6 @@ class Tiles(object):
             if action != None:
                 self.current_action = action
 
-
-
-            
-
     def AddWizard(self,pos,type,isPlayer,name):
         target_tile = self.GetTile(pos)
         count = 0
@@ -341,6 +337,36 @@ class GameWindow(object):
                            map_size     )
         #this will get passed in eventually, but for now configure statically
         names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
+        #first come up with random positions that aren't too close to each other and aren't on top of a mountain
+        positions = []
+        total_tried = 0
+        while not len(positions) < len(names):
+            good_position = False
+            tries = 0
+            total_tried += 1
+            if total_tried > 100:
+                #something is wrong here
+                print 'Something very wrong has happened to the map. Try again?'
+                raise SystemExit
+            while not good_position:
+                tries += 1
+                if count > 10000:
+                    #maybe we've tried an unwinnable configuration? start over
+                    positions = []
+                    break
+                pos = Point(*[random.randint(0,v-1) for v in map_size])
+                target_tile = self.tiles.GetTile(pos)
+                if target_tile.name == 'mountain':
+                    continue
+                try:
+                    for other_pos in positions:
+                        if (other_pos - pos).length() < 5:
+                            raise ValueError
+                except ValueError:
+                    continue
+                positions.append(pos)
+                
+            
         for i in xrange(4):
             self.tiles.AddWizard(pos  = Point(*[random.randint(0,v-1) for v in map_size]),
                                  type = i,
