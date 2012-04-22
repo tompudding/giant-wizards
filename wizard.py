@@ -112,8 +112,11 @@ class ActionChoice(object):
     def OnClick(self,pos,button):
         pos = pos.to_int()
         vector = (pos - self.wizard.pos).to_int()
-        action = self.action(vector,0,self.wizard,5000)
+        vector.x = (vector.x + self.wizard.tiles.width)%self.wizard.tiles.width
+        action = self.action(vector,0,self.wizard)
+        print 'action clock',vector
         if action.Valid():
+            print 'valid'
             self.wizard.action_list.append(action)
         
 
@@ -231,7 +234,7 @@ class Wizard(object):
                     if offset.y != 0:
                         vector.y = 1 if offset.y > 0 else -1
                     target = current_pos + vector
-                    target.x = (target.x%self.tiles.width)
+                    target.x = ((target.x+self.tiles.width)%self.tiles.width)
                     target_tile = self.tiles.GetTile(target)
                     if target_tile.movement_cost <= action_points:
                         self.action_list.append( MoveAction(vector,t,self) )
@@ -255,18 +258,15 @@ class Wizard(object):
 
     def MoveRelative(self,offset):
         target = self.pos + offset
-        if target.x >= self.tiles.width:
-            target.x -= self.tiles.width
-        if target.x < 0:
-            target.x += self.tiles.width
+        target.x = (target.x+self.tiles.width)%self.tiles.width
         if target.y >= self.tiles.height:
             target.y = self.tiles.height-1
         if target.y < 0:
             target.y = 0
         
-        self.tiles.GetTile(self.pos).SetActor(None)
         target_tile = self.tiles.GetTile(target)
         if self.action_points >= target_tile.movement_cost and target_tile.Empty():
+            self.tiles.GetTile(self.pos).SetActor(None)
             self.AdjustActionPoints(-target_tile.movement_cost)
             self.SetPos(target)
             

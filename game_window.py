@@ -41,6 +41,8 @@ class Tiles(object):
         self.current_action = None
         self.player_action = None
         
+        gamedata.map_size = self.map_size
+        
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
         #about them yet.
@@ -214,15 +216,18 @@ class Tiles(object):
         if self.hovered_ui:
             self.hovered_ui.OnClick(pos,button)
         else:
+            print 'aa',self.current_action
             if button == 1 and not self.current_action: #don't accept clicks while an actions happening
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
+                print 'ab',self.selected_player,self.hovered_player
                 if self.selected_player == None:
                     if self.hovered_player is self.current_player and self.current_player.IsPlayer():
                         #select them!
                         self.selected_player = self.current_player
                         self.selected_player.Select()
                 else:
+                    print 'ac',self.player_action
                     if self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked
                         current_viewpos = self.viewpos + pos
@@ -263,7 +268,7 @@ class Tiles(object):
                 self.hovered_ui = None
             self.selected_quad.Enable()
             self.selected = GridCoords(current_viewpos).to_int()
-            self.selected.x = self.selected.x % self.width
+            self.selected.x = (self.selected.x+self.width) % self.width
             self.hovered_player = self.GetTile(self.selected).GetActor()
             if self.hovered_player is self.current_player:
                 self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']

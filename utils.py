@@ -174,7 +174,9 @@ class Point(object):
         return out
 
     def length(self):
-        return math.sqrt(self.x**2 + self.y**2)
+        a = math.sqrt(self.x**2 + self.y**2)
+        b = math.sqrt((gamedata.map_size[0]-self.x)**2+self.y**2)
+        return min(a,b)
 
 def GridCoordsX(point):
     return (float(point.x)/gamedata.tile_dimensions.x)
