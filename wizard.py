@@ -1,4 +1,4 @@
-import utils
+import utils,texture
 from utils import Point
 
 gamedata = None
@@ -26,12 +26,15 @@ class Wizard(object):
         self.type = type
         self.quad = utils.Quad(gamedata.quad_buffer)
         self.uiquad = utils.Quad(gamedata.ui_buffer)
+        self.text = texture.TextObject(name+':',gamedata.text_manager)
+        self.text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         utils.setcolour(self.uiquad.colour,(0,0,0,1))
         utils.setvertices(self.uiquad.vertex,
                           Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                           Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                           utils.ui_level)
         self.uiquad.Disable()
+        self.text.Disable()
         
                           
         self.isPlayer = isPlayer
@@ -49,9 +52,11 @@ class Wizard(object):
         tile_data.SetActor(self)
 
     def Select(self):
+        self.text.Enable()
         self.uiquad.Enable()
     
     def Unselect(self):
+        self.text.Disable()
         self.uiquad.Disable()
         
 

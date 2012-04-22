@@ -76,6 +76,7 @@ class Quad(object):
             self.vertex[0:4] = vertex
         if tc != None:
             self.tc[0:4] = tc
+        self.old_vertices = None
 
     def Delete(self):
         self.source.RemoveQuad(self.index)
@@ -88,8 +89,10 @@ class Quad(object):
             self.vertex[i] = (0,0,0)
 
     def Enable(self):
-        for i in xrange(4):
-            self.vertex[i] = self.old_vertices[i]
+        if self.old_vertices != None:
+            for i in xrange(4):
+                self.vertex[i] = self.old_vertices[i]
+            self.old_vertices = None
 
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)

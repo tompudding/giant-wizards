@@ -97,6 +97,14 @@ class TextObject(object):
         print self.text
         self.quads = [self.textmanager.Letter(char) for char in self.text]
         self.Position(self.pos,self.scale)
+
+    def Disable(self):
+        for q in self.quads:
+            q.Disable()
+
+    def Enable(self):
+        for q in self.quads:
+            q.Enable()
             
 
 class TextManager(object):
