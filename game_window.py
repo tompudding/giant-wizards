@@ -356,6 +356,8 @@ class Tiles(object):
         return match[1]
 
     def RemoveWizard(self,wizard):
+        tile = self.GetTile(wizard.pos)
+        tile.SetActor(None)
         pos = self.wizards.index(wizard)
         del self.wizards[pos]
         if len(self.wizards) == 1:
