@@ -40,6 +40,7 @@ class Tiles(object):
         self.hovered_ui = None
         self.current_action = None
         self.player_action = None
+        self.gameover = False
         
         gamedata.map_size = self.map_size
         
@@ -238,7 +239,7 @@ class Tiles(object):
             self.dragging = None
         if self.hovered_ui:
             self.hovered_ui.OnClick(pos,button)
-        else:
+        elif not self.gameover:
             print 'aa',self.current_action
             if button == 1 and not self.current_action: #don't accept clicks while an actions happening
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
@@ -291,16 +292,19 @@ class Tiles(object):
             if self.hovered_ui != None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
-            self.selected_quad.Enable()
-            self.selected = GridCoords(current_viewpos).to_int()
-            self.selected.x = (self.selected.x+self.width) % self.width
-            self.hovered_player = self.GetTile(self.selected).GetActor()
-            if self.hovered_player is self.current_player:
-                self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
-            else:
-                self.selected_quad.tc[0:4] = self.tex_coords['selected']
+            if not self.gameover:
+                self.selected_quad.Enable()
+                self.selected = GridCoords(current_viewpos).to_int()
+                self.selected.x = (self.selected.x+self.width) % self.width
+                self.hovered_player = self.GetTile(self.selected).GetActor()
+                if self.hovered_player is self.current_player:
+                    self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+                else:
+                    self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
     def Update(self,t):
+        if self.gameover:
+            return
         if self.current_action:
             finished = self.current_action.Update(t)
             if finished:
@@ -361,8 +365,25 @@ class Tiles(object):
         del self.wizards[pos]
         if len(self.wizards) == 1:
             winner = self.wizards[0]
-            print winner.name,'wins!'
-            raise SystemExit
+            self.GameOver(winner)
+            
+    def GameOver(self,winner):
+        self.gameover = True
+        for element in self.uielements:
+            element.Disable()
+        self.uielements = {}
+
+        self.backdrop = texture.BoxUI(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
+                                      Point(gamedata.screen.x*0.7,gamedata.screen.y*0.7),
+                                      (0,0,0,0.6))
+        self.backdrop.Enable()
+        self.RegisterUIElement(self.backdrop,0)
+        self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
+        self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
+        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = 3)
+        self.RegisterUIElement(self.return_button,0)
+        self.selected_quad.Delete()
+        
 
         
 
@@ -374,7 +395,7 @@ class GameWindow(object):
                            'tiles.data' ,
                            map_size     )
         #this will get passed in eventually, but for now configure statically
-        names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
+        names = ['Purple Wizard','Red Wizard']#,'Yellow Wizard','Green Wizard']
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
         positions = []
         total_tried = 0
@@ -406,10 +427,10 @@ class GameWindow(object):
                 break
                 
             
-        for i in xrange(4):
+        for i in xrange(2):
             self.tiles.AddWizard(pos  = positions[i],
                                  type = i,
-                                 isPlayer = True if i == 0 else False,
+                                 isPlayer = False,# if i == 0 else False,
                                  name = names[i])
         self.tiles.NextPlayer()
         
