@@ -39,6 +39,9 @@ class MoveAction(Action):
 class WizardBlastAction(Action):
     name = 'Wizard Blast'
     cost = 2
+    range = 5
+    min_damage = 1
+    max_damage = 3
     def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
         self.wizard = wizard
@@ -83,7 +86,7 @@ class WizardBlastAction(Action):
                 return False
 
     def Valid(self):
-        if self.vector.length() < 5:
+        if self.vector.length() < WizardBlastAction.range:
             return True
         return False
 
@@ -118,6 +121,7 @@ class Wizard(object):
     def __init__(self,pos,type,tiles,isPlayer,name):
         self.pos = pos
         self.type = type
+        self.health = 10
         self.quad = utils.Quad(gamedata.quad_buffer)
         self.action_points = 0
         self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
@@ -198,9 +202,40 @@ class Wizard(object):
             #regular players populate this list themselves
             #for now just move right 1 square
             action_points = self.action_points
-            
-            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastAction(Point(2,2),t,self) ]
-                      
+            self.action_list = []
+            #Find the nearest enemy
+            match = [None,None,None]
+            for wizard in self.tiles.wizards:
+                if wizard is self:
+                    continue
+                offset = wizard.pos - self.pos
+                distance = offset.length()
+                if match[0] == None or distance < match[0]:
+                    match = [distance,wizard,offset]
+            if match[1] == None:
+                #wtf? There are no other wizards? the game should have ended
+                return False
+            distance,wizard,offset = match
+            current_pos = self.pos
+            while action_points > 0:
+                if distance < WizardBlastAction.range:
+                    self.action_list.append( WizardBlastAction(offset,t,self) )
+                    action_points -= WizardBlastAction.cost
+                else:
+                    vector = Point(0,0)
+                    if offset.x != 0:
+                        vector.x = 1 if offset.x > 0 else -1
+                    if offset.y != 0:
+                        vector.y = 1 if offset.y > 0 else -1
+                    target = current_pos + vector
+                    target_tile = self.tiles.GetTile(target)
+                    if target_tile.movement_cost <= action_points:
+                        self.action_list.append( MoveAction(vector,t,self) )
+                        action_points -= target_tile.movement_cost
+                    else:
+                        #can't do anything else
+                        break
+                    
         #do the actions according to the times in them
         
         if len(self.action_list) == 0:
