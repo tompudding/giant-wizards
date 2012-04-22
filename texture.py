@@ -143,9 +143,10 @@ class TextManager(object):
         glLoadIdentity()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
         glVertexPointerf(self.quads.vertex_data)
         glTexCoordPointerf(self.quads.tc_data)
-
+        glColorPointer(4,GL_FLOAT,0,self.quads.colour_data)
         glDrawElements(GL_QUADS,self.quads.current_size,GL_UNSIGNED_INT,self.quads.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
