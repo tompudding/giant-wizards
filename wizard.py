@@ -16,11 +16,16 @@ class MoveAction(Action):
     cost = 1
     def __init__(self,vector,t,wizard,duration = 200):
         self.vector = vector
-        self.start_time = t
-        self.end_time = t + duration
+        self.initialised = False
+        self.duration = duration
+        
         self.wizard = wizard
         
     def Update(self,t):
+        if not self.initialised:
+            self.start_time = t
+            self.end_time = t + self.duration
+            self.initialised = True
         if t > self.end_time:
             self.wizard.MoveRelative(self.vector)
             return True
@@ -30,8 +35,37 @@ class MoveAction(Action):
 class WizardBlastaction(Action):
     name = 'Wizard Blast'
     cost = 2
-    def __init__(self,vector,t,speed=4):
+    def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
+        self.wizard = wizard
+        self.quad = utils.Quad(gamedata.quad_buffer,tc = self.wizard.tiles.tex_coords['blast'])
+        self.quad.Disable()
+        self.speed = speed
+        self.initialised = False
+        
+    def Update(self,t):
+        if not self.initialised:
+            self.start_time = t
+            self.end_time = self.start_time + (self.vector.length()*1000/self.speed)
+            self.duration = self.end_time - self.start_time
+            self.start_pos = self.wizard.pos
+            self.end_pos  = self.start_pos + self.vector
+            self.initialised = True
+            
+        if t > self.end_time:
+            #check to see if the target needs to take damage
+            print 'damage placeholder'
+            self.quad.Delete()
+            self.quad = None
+            return True
+        elif t > self.start_time:
+            part = float(t-self.start_time)/self.duration
+            pos = self.start_pos + self.vector*part
+            utils.setvertices(self.quad.vertex,
+                              utils.WorldCoords(pos),
+                              utils.WorldCoords(pos+Point(1,1)),
+                              0.5)
+            return False
         
 
 class Wizard(object):
@@ -102,7 +136,7 @@ class Wizard(object):
             #For a computer player, decide what to do
             #regular players populate this list themselves
             #for now just move right 1 square
-            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self) ]
+            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastaction(Point(4,4),t,self) ]
                       
         #do the actions according to the times in them
         
