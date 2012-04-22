@@ -12,7 +12,6 @@ class MainMenu(object):
         self.texture = texture.Texture('main.png')
         self.uielements = {}
         self.backdrop = utils.Quad(gamedata.ui_buffer,tc = utils.full_tc)
-        print 'sdfd',self.backdrop.index
         utils.setvertices(self.backdrop.vertex,
                           Point(0,0),
                           gamedata.screen,
@@ -97,14 +96,12 @@ class MainMenu(object):
         a = {}
         a[element] = True
         self.uielements[element] = height
-        print 'a',self.uielements
 
     def RemoveUIElement(self,element):
         try:
             del self.uielements[element]
         except KeyError:
             pass
-        print 'b',self.uielements
 
     def HoveredUiElement(self,pos):
         #not very efficient, but I only have 2 days, come on.

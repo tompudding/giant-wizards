@@ -67,7 +67,6 @@ class TextureAtlas(object):
     
     def TransformCoords(self,subimage,tc):
         subimage = self.subimages[subimage]
-        #print subimage.pos
         for i in xrange(len(tc)):
             self.TransformCoord(subimage,tc[i])
 
@@ -196,7 +195,7 @@ class BoxUI(UIElement):
         self.quad.Enable()
 
     def OnClick(self,pos,button):
-        print 'Got a click at',pos,button
+        pass
 
 class TextButtonUI(UIElement):
     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
@@ -287,7 +286,6 @@ class TextButtonUI(UIElement):
             self.hover_quads[i].Disable()
 
     def OnClick(self,pos,button):
-        print 'Got a text click',pos,button
         if self.callback != None and button == 1:
             self.callback(pos)
             

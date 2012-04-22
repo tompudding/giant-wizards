@@ -121,7 +121,6 @@ class ActionChoice(object):
             other = (vector.x + self.wizard.tiles.width )
         else:
             other = (vector.x - self.wizard.tiles.width )
-        print vector.x,other
         if abs(other) < abs(vector.x):
             vector.x = other
         if vector.to_int() == Point(0,0):
@@ -129,9 +128,7 @@ class ActionChoice(object):
             return
 
         action = self.action(vector,0,self.wizard)
-        print 'action clock',vector
         if action.Valid():
-            print 'valid'
             self.wizard.action_list.append(action)
         
 
@@ -238,7 +235,6 @@ class Wizard(object):
                     other = (offset.x + self.tiles.width )
                 else:
                     other = (offset.x - self.tiles.width )
-                print offset.x,other
                 if abs(other) < abs(offset.x):
                     offset.x = other
 
@@ -322,7 +318,6 @@ class Wizard(object):
     
 
     def HandleAction(self,pos,action):
-        print 'handlemove!',self.pos,pos
         if self.tiles.player_action is action:
             self.tiles.player_action = None
             action.Unselected()
@@ -347,9 +342,7 @@ class Wizard(object):
     def Damage(self,value):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
-        print self.name,'has been hit for %d points of damage, health now %d' % (value,self.health)
         if self.health <= 0:
-            print self.name,'has died!'
             self.quad.Delete()
             self.health_text.Delete()
             self.tiles.RemoveWizard(self)

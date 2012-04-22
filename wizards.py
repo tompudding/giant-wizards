@@ -68,7 +68,7 @@ if __name__ == '__main__':
         clock.tick(60)
         t = pygame.time.get_ticks()
         if t - last > 1000:
-            print 'FPS:',clock.get_fps()
+            #print 'FPS:',clock.get_fps()
             last = t
 
         glLoadIdentity()

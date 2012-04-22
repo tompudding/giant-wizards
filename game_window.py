@@ -144,9 +144,6 @@ class Tiles(object):
             viewgrid.y = self.height
             viewpos = (WorldCoords(viewgrid).to_int())-top_right
         
-
-        #print viewpos
-        
         self.viewpos = viewpos        
 
     def NextPlayer(self):
@@ -240,24 +237,20 @@ class Tiles(object):
         if self.hovered_ui:
             self.hovered_ui.OnClick(pos,button)
         elif not self.gameover:
-            print 'aa',self.current_action
             if button == 1 and not self.current_action: #don't accept clicks while an actions happening
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
-                print 'ab',self.selected_player,self.hovered_player
                 if self.selected_player == None:
                     if self.hovered_player is self.current_player and self.current_player.IsPlayer():
                         #select them!
                         self.selected_player = self.current_player
                         self.selected_player.Select()
                 else:
-                    print 'ac',self.player_action
                     if self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked
                         current_viewpos = self.viewpos + pos
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
                         self.player_action.OnClick(utils.GridCoords(current_viewpos),button)
-                        print 'gish'
                      
                     #Remove the ability of the player to deselect his wizard, since we didn't get round to implementing
                     #monsters we don't need it
@@ -265,7 +258,6 @@ class Tiles(object):
                     #    print 'unselect!'
                     #    self.selected_player.Unselect()
                     #    self.selected_player = None
-        print 'bosh'
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
@@ -337,14 +329,12 @@ class Tiles(object):
         a = {}
         a[element] = True
         self.uielements[element] = height
-        print 'a',self.uielements
 
     def RemoveUIElement(self,element):
         try:
             del self.uielements[element]
         except KeyError:
             pass
-        print 'b',self.uielements
 
     def HoveredUiElement(self,pos):
         #not very efficient, but I only have 2 days, come on.
