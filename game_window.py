@@ -155,6 +155,7 @@ class Tiles(object):
             self.current_player_index += 1
             self.current_player_index %= len(self.wizards)
             self.current_player = self.wizards[self.current_player_index]
+        self.selected_player = None
         #self.text.Delete()
         #self.text = texture.TextObject('It\'s %s\'s turn.' % (self.current_player.name),gamedata.text_manager) 
         #self.text.Position(Point(10,10))

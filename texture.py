@@ -186,10 +186,11 @@ class BoxUI(UIElement):
         print 'Got a click at',pos,button
 
 class TextButtonUI(UIElement):
-    def __init__(self,text,pos):
+    def __init__(self,text,pos,callback = None):
         self.text = TextObject(text,gamedata.text_manager)
         self.text.Position(pos,0.5)
         self.pos = pos
+        self.callback = callback
         super(TextButtonUI,self).__init__(pos,self.text.top_right)
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         for i in xrange(4):
@@ -245,6 +246,8 @@ class TextButtonUI(UIElement):
 
     def OnClick(self,pos,button):
         print 'Got a text click',pos,button
+        if self.callback != None and button == 1:
+            self.callback(pos)
             
         
         

@@ -25,14 +25,19 @@ class Wizard(object):
         self.pos = pos
         self.type = type
         self.quad = utils.Quad(gamedata.quad_buffer)
+        self.action_points = 0
         self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                          (0,0,0,0.6))
-        self.text = texture.TextObject(name+':',gamedata.text_manager)
-        self.text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
+        self.title = texture.TextObject(name+':',gamedata.text_manager)
+        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
+        self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
+        self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.5)
+        self.static_text = [self.title,self.action_points_text]
         self.options_box.Disable()
-        self.text.Disable()
-        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07))
+        for t in self.static_text:
+            t.Disable()
+        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
         self.end_turn.Disable()
         
                           
@@ -40,6 +45,7 @@ class Wizard(object):
         self.name = name
         self.action_list = None
         self.tiles = tiles
+        self.selected = False
         
     def SetPos(self,pos):
         self.pos = pos
@@ -51,14 +57,18 @@ class Wizard(object):
         tile_data.SetActor(self)
 
     def Select(self):
-        self.text.Enable()
+        self.selected = True
+        for t in self.static_text:
+            t.Enable()
         self.end_turn.Enable()
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box)
         self.tiles.RegisterUIElement(self.end_turn)
     
     def Unselect(self):
-        self.text.Disable()
+        self.selected = False
+        for t in self.static_text:
+            t.Disable()
         self.end_turn.Disable()
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
@@ -95,11 +105,18 @@ class Wizard(object):
         if target.y < 0:
             target.y = 0
         target_tile = self.tiles.GetTile(target)
-        if self.movement_allowance >= target_tile.movement_cost and target_tile.Empty():
-            self.movement_allowance -= target_tile.movement_cost
+        if self.action_points >= target_tile.movement_cost and target_tile.Empty():
+            self.action_points -= target_tile.movement_cost
             self.tiles.GetTile(self.pos).SetActor(None)
             self.SetPos(target)
             
 
     def StartTurn(self):
-        self.movement_allowance = 2
+        self.action_points = 4
+        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        if not self.selected:
+            self.action_points_text.Disable()
+
+    def EndTurn(self,pos):
+        self.Unselect()
+        self.tiles.NextPlayer()
