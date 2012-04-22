@@ -39,6 +39,7 @@ class Tiles(object):
         self.uielements = {}
         self.hovered_ui = None
         self.current_action = None
+        self.player_action = None
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -76,7 +77,13 @@ class Tiles(object):
             for y in xrange(0,map_size[1]):
                 w,h = gamedata.tile_dimensions
                 noise_level = self.noise.noise2(x*0.1,y*0.1)
-                if noise_level >= 0.2:
+                if noise_level >= 0.8:
+                    type = 'mountain'
+                    movement_cost = 99
+                elif noise_level >= 0.6:
+                    type = 'tree'
+                    movement_cost = 1
+                elif noise_level >= 0.2:
                     type = 'grass'
                     movement_cost = 1
                 else:
@@ -139,20 +146,7 @@ class Tiles(object):
 
         #print viewpos
         
-        self.viewpos = viewpos
-
-    def Update(self,t):
-        if self.current_action:
-            finished = self.current_action.Update(t)
-            if finished:
-                self.current_action = None
-        else:
-            action = self.current_player.TakeAction(t)
-            if action == False:
-                self.NextPlayer()
-            if action != None:
-                self.current_action = action
-        
+        self.viewpos = viewpos        
 
     def NextPlayer(self):
         if self.current_player == None:
@@ -210,9 +204,7 @@ class Tiles(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
-        
-        
-
+            
     def MouseButtonDown(self,pos,button):
         if button == 3:
             self.dragging = self.viewpos + pos
@@ -234,7 +226,11 @@ class Tiles(object):
                         self.selected_player.Select()
 
                 else:
-                    if self.hovered_player is not self.current_player:
+                    if self.player_action != None:
+                        #we've selected and action like move, so tell it where they clicked
+                        self.player_action.OnClick(pos,button)
+                        
+                    elif self.hovered_player is not self.current_player:
                         self.selected_player.Unselect()
                         self.selected_player = None
 
@@ -271,9 +267,32 @@ class Tiles(object):
                 self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
             else:
                 self.selected_quad.tc[0:4] = self.tex_coords['selected']
+
+    def Update(self,t):
+        if self.current_action:
+            finished = self.current_action.Update(t)
+            if finished:
+                self.current_action = None
+        else:
+            action = self.current_player.TakeAction(t)
+            if action == False:
+                self.NextPlayer()
+            if action != None:
+                self.current_action = action
+
+
+
             
 
     def AddWizard(self,pos,type,isPlayer,name):
+        target_tile = self.GetTile(pos)
+        count = 0
+        while target_tile.name == 'mountain':
+            pos.x = (pos.x + 1)%self.width
+            target_tile = self.GetTile(pos)
+            count += 1
+            if count >= self.width:
+                target_tile.name = 'grass'
         new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
         new_wizard.SetPos(pos)
         self.wizards.append(new_wizard)

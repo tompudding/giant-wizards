@@ -68,10 +68,10 @@ class WizardBlastAction(Action):
             return False
 
 class ActionChoice(object):
-    def __init__(self,action,position):
+    def __init__(self,action,position,callback = None):
         self.action = action
         self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = 3)
+        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = callback)
         
     def Enable(self):
         self.text.Enable()
@@ -96,8 +96,12 @@ class Wizard(object):
         self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
 
-        self.action_choices = [ActionChoice(MoveAction,Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81)),
-                               ActionChoice(WizardBlastAction,Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785))]
+        self.action_choices = [ActionChoice(MoveAction,
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                            callback = self.HandleMove),
+                               ActionChoice(WizardBlastAction,
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
+                                            callback = self.HandleBlast)]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
         self.options_box.Disable()
@@ -198,3 +202,9 @@ class Wizard(object):
     def EndTurn(self,pos):
         self.Unselect()
         self.tiles.NextPlayer()
+
+    def HandleMove(self,pos):
+        print 'handlemove!'
+        
+    def HandleBlast(self,pos):
+        print 'handleblast!'

@@ -223,6 +223,7 @@ class TextButtonUI(UIElement):
         for i in xrange(4):
             self.hover_quads[i].Disable()
         self.hovered = False
+        self.selected = False
 
     def Hover(self):
         self.hovered = True
@@ -231,8 +232,23 @@ class TextButtonUI(UIElement):
 
     def EndHover(self):
         self.hovered = False
+        if not self.hovered and not self.selected:
+            for i in xrange(4):
+                self.hover_quads[i].Disable()
+
+    def Selected(self):
+        self.selected = True
         for i in xrange(4):
-            self.hover_quads[i].Disable()
+            utils.setcolour(self.hover_quads[i].colour,(0,0,1,1))
+            self.hover_quads[i].Enable()
+
+    def Unselected(self):
+        self.selected = False
+        for i in xrange(4):
+            utils.setcolour(self.hover_quads[i].colour,(1,0,0,1))
+        if not self.hovered and not self.selected:
+            for i in xrange(4):
+                self.hover_quads[i].Disable()
 
     def Enable(self):
         if self.hovered:
