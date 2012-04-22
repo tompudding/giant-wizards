@@ -301,6 +301,7 @@ class Tiles(object):
                 self.NextPlayer()
 
     def GetTile(self,pos):
+        pos.x = pos.x%self.width
         return self.map[pos.x][pos.y]
 
     def RegisterUIElement(self,element,height):

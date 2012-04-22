@@ -209,6 +209,9 @@ class Wizard(object):
                 if wizard is self:
                     continue
                 offset = wizard.pos - self.pos
+                if abs(offset.x) > (self.tiles.width/2):
+                    offset.x += self.tiles.width
+
                 distance = offset.length()
                 if match[0] == None or distance < match[0]:
                     match = [distance,wizard,offset]
@@ -228,6 +231,7 @@ class Wizard(object):
                     if offset.y != 0:
                         vector.y = 1 if offset.y > 0 else -1
                     target = current_pos + vector
+                    target.x = (target.x%self.tiles.width)
                     target_tile = self.tiles.GetTile(target)
                     if target_tile.movement_cost <= action_points:
                         self.action_list.append( MoveAction(vector,t,self) )
