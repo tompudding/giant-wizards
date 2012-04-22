@@ -186,9 +186,9 @@ class BoxUI(UIElement):
         print 'Got a click at',pos,button
 
 class TextButtonUI(UIElement):
-    def __init__(self,text,pos,callback = None):
+    def __init__(self,text,pos,size=0.5,callback = None):
         self.text = TextObject(text,gamedata.text_manager)
-        self.text.Position(pos,0.5)
+        self.text.Position(pos,size)
         self.pos = pos
         self.callback = callback
         super(TextButtonUI,self).__init__(pos,self.text.top_right)

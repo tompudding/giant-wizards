@@ -32,7 +32,7 @@ class MoveAction(Action):
         return False
         
         
-class WizardBlastaction(Action):
+class WizardBlastAction(Action):
     name = 'Wizard Blast'
     cost = 2
     def __init__(self,vector,t,wizard,speed=4):
@@ -66,6 +66,18 @@ class WizardBlastaction(Action):
                               utils.WorldCoords(pos+Point(1,1)),
                               0.5)
             return False
+
+class ActionChoice(object):
+    def __init__(self,action,position):
+        self.action = action
+        self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
+        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = 3)
+        
+    def Enable(self):
+        self.text.Enable()
+
+    def Disable(self):
+        self.text.Disable()
         
 
 class Wizard(object):
@@ -81,15 +93,18 @@ class Wizard(object):
         self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
         self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
-        self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(10),'Cost'.rjust(10)),gamedata.text_manager)
+        self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
 
-        self.actions = [MoveAction]
+        self.action_choices = [ActionChoice(MoveAction,Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81)),
+                               ActionChoice(WizardBlastAction,Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785))]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
         self.options_box.Disable()
         for t in self.static_text:
             t.Disable()
+        for a in self.action_choices:
+            a.Disable()
         self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
         self.end_turn.Disable()
         
@@ -113,15 +128,21 @@ class Wizard(object):
         self.selected = True
         for t in self.static_text:
             t.Enable()
+        for a in self.action_choices:
+            a.Enable()
+            self.tiles.RegisterUIElement(a.text,1)
         self.end_turn.Enable()
         self.options_box.Enable()
-        self.tiles.RegisterUIElement(self.options_box)
-        self.tiles.RegisterUIElement(self.end_turn)
+        self.tiles.RegisterUIElement(self.options_box,0)
+        self.tiles.RegisterUIElement(self.end_turn,1)
     
     def Unselect(self):
         self.selected = False
         for t in self.static_text:
             t.Disable()
+        for a in self.action_choices:
+            a.Disable()
+            self.tiles.RemoveUIElement(a.text)
         self.end_turn.Disable()
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
@@ -136,7 +157,7 @@ class Wizard(object):
             #For a computer player, decide what to do
             #regular players populate this list themselves
             #for now just move right 1 square
-            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastaction(Point(4,4),t,self) ]
+            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastAction(Point(4,4),t,self) ]
                       
         #do the actions according to the times in them
         

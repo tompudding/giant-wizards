@@ -163,11 +163,7 @@ class Tiles(object):
             self.current_player_index %= len(self.wizards)
             self.current_player = self.wizards[self.current_player_index]
         self.selected_player = None
-        #self.text.Delete()
-        #self.text = texture.TextObject('It\'s %s\'s turn.' % (self.current_player.name),gamedata.text_manager) 
-        #self.text.Position(Point(10,10))
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
-        #self.text.SetText('A')
         self.current_player.StartTurn()
         
     def Draw(self):
@@ -290,10 +286,10 @@ class Tiles(object):
     def GetTile(self,pos):
         return self.map[pos.x][pos.y]
 
-    def RegisterUIElement(self,element):
+    def RegisterUIElement(self,element,height):
         a = {}
         a[element] = True
-        self.uielements[element] = True
+        self.uielements[element] = height
         print 'a',self.uielements
 
     def RemoveUIElement(self,element):
@@ -305,10 +301,12 @@ class Tiles(object):
 
     def HoveredUiElement(self,pos):
         #not very efficient, but I only have 2 days, come on.
-        for ui in self.uielements:
+        match = [-1,None]
+        for ui,height in self.uielements.iteritems():
             if pos in ui:
-                return ui
-        return None
+                if height > match[0]:
+                    match = [height,ui]
+        return match[1]
         
 
 class GameWindow(object):
