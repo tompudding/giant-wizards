@@ -286,17 +286,24 @@ class Wizard(object):
                 break
         self.tiles.NextPlayer()
 
-    def HandleMove(self,pos):
+    
+
+    def HandleAction(self,pos,action):
         print 'handlemove!',self.pos,pos
-        if self.tiles.player_action is self.action_choices[0]:
+        if self.tiles.player_action is action:
             self.tiles.player_action = None
-            self.action_choices[0].Unselected()
+            action.Unselected()
         else:
-            self.action_choices[0].Selected()
-            self.tiles.player_action = self.action_choices[0]
+            if self.tiles.player_action:
+                self.tiles.player_action.Unselected()
+            action.Selected()
+            self.tiles.player_action = action
+
+    def HandleMove(self,pos):
+        self.HandleAction(pos,self.action_choices[0])
         
     def HandleBlast(self,pos):
-        print 'handleblast!',self.pos,pos
+        self.HandleAction(pos,self.action_choices[1])
 
     def AdjustActionPoints(self,value):
         self.action_points += value
