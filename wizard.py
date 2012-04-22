@@ -30,7 +30,7 @@ class Wizard(object):
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                          (0,0,0,0.6))
         self.title = texture.TextObject(name+':',gamedata.text_manager)
-        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
+        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.3)
         self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
         self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.5)
         self.static_text = [self.title,self.action_points_text]
