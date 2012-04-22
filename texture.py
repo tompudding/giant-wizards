@@ -142,3 +142,42 @@ class TextManager(object):
         glDrawElements(GL_QUADS,self.quads.current_size,GL_UNSIGNED_INT,self.quads.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
+
+class UIElement(object):
+    def __init__(self,pos,tr):
+        self.bottom_left = pos
+        self.top_right = tr
+        self.size = tr - pos
+
+    def __contains__(self,pos):
+        if pos.x < self.bottom_left.x or pos.x > self.top_right.x:
+            return False
+        if pos.y >= self.bottom_left.y and pos.y <= self.top_right.y:
+            return True
+        return False
+
+    def hover(self):
+        pass
+
+    def __hash__(self):
+        return hash((self.bottom_left,self.top_right))
+
+class BoxUI(UIElement):
+    def __init__(self,pos,tr,colour):
+        super(BoxUI,self).__init__(pos,tr)
+        self.quad = utils.Quad(gamedata.ui_buffer)
+        utils.setcolour(self.quad.colour,colour)
+        utils.setvertices(self.quad.vertex,
+                          self.bottom_left,
+                          self.top_right,
+                          utils.ui_level)
+        
+    def Disable(self):
+        self.quad.Disable()
+
+    def Enable(self):
+        self.quad.Enable()
+
+    def OnClick(self,pos,button):
+        print 'Got a click at',pos,button

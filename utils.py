@@ -154,7 +154,7 @@ class Point(object):
             return -1#It's not equal if it's not a point
 
     def __hash__(self):
-        return (self.x << 16 | self.y)
+        return (int(self.x) << 16 | int(self.y))
 
     def to_float(self):
         return Point(float(self.x),float(self.y))

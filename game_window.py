@@ -36,6 +36,7 @@ class Tiles(object):
         self.current_player = None
         self.current_player_index = 0
         self.selected_player = None
+        self.uielements = {}
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -239,13 +240,20 @@ class Tiles(object):
             
         current_viewpos = self.viewpos + pos
         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
-        self.selected = GridCoords(current_viewpos).to_int()
-        self.selected.x = self.selected.x % self.width
-        self.hovered_player = self.GetTile(self.selected).GetActor()
-        if self.hovered_player is self.current_player:
-            self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+        hovered_ui = self.HoveredUiElement(pos)
+        if hovered_ui:
+            #if we're over the ui then obviously nothing is selected
+            self.selected_quad.Disable()
+            self.selected = None
         else:
-            self.selected_quad.tc[0:4] = self.tex_coords['selected']
+            self.selected_quad.Enable()
+            self.selected = GridCoords(current_viewpos).to_int()
+            self.selected.x = self.selected.x % self.width
+            self.hovered_player = self.GetTile(self.selected).GetActor()
+            if self.hovered_player is self.current_player:
+                self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+            else:
+                self.selected_quad.tc[0:4] = self.tex_coords['selected']
             
 
     def AddWizard(self,pos,type,isPlayer,name):
@@ -260,6 +268,23 @@ class Tiles(object):
 
     def GetTile(self,pos):
         return self.map[pos.x][pos.y]
+
+    def RegisterUIElement(self,element):
+        a = {}
+        a[element] = True
+        self.uielements[element] = True
+        print 'a',self.uielements
+
+    def RemoveUIElement(self,element):
+        try:
+            del self.uielements[element]
+        except KeyError:
+            pass
+        print 'b',self.uielements
+
+    def HoveredUiElement(self,pos):
+        #not very efficient, but I only have 2 days, come on.
+        return any( pos in ui for ui in self.uielements.keys() )
 
 class GameWindow(object):
     def __init__(self):

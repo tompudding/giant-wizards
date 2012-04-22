@@ -25,15 +25,12 @@ class Wizard(object):
         self.pos = pos
         self.type = type
         self.quad = utils.Quad(gamedata.quad_buffer)
-        self.uiquad = utils.Quad(gamedata.ui_buffer)
+        self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+                                         Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
+                                         (0,0,0,1))
         self.text = texture.TextObject(name+':',gamedata.text_manager)
         self.text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
-        utils.setcolour(self.uiquad.colour,(0,0,0,1))
-        utils.setvertices(self.uiquad.vertex,
-                          Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
-                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
-                          utils.ui_level)
-        self.uiquad.Disable()
+        self.options_box.Disable()
         self.text.Disable()
         
                           
@@ -53,11 +50,13 @@ class Wizard(object):
 
     def Select(self):
         self.text.Enable()
-        self.uiquad.Enable()
+        self.options_box.Enable()
+        self.tiles.RegisterUIElement(self.options_box)
     
     def Unselect(self):
         self.text.Disable()
-        self.uiquad.Disable()
+        self.options_box.Disable()
+        self.tiles.RemoveUIElement(self.options_box)
         
 
     def IsPlayer(self):
