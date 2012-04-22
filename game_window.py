@@ -183,7 +183,10 @@ class Tiles(object):
         glVertexPointerf(gamedata.quad_buffer.vertex_data)
         glTexCoordPointerf(gamedata.quad_buffer.tc_data)
         glColorPointer(4,GL_FLOAT,0,gamedata.quad_buffer.colour_data)
+
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+        glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+
         #draw it again for the wrapping
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
@@ -192,6 +195,20 @@ class Tiles(object):
         #an obvious efficiency saving would be to only draw part of it, but for now draw it all
         glTranslate((-2*self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+
+        #now draw the non-static text that moves with the board
+        glVertexPointerf(gamedata.nonstatic_text_buffer.vertex_data)
+        glTexCoordPointerf(gamedata.nonstatic_text_buffer.tc_data)
+        glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.texture.texture)
+        glDrawElements(GL_QUADS,gamedata.nonstatic_text_buffer.current_size,GL_UNSIGNED_INT,gamedata.nonstatic_text_buffer.indices)
+
+        glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.nonstatic_text_buffer.current_size,GL_UNSIGNED_INT,gamedata.nonstatic_text_buffer.indices)
+
+        glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.nonstatic_text_buffer.current_size,GL_UNSIGNED_INT,gamedata.nonstatic_text_buffer.indices)
+        
+
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
@@ -209,6 +226,7 @@ class Tiles(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
+
             
     def MouseButtonDown(self,pos,button):
         if button == 3:
@@ -337,6 +355,15 @@ class Tiles(object):
                 if height > match[0]:
                     match = [height,ui]
         return match[1]
+
+    def RemoveWizard(self,wizard):
+        pos = self.wizards.index(wizard)
+        del self.wizards[pos]
+        if len(self.wizards) == 1:
+            winner = self.wizards[0]
+            print winner.name,'wins!'
+            raise SystemExit
+
         
 
 class GameWindow(object):
@@ -349,7 +376,7 @@ class GameWindow(object):
         #this will get passed in eventually, but for now configure statically
         names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = [Point(2,3),Point(45,6)]
+        positions = []
         total_tried = 0
         while len(positions) < len(names):
             good_position = False

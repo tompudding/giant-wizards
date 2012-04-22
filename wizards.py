@@ -18,6 +18,7 @@ class GameData(object):
     screen = None
     quad_buffer = utils.QuadBuffer(131072)
     ui_buffer   = utils.QuadBuffer(131072)
+    nonstatic_text_buffer = utils.QuadBuffer(131072)
     text_manager = None
 
 def Init(gamedata):

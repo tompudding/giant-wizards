@@ -162,6 +162,10 @@ class Wizard(object):
                                             callback = self.HandleBlast)]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
+        self.health_text = texture.TextObject('%d' % self.health,gamedata.text_manager,static = False)
+        self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
+                                                          self.pos.y + 0.8)),
+                                  0.3)
         self.options_box.Disable()
         for t in self.static_text:
             t.Disable()
@@ -185,6 +189,9 @@ class Wizard(object):
         full_type = wizard_types[self.type] + '_' + tile_type
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)
+        self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
+                                                          self.pos.y + 0.8)),
+                                  0.3)
 
     def Select(self):
         self.selected = True
@@ -227,8 +234,13 @@ class Wizard(object):
                 if wizard is self:
                     continue
                 offset = wizard.pos - self.pos
-                if abs(offset.x) > (self.tiles.width/2):
-                    offset.x += self.tiles.width
+                if offset.x < 0:
+                    other = (offset.x + self.tiles.width )
+                else:
+                    other = (offset.x - self.tiles.width )
+                print offset.x,other
+                if abs(other) < abs(offset.x):
+                    offset.x = other
 
                 distance = offset.length()
                 if match[0] == None or distance < match[0]:
@@ -334,4 +346,11 @@ class Wizard(object):
 
     def Damage(self,value):
         self.health -= value
+        self.health_text.SetText('%d' % self.health)
         print self.name,'has been hit for %d points of damage, health now %d' % (value,self.health)
+        if self.health <= 0:
+            print self.name,'has died!'
+            self.quad.Delete()
+            self.health_text.Delete()
+            self.tiles.RemoveWizard(self)
+                

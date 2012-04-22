@@ -19,8 +19,8 @@ class Texture(object):
 
         self.texture = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
 
 #texture atlas code taken from 
@@ -65,10 +65,11 @@ class TextureAtlas(object):
             self.TransformCoord(subimage,tc[i])
 
 class TextObject(object):
-    def __init__(self,text,textmanager):
+    def __init__(self,text,textmanager,static = True):
         self.text = text
-        self.quads = [textmanager.Letter(char) for char in self.text]
+        self.quads = [textmanager.Letter(char,static) for char in self.text]
         self.textmanager = textmanager
+        self.static = static
         #that sets the texture coords for us
 
     def Position(self,pos,scale):
@@ -95,7 +96,7 @@ class TextObject(object):
     def SetText(self,text):
         self.Delete()
         self.text = text
-        self.quads = [self.textmanager.Letter(char) for char in self.text]
+        self.quads = [self.textmanager.Letter(char,self.static) for char in self.text]
         self.Position(self.pos,self.scale)
 
     def Disable(self):
@@ -114,8 +115,8 @@ class TextManager(object):
         self.font_width = 38
         self.font_height = 74
 
-    def Letter(self,char):
-        quad = utils.Quad(self.quads)
+    def Letter(self,char,static):
+        quad = utils.Quad(self.quads if static else gamedata.nonstatic_text_buffer)
         x = (ord(char)%16)
         y = 7-(ord(char)/16)
         left   = float(x*self.font_width)/self.texture.width
