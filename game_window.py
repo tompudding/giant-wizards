@@ -159,6 +159,11 @@ class Tiles(object):
         self.selected_player = None
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
         self.current_player.StartTurn()
+        #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
+        #guys to select, as he only has one!
+        if self.current_player.IsPlayer():
+            self.selected_player = self.current_player
+            self.selected_player.Select()
         
     def Draw(self):
         zcoord = 0
@@ -234,11 +239,13 @@ class Tiles(object):
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
                         self.player_action.OnClick(utils.GridCoords(current_viewpos),button)
                         print 'gish'
-                        
-                    elif self.hovered_player is not self.current_player:
-                        print 'unselect!'
-                        self.selected_player.Unselect()
-                        self.selected_player = None
+                     
+                    #Remove the ability of the player to deselect his wizard, since we didn't get round to implementing
+                    #monsters we don't need it
+                    #elif self.hovered_player is not self.current_player:
+                    #    print 'unselect!'
+                    #    self.selected_player.Unselect()
+                    #    self.selected_player = None
         print 'bosh'
 
     def MouseMotion(self,pos,rel):
