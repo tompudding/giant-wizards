@@ -126,14 +126,12 @@ class Tiles(object):
         #now the left
         viewgrid = GridCoords((viewpos+top_left).to_float())
         if viewgrid.x < -(self.width/4):
-            print 'vga',viewgrid
             viewgrid.x += self.width
             viewpos = (WorldCoords(viewgrid).to_int())-top_left
 
         #right
         viewgrid = GridCoords((viewpos+bottom_right).to_float())
         if viewgrid.x > (self.width + gamedata.screen.x/gamedata.tile_dimensions.x):
-            print 'vgb',viewgrid
             viewgrid.x -= self.width
             viewpos = (WorldCoords(viewgrid).to_int())-bottom_right
 

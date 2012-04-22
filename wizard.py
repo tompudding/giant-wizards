@@ -46,6 +46,7 @@ class WizardBlastAction(Action):
         self.quad.Disable()
         self.speed = speed
         self.initialised = False
+        self.firing = None
         
     def Update(self,t):
         if not self.initialised:
@@ -55,21 +56,31 @@ class WizardBlastAction(Action):
             self.start_pos = self.wizard.pos
             self.end_pos  = self.start_pos + self.vector
             self.initialised = True
-            
-        if t > self.end_time:
-            #check to see if the target needs to take damage
-            print 'damage placeholder'
-            self.quad.Delete()
-            self.quad = None
-            return True
-        elif t > self.start_time:
-            part = float(t-self.start_time)/self.duration
-            pos = self.start_pos + self.vector*part
-            utils.setvertices(self.quad.vertex,
-                              utils.WorldCoords(pos),
-                              utils.WorldCoords(pos+Point(1,1)),
-                              0.5)
-            return False
+
+        if self.firing == None:
+            #determine whether we can actually fire
+            if self.wizard.action_points >= WizardBlastAction.cost:
+                self.wizard.AdjustActionPoints(-WizardBlastAction.cost)
+                self.firing = True
+            else:
+                #we're not going to do it so we're already finished
+                return True
+
+        if self.firing:
+            if t > self.end_time:
+                #check to see if the target needs to take damage
+                print 'damage placeholder'
+                self.quad.Delete()
+                self.quad = None
+                return True
+            elif t > self.start_time:
+                part = float(t-self.start_time)/self.duration
+                pos = self.start_pos + self.vector*part
+                utils.setvertices(self.quad.vertex,
+                                  utils.WorldCoords(pos),
+                                  utils.WorldCoords(pos+Point(1,1)),
+                                  0.5)
+                return False
 
     def Valid(self):
         if self.vector.length() < 5:
@@ -186,7 +197,9 @@ class Wizard(object):
             #For a computer player, decide what to do
             #regular players populate this list themselves
             #for now just move right 1 square
-            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastAction(Point(4,4),t,self) ]
+            action_points = self.action_points
+            
+            self.action_list = [ MoveAction(Point(1,0),t,self),MoveAction(Point(1,0),t,self),WizardBlastAction(Point(2,2),t,self) ]
                       
         #do the actions according to the times in them
         
@@ -196,7 +209,6 @@ class Wizard(object):
             #that the turn should be ended
             return None if self.IsPlayer() else False
         else:
-            print 'returning action!'
             #if t >= self.action_list[0].end_time:
             action = self.action_list.pop(0)
             return action

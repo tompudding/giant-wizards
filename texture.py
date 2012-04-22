@@ -95,7 +95,6 @@ class TextObject(object):
     def SetText(self,text):
         self.Delete()
         self.text = text
-        print self.text
         self.quads = [self.textmanager.Letter(char) for char in self.text]
         self.Position(self.pos,self.scale)
 
