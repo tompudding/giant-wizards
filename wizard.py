@@ -14,23 +14,27 @@ class Action(object):
 class MoveAction(Action):
     name = 'Move'
     cost = 1
-    def __init__(self,vector,t,wizard,duration = 200):
+    def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
         self.initialised = False
-        self.duration = duration
-        
+        self.speed = speed
         self.wizard = wizard
         
     def Update(self,t):
         if not self.initialised:
             self.start_time = t
-            self.end_time = t + self.duration
+            self.end_time = t + (self.vector.length()*1000/self.speed)
+            self.duration = self.end_time - self.start_time
             self.initialised = True
         if t > self.end_time:
             self.wizard.MoveRelative(self.vector)
             return True
         return False
-        
+
+    def Valid(self):
+        if self.vector.length() < 1.5:
+            return True
+        return False
         
 class WizardBlastAction(Action):
     name = 'Wizard Blast'
@@ -67,17 +71,36 @@ class WizardBlastAction(Action):
                               0.5)
             return False
 
+    def Valid(self):
+        if self.vector.length() < 5:
+            return True
+        return False
+
 class ActionChoice(object):
-    def __init__(self,action,position,callback = None):
+    def __init__(self,action,position,wizard,callback = None):
         self.action = action
         self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
         self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = callback)
+        self.wizard = wizard
         
     def Enable(self):
         self.text.Enable()
 
     def Disable(self):
         self.text.Disable()
+
+    def Selected(self):
+        self.text.Selected()
+
+    def Unselected(self):
+        self.text.Unselected()
+
+    def OnClick(self,pos,button):
+        pos = pos.to_int()
+        vector = (pos - self.wizard.pos).to_int()
+        action = self.action(vector,0,self.wizard,5000)
+        if action.Valid():
+            self.wizard.action_list.append(action)
         
 
 class Wizard(object):
@@ -98,9 +121,11 @@ class Wizard(object):
 
         self.action_choices = [ActionChoice(MoveAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                            self,
                                             callback = self.HandleMove),
                                ActionChoice(WizardBlastAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
+                                            self,
                                             callback = self.HandleBlast)]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
@@ -171,6 +196,7 @@ class Wizard(object):
             #that the turn should be ended
             return None if self.IsPlayer() else False
         else:
+            print 'returning action!'
             #if t >= self.action_list[0].end_time:
             action = self.action_list.pop(0)
             return action
@@ -186,10 +212,11 @@ class Wizard(object):
             target.y = self.tiles.height-1
         if target.y < 0:
             target.y = 0
+        
+        self.tiles.GetTile(self.pos).SetActor(None)
         target_tile = self.tiles.GetTile(target)
         if self.action_points >= target_tile.movement_cost and target_tile.Empty():
-            self.action_points -= target_tile.movement_cost
-            self.tiles.GetTile(self.pos).SetActor(None)
+            self.AdjustActionPoints(-target_tile.movement_cost)
             self.SetPos(target)
             
 
@@ -201,10 +228,27 @@ class Wizard(object):
 
     def EndTurn(self,pos):
         self.Unselect()
+        for action_choice in self.action_choices:
+            if self.tiles.player_action is action_choice:
+                self.tiles.player_action = None
+                action_choice.Unselected()
+                break
         self.tiles.NextPlayer()
 
     def HandleMove(self,pos):
-        print 'handlemove!'
+        print 'handlemove!',self.pos,pos
+        if self.tiles.player_action is self.action_choices[0]:
+            self.tiles.player_action = None
+            self.action_choices[0].Unselected()
+        else:
+            self.action_choices[0].Selected()
+            self.tiles.player_action = self.action_choices[0]
         
     def HandleBlast(self,pos):
-        print 'handleblast!'
+        print 'handleblast!',self.pos,pos
+
+    def AdjustActionPoints(self,value):
+        self.action_points += value
+        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        if not self.selected:
+            self.action_points_text.Disable()

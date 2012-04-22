@@ -216,7 +216,7 @@ class Tiles(object):
         if self.hovered_ui:
             self.hovered_ui.OnClick(pos,button)
         else:
-            if button == 1:
+            if button == 1 and not self.current_action: #don't accept clicks while an actions happening
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
                 if self.selected_player == None:
@@ -224,15 +224,19 @@ class Tiles(object):
                         #select them!
                         self.selected_player = self.current_player
                         self.selected_player.Select()
-
                 else:
                     if self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked
-                        self.player_action.OnClick(pos,button)
+                        current_viewpos = self.viewpos + pos
+                        current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
+                        self.player_action.OnClick(utils.GridCoords(current_viewpos),button)
+                        print 'gish'
                         
                     elif self.hovered_player is not self.current_player:
+                        print 'unselect!'
                         self.selected_player.Unselect()
                         self.selected_player = None
+        print 'bosh'
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
