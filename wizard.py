@@ -1,4 +1,4 @@
-import utils,texture
+import utils,texture,random
 from utils import Point
 
 gamedata = None
@@ -76,7 +76,8 @@ class WizardBlastAction(Action):
                 target_tile = self.wizard.tiles.GetTile(self.end_pos)
                 target = target_tile.GetActor()
                 if target:
-                    print 'hit!'
+                    damage = random.randint(WizardBlastAction.min_damage,WizardBlastAction.max_damage)
+                    target.Damage(damage)
                 self.quad.Delete()
                 self.quad = None
                 return True
@@ -123,6 +124,9 @@ class ActionChoice(object):
         print vector.x,other
         if abs(other) < abs(vector.x):
             vector.x = other
+        if vector.to_int() == Point(0,0):
+            #do nothing
+            return
 
         action = self.action(vector,0,self.wizard)
         print 'action clock',vector
@@ -276,10 +280,17 @@ class Wizard(object):
             target.y = 0
         
         target_tile = self.tiles.GetTile(target)
-        if self.action_points >= target_tile.movement_cost and target_tile.Empty():
-            self.tiles.GetTile(self.pos).SetActor(None)
-            self.AdjustActionPoints(-target_tile.movement_cost)
-            self.SetPos(target)
+        if self.action_points >= target_tile.movement_cost:
+            if not target_tile.Empty():
+                #maybe we're attacking a fella?
+                target_wizard = target_tile.GetActor()
+                if target_wizard != None:
+                    target_wizard.Damage(2)
+                    self.AdjustActionPoints(-1)
+            else:
+                self.tiles.GetTile(self.pos).SetActor(None)
+                self.AdjustActionPoints(-target_tile.movement_cost)
+                self.SetPos(target)
             
 
     def StartTurn(self):
@@ -296,7 +307,6 @@ class Wizard(object):
                 action_choice.Unselected()
                 break
         self.tiles.NextPlayer()
-
     
 
     def HandleAction(self,pos,action):
@@ -321,3 +331,7 @@ class Wizard(object):
         self.action_points_text.SetText('Action Points : %d' % self.action_points)
         if not self.selected:
             self.action_points_text.Disable()
+
+    def Damage(self,value):
+        self.health -= value
+        print self.name,'has been hit for %d points of damage, health now %d' % (value,self.health)
