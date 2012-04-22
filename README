@@ -19,3 +19,8 @@ Known Bugs
   - The enemies are exceptionally stupid (They move towards their nearest wizard and blast them when in range)
   - Blasts go through mountains
   - Trees are just decoration 
+
+To Do
+-----
+  - Add more spells so it's more like Chaos, including monsters
+  - Improve UI
