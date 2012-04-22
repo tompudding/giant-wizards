@@ -157,6 +157,7 @@ class Tiles(object):
         #self.text = texture.TextObject('It\'s %s\'s turn.' % (self.current_player.name),gamedata.text_manager) 
         #self.text.Position(Point(10,10))
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
+        #self.text.SetText('A')
         self.current_player.StartTurn()
         
     def Draw(self):

@@ -101,57 +101,30 @@ class TextObject(object):
 
 class TextManager(object):
     def __init__(self):
-        font = pygame.font.SysFont ("monospace", 64)
-        #go with 8 rows of 16 characters
-        widths = {}
-        data = []
-        for i in xrange(8):
-            text = ''.join([chr(j) if (chr(j) in string.printable and chr(j) not in '\r\n\t\x0b\x0c') else ' ' for j in xrange(i*16,(i+1)*16)])
-            textSurface = font.render(text, True, (255,255,255,255))
-            #textSurface = font.render('a', True, (255,255,255,255), (0,0,0,255))
-            data.append(pygame.image.tostring(textSurface, 'RGBA', 1))
-            widths[textSurface.get_width()] = True
-
-        assert(len(widths.keys()) == 1)
-        #assert(len(data) == 8)
-
-        self.textData = ''.join(data)
-        
-        self.font_width  = widths.keys()[0]/16
-        self.font_height = 64+9
-        self.width = widths.keys()[0]
-        self.height = self.font_height*8
-
-        #self.width  = self.textureSurface.get_width()
-        #self.height = self.textureSurface.get_height()
-        #self.textData = pygame.image.tostring(self.textureSurface, 'RGBA', 1)
-        self.texture = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, self.texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.textData)
-
+        self.texture = Texture('font.png')
         self.quads = utils.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
+        self.font_width = 38
+        self.font_height = 74
 
     def Letter(self,char):
         quad = utils.Quad(self.quads)
         x = (ord(char)%16)
-        y = 1+(ord(char)/16)
-        top_left_x = float(x)/16
-        top_left_y = float(y)/8
-        bottom_right_x = top_left_x + float(1)/16
-        bottom_right_y = top_left_y - float(1)/8
+        y = 7-(ord(char)/16)
+        left   = float(x*self.font_width)/self.texture.width
+        top    = float(432+(y+1)*self.font_height)/self.texture.height
+        right  = float((x+1)*self.font_width)/self.texture.width
+        bottom = float(432+(y)*self.font_height)/self.texture.height
         #top_left_x = 0
         #top_left_y = 1
         #bottom_right_x = 1
         #bottom_right_y = 0
         
-        quad.tc[0:4] = tc = numpy.array(((top_left_x,bottom_right_y),(top_left_x,top_left_y),(bottom_right_x,top_left_y),(bottom_right_x,bottom_right_y)),numpy.float32)
+        quad.tc[0:4]  = numpy.array(((left,bottom),(left,top),(right,top),(right,bottom)),numpy.float32)
         return quad
     
 
     def Draw(self):
-        glBindTexture(GL_TEXTURE_2D,self.texture)
+        glBindTexture(GL_TEXTURE_2D,self.texture.texture)
         glLoadIdentity()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
