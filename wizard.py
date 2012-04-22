@@ -27,11 +27,13 @@ class Wizard(object):
         self.quad = utils.Quad(gamedata.quad_buffer)
         self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
-                                         (0,0,0,1))
+                                         (0,0,0,0.6))
         self.text = texture.TextObject(name+':',gamedata.text_manager)
         self.text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.options_box.Disable()
         self.text.Disable()
+        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07))
+        self.end_turn.Disable()
         
                           
         self.isPlayer = isPlayer
@@ -50,13 +52,17 @@ class Wizard(object):
 
     def Select(self):
         self.text.Enable()
+        self.end_turn.Enable()
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box)
+        self.tiles.RegisterUIElement(self.end_turn)
     
     def Unselect(self):
         self.text.Disable()
+        self.end_turn.Disable()
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
+        self.tiles.RemoveUIElement(self.end_turn)
         
 
     def IsPlayer(self):

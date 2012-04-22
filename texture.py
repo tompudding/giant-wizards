@@ -85,6 +85,7 @@ class TextObject(object):
             #                  Point(0,0),
             #                  gamedata.screen,
             #                  utils.text_level)
+        self.top_right = pos+Point((self.textmanager.font_width*len(self.quads)*scale),self.textmanager.font_height*scale)
             
 
     def Delete(self):
@@ -157,7 +158,9 @@ class UIElement(object):
             return True
         return False
 
-    def hover(self):
+    def Hover(self):
+        pass
+    def EndHover(self):
         pass
 
     def __hash__(self):
@@ -181,3 +184,67 @@ class BoxUI(UIElement):
 
     def OnClick(self,pos,button):
         print 'Got a click at',pos,button
+
+class TextButtonUI(UIElement):
+    def __init__(self,text,pos):
+        self.text = TextObject(text,gamedata.text_manager)
+        self.text.Position(pos,0.5)
+        self.pos = pos
+        super(TextButtonUI,self).__init__(pos,self.text.top_right)
+        self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
+        for i in xrange(4):
+            utils.setcolour(self.hover_quads[i].colour,(1,0,0,1))
+        
+        #top bar
+        line_width = 2
+        utils.setvertices(self.hover_quads[0].vertex,
+                          Point(self.pos.x,self.top_right.y-line_width),
+                          self.top_right,
+                          utils.ui_level+1)
+        #right bar
+        utils.setvertices(self.hover_quads[1].vertex,
+                          Point(self.top_right.x-line_width,self.pos.y),
+                          self.top_right,
+                          utils.ui_level+1)
+        
+        #bottom bar
+        utils.setvertices(self.hover_quads[2].vertex,
+                          self.pos,
+                          Point(self.top_right.x,self.pos.y+line_width),
+                          utils.ui_level+1)
+
+        #left bar
+        utils.setvertices(self.hover_quads[3].vertex,
+                          self.pos,
+                          Point(self.pos.x+line_width,self.top_right.y),
+                          utils.ui_level+1)
+                          
+        for i in xrange(4):
+            self.hover_quads[i].Disable()
+        self.hovered = False
+
+    def Hover(self):
+        self.hovered = True
+        for i in xrange(4):
+            self.hover_quads[i].Enable()
+
+    def EndHover(self):
+        self.hovered = False
+        for i in xrange(4):
+            self.hover_quads[i].Disable()
+
+    def Enable(self):
+        if self.hovered:
+            Hover()
+        self.text.Enable()
+
+    def Disable(self):
+        self.text.Disable()
+        for i in xrange(4):
+            self.hover_quads[i].Disable()
+
+    def OnClick(self,pos,button):
+        print 'Got a text click',pos,button
+            
+        
+        

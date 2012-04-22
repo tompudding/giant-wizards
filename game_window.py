@@ -37,6 +37,7 @@ class Tiles(object):
         self.current_player_index = 0
         self.selected_player = None
         self.uielements = {}
+        self.hovered_ui = None
         
         #cheat by preallocating enough quads for the tiles. We want them to be rendered first because it matters for 
         #transparency, but we can't actually fill them in yet because we haven't processed the files with information
@@ -211,23 +212,27 @@ class Tiles(object):
     def MouseButtonDown(self,pos,button):
         if button == 3:
             self.dragging = self.viewpos + pos
+        
             
     def MouseButtonUp(self,pos,button):
         if button == 3:
             self.dragging = None
-        if button == 1:
-            #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
-            #select them for movement
-            if self.selected_player == None:
-                if self.hovered_player is self.current_player and self.current_player.IsPlayer():
-                    #select them!
-                    self.selected_player = self.current_player
-                    self.selected_player.Select()
+        if self.hovered_ui:
+            self.hovered_ui.OnClick(pos,button)
+        else:
+            if button == 1:
+                #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
+                #select them for movement
+                if self.selected_player == None:
+                    if self.hovered_player is self.current_player and self.current_player.IsPlayer():
+                        #select them!
+                        self.selected_player = self.current_player
+                        self.selected_player.Select()
 
-            else:
-                if self.hovered_player is not self.current_player:
-                    self.selected_player.Unselect()
-                    self.selected_player = None
+                else:
+                    if self.hovered_player is not self.current_player:
+                        self.selected_player.Unselect()
+                        self.selected_player = None
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
@@ -243,9 +248,17 @@ class Tiles(object):
         hovered_ui = self.HoveredUiElement(pos)
         if hovered_ui:
             #if we're over the ui then obviously nothing is selected
+            if hovered_ui is not self.hovered_ui:
+                if self.hovered_ui != None:
+                    self.hovered_ui.EndHover()
+                self.hovered_ui = hovered_ui
+                self.hovered_ui.Hover()
             self.selected_quad.Disable()
             self.selected = None
         else:
+            if self.hovered_ui != None:
+                self.hovered_ui.EndHover()
+                self.hovered_ui = None
             self.selected_quad.Enable()
             self.selected = GridCoords(current_viewpos).to_int()
             self.selected.x = self.selected.x % self.width
@@ -284,7 +297,10 @@ class Tiles(object):
 
     def HoveredUiElement(self,pos):
         #not very efficient, but I only have 2 days, come on.
-        return any( pos in ui for ui in self.uielements.keys() )
+        for ui in self.uielements:
+            if pos in ui:
+                return ui
+        return None
 
 class GameWindow(object):
     def __init__(self):

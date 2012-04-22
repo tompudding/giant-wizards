@@ -84,9 +84,11 @@ class Quad(object):
     def Disable(self):
         #It still gets drawn, but just in a single dot in a corner.
         #not very efficient!
-        self.old_vertices = numpy.copy(self.vertex[0:4])
-        for i in xrange(4):
-            self.vertex[i] = (0,0,0)
+        #don't disable again if already disabled
+        if self.old_vertices == None:
+            self.old_vertices = numpy.copy(self.vertex[0:4])
+            for i in xrange(4):
+                self.vertex[i] = (0,0,0)
 
     def Enable(self):
         if self.old_vertices != None:
