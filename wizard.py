@@ -30,10 +30,13 @@ class Wizard(object):
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                          (0,0,0,0.6))
         self.title = texture.TextObject(name+':',gamedata.text_manager)
-        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.3)
+        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
-        self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.5)
-        self.static_text = [self.title,self.action_points_text]
+        self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
+        self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(10),'Cost'.rjust(10)),gamedata.text_manager)
+        self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
+        
+        self.static_text = [self.title,self.action_points_text,self.action_header]
         self.options_box.Disable()
         for t in self.static_text:
             t.Disable()
