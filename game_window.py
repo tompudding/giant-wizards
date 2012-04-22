@@ -342,9 +342,9 @@ class GameWindow(object):
         #this will get passed in eventually, but for now configure statically
         names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = []
+        positions = [Point(2,3),Point(45,6)]
         total_tried = 0
-        while not len(positions) < len(names):
+        while len(positions) < len(names):
             good_position = False
             tries = 0
             total_tried += 1
@@ -354,7 +354,7 @@ class GameWindow(object):
                 raise SystemExit
             while not good_position:
                 tries += 1
-                if count > 10000:
+                if tries > 10000:
                     #maybe we've tried an unwinnable configuration? start over
                     positions = []
                     break
@@ -369,10 +369,11 @@ class GameWindow(object):
                 except ValueError:
                     continue
                 positions.append(pos)
+                break
                 
             
         for i in xrange(4):
-            self.tiles.AddWizard(pos  = Point(*[random.randint(0,v-1) for v in map_size]),
+            self.tiles.AddWizard(pos  = positions[i],
                                  type = i,
                                  isPlayer = True if i == 0 else False,
                                  name = names[i])

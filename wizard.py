@@ -72,7 +72,11 @@ class WizardBlastAction(Action):
         if self.firing:
             if t > self.end_time:
                 #check to see if the target needs to take damage
-                print 'damage placeholder'
+                
+                target_tile = self.wizard.tiles.GetTile(self.end_pos)
+                target = target_tile.GetActor()
+                if target:
+                    print 'hit!'
                 self.quad.Delete()
                 self.quad = None
                 return True
@@ -112,7 +116,14 @@ class ActionChoice(object):
     def OnClick(self,pos,button):
         pos = pos.to_int()
         vector = (pos - self.wizard.pos).to_int()
-        vector.x = (vector.x + self.wizard.tiles.width)%self.wizard.tiles.width
+        if vector.x < 0:
+            other = (vector.x + self.wizard.tiles.width )
+        else:
+            other = (vector.x - self.wizard.tiles.width )
+        print vector.x,other
+        if abs(other) < abs(vector.x):
+            vector.x = other
+
         action = self.action(vector,0,self.wizard)
         print 'action clock',vector
         if action.Valid():
