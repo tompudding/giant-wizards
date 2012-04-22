@@ -318,13 +318,6 @@ class Tiles(object):
 
     def AddWizard(self,pos,type,isPlayer,name):
         target_tile = self.GetTile(pos)
-        count = 0
-        while target_tile.name == 'mountain':
-            pos.x = (pos.x + 1)%self.width
-            target_tile = self.GetTile(pos)
-            count += 1
-            if count >= self.width:
-                target_tile.name = 'grass'
         new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
         new_wizard.SetPos(pos)
         self.wizards.append(new_wizard)
@@ -333,6 +326,8 @@ class Tiles(object):
         if key == pygame.locals.K_RETURN:
             if self.current_player.IsPlayer():
                 self.NextPlayer()
+        elif key == pygame.locals.K_ESCAPE:
+            self.Quit(0)
 
     def GetTile(self,pos):
         pos.x = pos.x%self.width
@@ -380,19 +375,27 @@ class Tiles(object):
         self.RegisterUIElement(self.backdrop,0)
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
+        self.return_button = texture.TextButtonUI('Exit',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.selected_quad.Delete()
-        gamedata.textmanager.Purge()
+        #gamedata.text_manager.Purge()
 
     def Quit(self,pos):
-        gamedata.current_view = main_menu.MainMenu()
+        #for element in self.uielements:
+        #    element.Delete()
+        self.uielements = []
+        gamedata.ui_buffer.truncate(0)
+        gamedata.quad_buffer.truncate(0)
+        gamedata.text_manager.Purge()
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        #gamedata.current_view = main_menu.MainMenu()
+        raise SystemExit
         
 names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         
 
 class GameWindow(object):
-    def __init__(self):
+    def __init__(self,player_states):
         map_size = (48,24)
         self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
                            'tiles.png'  ,
@@ -402,7 +405,8 @@ class GameWindow(object):
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
         positions = []
         total_tried = 0
-        while len(positions) < len(names):
+        players = [(player_states[i],names[i],i) for i in xrange(len(names)) if player_states[i] != None]
+        while len(positions) < len(players):
             good_position = False
             tries = 0
             total_tried += 1
@@ -430,11 +434,13 @@ class GameWindow(object):
                 break
                 
             
-        for i in xrange(2):
-            self.tiles.AddWizard(pos  = positions[i],
-                                 type = i,
-                                 isPlayer = False,# if i == 0 else False,
-                                 name = names[i])
+        for i in xrange(len(players)):
+            isplayer,name,type = players[i]
+            if player_states[i] != None:
+                self.tiles.AddWizard(pos  = positions[i],
+                                     type = type,
+                                     isPlayer = isplayer,
+                                     name = name)
         self.tiles.NextPlayer()
         
 

@@ -12,6 +12,7 @@ class MainMenu(object):
         self.texture = texture.Texture('main.png')
         self.uielements = {}
         self.backdrop = utils.Quad(gamedata.ui_buffer,tc = utils.full_tc)
+        print 'sdfd',self.backdrop.index
         utils.setvertices(self.backdrop.vertex,
                           Point(0,0),
                           gamedata.screen,
@@ -120,6 +121,8 @@ class MainMenu(object):
     def PlayerChange(self,i):
         if self.state[i] == 'Human':
             self.state[i] = 'CPU'
+        elif self.state[i] == 'CPU':
+            self.state[i] = 'Off'
         else:
             self.state[i] = 'Human'
         self.buttons[i].SetText(self.state[i])
@@ -134,7 +137,25 @@ class MainMenu(object):
         return self.PlayerChange(3)
 
     def Play(self,pos):
-        print 'play'
+        states = []
+        for state in self.state:
+            if state == 'Human':
+                states.append(True)
+            elif state == 'CPU':
+                states.append(False)
+            else:
+                states.append(None)
+        
+        
+        #for a in self.static_text:
+        #    a.Delete()
+        #for b in self.buttons:
+        #    b.Delete()
+        gamedata.ui_buffer.truncate(0)
+        gamedata.quad_buffer.truncate(0)
+        gamedata.text_manager.Purge()
+        game = game_window.GameWindow(states)
+        gamedata.current_view = game
         
     def Quit(self,pos):
         raise SystemExit

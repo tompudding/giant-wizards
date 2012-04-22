@@ -14,6 +14,7 @@ class QuadBuffer(object):
         self.tc_data      = numpy.zeros((size*4,2),numpy.float32)
         self.colour_data = numpy.ones((size*4,4),numpy.float32) #RGBA default is white opaque
         self.indices      = numpy.zeros(size*4,numpy.uint32)  #de
+        self.size = size
         for i in xrange(size*4):
             self.indices[i] = i
         self.current_size = 0
@@ -39,6 +40,9 @@ class QuadBuffer(object):
 
     def truncate(self,n):
         self.current_size = n
+        for i in xrange(self.size*4):
+            self.indices[i] = i
+        self.vacant = []
 
     def RemoveQuad(self,index):
         self.vacant.append(index)

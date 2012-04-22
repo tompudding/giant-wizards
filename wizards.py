@@ -57,9 +57,11 @@ if __name__ == '__main__':
     last = 0
     clock = pygame.time.Clock()
 
-    #gamedata.current_view = game_window.GameWindow()
-    gamedata.main_menu = main_menu.MainMenu()
-    gamedata.current_view = gamedata.main_menu
+    gamedata.ui_buffer.truncate(0)
+    gamedata.quad_buffer.truncate(0)
+    gamedata.text_manager.Purge()
+    #gamedata.current_view = game_window.GameWindow([True,True,True,True])
+    gamedata.current_view = main_menu.MainMenu()
 
     while not done:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

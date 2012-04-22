@@ -7,21 +7,28 @@ import utils,numpy
 from utils import Point
 
 gamedata = None
+cache = {}
 
 class Texture(object):
     def __init__(self,filename):
-        with open(filename,'rb') as f:
-            self.textureSurface = pygame.image.load(f)
-        self.textureData = pygame.image.tostring(self.textureSurface, 'RGBA', 1)
+        if filename not in cache:
+            with open(filename,'rb') as f:
+                self.textureSurface = pygame.image.load(f)
+            self.textureData = pygame.image.tostring(self.textureSurface, 'RGBA', 1)
 
-        self.width  = self.textureSurface.get_width()
-        self.height = self.textureSurface.get_height()
+            self.width  = self.textureSurface.get_width()
+            self.height = self.textureSurface.get_height()
 
-        self.texture = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, self.texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
+            self.texture = glGenTextures(1)
+            cache[filename] = (self.texture,self.width,self.height)
+            glBindTexture(GL_TEXTURE_2D, self.texture)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.textureData)
+        else:
+            self.texture,self.width,self.height = cache[filename]
+            glBindTexture(GL_TEXTURE_2D, self.texture)
+        
 
 #texture atlas code taken from 
 #http://omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -178,6 +185,9 @@ class BoxUI(UIElement):
                           self.bottom_left,
                           self.top_right,
                           utils.ui_level)
+
+    def Delete(self):
+        self.quad.Delete()
         
     def Disable(self):
         self.quad.Disable()
@@ -230,6 +240,10 @@ class TextButtonUI(UIElement):
                           Point(self.pos.x+self.line_width,self.top_right.y),
                           utils.ui_level+1)
                           
+    def Delete(self):
+        for quad in self.hover_quads:
+            quad.Delete()
+        self.text.Delete()
         
 
     def SetText(self,newtext):
