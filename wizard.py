@@ -183,6 +183,8 @@ class Wizard(object):
         tile_data = self.tiles.GetTile(pos)
         tile_type = tile_data.name
         utils.setvertices(self.quad.vertex,utils.WorldCoords(self.pos),utils.WorldCoords(self.pos)+gamedata.tile_dimensions,0.5)
+        if 'coast' in tile_type:
+            tile_type = 'water'
         full_type = wizard_types[self.type] + '_' + tile_type
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)

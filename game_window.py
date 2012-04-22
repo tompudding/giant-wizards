@@ -95,6 +95,28 @@ class Tiles(object):
                 col.append( TileData(Point(x,y),type,movement_cost))
             self.map.append(col)
 
+        #sort out the coasts
+        for x in xrange(len(self.map)):
+            for y in xrange(len(self.map[x])):
+                tile = self.map[x][y]
+                if tile.name == 'water':
+                    #look to the left
+                    coast_type = []
+                    for (a,b),name in (((-1,0),'left'),
+                                     ((0,1),'top'),
+                                     ((1,0),'right'),
+                                     ((0,-1),'bottom')):
+                        if y+b >= self.height or y+b < 0:
+                            type = 'water'
+                        else:
+                            type = self.map[(x+a+self.width)%self.width][y+b].name
+                        if type in ['grass','mountain','tree']:
+                            coast_type.append(name)
+                    coast_type.sort()
+                    if len(coast_type) > 0:
+                        self.map[x][y].name = 'coast_' + '_'.join(coast_type)
+                        
+
         #Fill in the fixed vertices for the tiles
         index = 0
         for col in self.map:

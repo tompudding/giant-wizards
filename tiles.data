@@ -3,6 +3,23 @@ grass               : 0,0,1,1
 mountain            : 1,0,1,1
 tree                : 2,0,1,1
 water               : 0,1,1,1
+
+coast_left          : 1,1,1,1
+coast_top           : 2,1,1,1
+coast_right         : 3,1,1,1
+coast_bottom        : 4,1,1,1
+coast_left_top      : 5,1,1,1
+coast_right_top     : 6,1,1,1
+coast_bottom_right  : 7,1,1,1
+coast_bottom_left   : 8,1,1,1
+coast_bottom_top    : 9,1,1,1
+coast_left_right    : 10,1,1,1
+coast_bottom_right_top    : 11,1,1,1
+coast_bottom_left_right   : 12,1,1,1
+coast_bottom_left_top     : 3,2,1,1
+coast_left_right_top      : 4,2,1,1
+coast_bottom_left_right_top : 5,2,1,1
+
 selected            : 0,2,1,1
 selected_hover      : 1,2,1,1
 purple_wizard_grass : 0,3,1,1
