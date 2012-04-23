@@ -278,7 +278,7 @@ class TextButtonUI(UIElement):
 
     def Enable(self):
         if self.hovered:
-            Hover()
+            self.Hover()
         self.text.Enable()
 
     def Disable(self):
