@@ -152,12 +152,13 @@ class MainMenu(object):
                 states.append(None)
         
         
-        #for a in self.static_text:
-        #    a.Delete()
-        #for b in self.buttons:
-        #    b.Delete()
+        for a in self.static_text:
+            a.Delete()
+        for b in self.buttons:
+            b.Delete()
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
+        gamedata.nonstatic_text_buffer.truncate(0)
         gamedata.text_manager.Purge()
         game = game_window.GameWindow(states)
         gamedata.current_view = game

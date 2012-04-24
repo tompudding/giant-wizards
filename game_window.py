@@ -379,7 +379,7 @@ class Tiles(object):
     def GameOver(self,winner):
         self.gameover = True
         for element in self.uielements:
-            element.Disable()
+            element.Delete()
         self.uielements = {}
 
         self.backdrop = texture.BoxUI(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
@@ -389,21 +389,21 @@ class Tiles(object):
         self.RegisterUIElement(self.backdrop,0)
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = texture.TextButtonUI('Exit',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
+        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.selected_quad.Delete()
-        #gamedata.text_manager.Purge()
 
     def Quit(self,pos):
-        #for element in self.uielements:
-        #    element.Delete()
+        for element in self.uielements:
+            element.Delete()
         self.uielements = []
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
+        gamedata.nonstatic_text_buffer.truncate(0)
         gamedata.text_manager.Purge()
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        #gamedata.current_view = main_menu.MainMenu()
-        raise SystemExit
+        gamedata.current_view = main_menu.MainMenu()
+        #raise SystemExit
         
 names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         
