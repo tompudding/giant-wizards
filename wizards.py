@@ -45,7 +45,7 @@ def Init(gamedata):
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(1.0,1.0,1.0,1.0)
 
-if __name__ == '__main__':
+def main():
     #first make a gamedata struct and set it up in the other modules so they can access it
     #not at all sure that this is best practice.
     gamedata = GameData()
@@ -90,3 +90,18 @@ if __name__ == '__main__':
                 gamedata.current_view.MouseButtonDown(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
             elif (event.type == MOUSEBUTTONUP):
                 gamedata.current_view.MouseButtonUp(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
+
+import logging
+
+if __name__ == '__main__':
+    try:
+        logging.basicConfig(level=logging.DEBUG, filename='errorlog.log')
+    except IOError:
+        #pants, can't write to the current directory, try using a tempfile
+        pass
+
+    try:
+        main()
+    except:
+        print 'fd'
+        logging.exception("Oops:")
