@@ -149,6 +149,7 @@ class TextManager(object):
         glColorPointer(4,GL_FLOAT,0,self.quads.colour_data)
         glDrawElements(GL_QUADS,self.quads.current_size,GL_UNSIGNED_INT,self.quads.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
     def Purge(self):

@@ -11,7 +11,7 @@ class MainMenu(object):
     def __init__(self):
         self.texture = texture.Texture('main.png')
         self.uielements = {}
-        self.backdrop = utils.Quad(gamedata.ui_buffer,tc = utils.full_tc)
+        self.backdrop = utils.Quad(gamedata.quad_buffer,tc = utils.full_tc)
         utils.setvertices(self.backdrop.vertex,
                           Point(0,0),
                           gamedata.screen,
@@ -34,20 +34,20 @@ class MainMenu(object):
                                                          (0.55-i*0.1)*gamedata.screen.y),
                                           size=0.7,
                                           callback = callbacks[i],
-                                          line_width=8)
+                                          line_width=4)
             self.RegisterUIElement(button,1)
             self.buttons.append(button)
         self.play_button = texture.TextButtonUI('Play',Point(0.22*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Play,
-                                                line_width=8)
+                                                line_width=4)
         self.RegisterUIElement(self.play_button,1)
         self.exit_button = texture.TextButtonUI('Exit',Point(0.35*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Quit,
-                                                line_width=8)
+                                                line_width=4)
         self.RegisterUIElement(self.exit_button,1)
         self.hovered_ui = None
         
@@ -59,13 +59,21 @@ class MainMenu(object):
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
         
+        
+        glVertexPointerf(gamedata.quad_buffer.vertex_data)
+        glTexCoordPointerf(gamedata.quad_buffer.tc_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.quad_buffer.colour_data)
+        glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glDisable(GL_TEXTURE_2D)
+        
         glVertexPointerf(gamedata.ui_buffer.vertex_data)
         glTexCoordPointerf(gamedata.ui_buffer.tc_data)
         glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
         glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnable(GL_TEXTURE_2D)
         
 
     def MouseButtonDown(self,pos,button):
