@@ -195,3 +195,13 @@ def GridCoords(point):
 
 def WorldCoords(point):
     return point*gamedata.tile_dimensions
+
+def WrapDistance(a,b,width):
+    offset = a - b
+    if offset.x < 0:
+        other = (offset.x + width )
+    else:
+        other = (offset.x - width )
+    if abs(other) < abs(offset.x):
+        offset.x = other
+    return offset

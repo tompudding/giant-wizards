@@ -232,23 +232,18 @@ class Wizard(object):
             for wizard in self.tiles.wizards:
                 if wizard is self:
                     continue
-                offset = wizard.pos - self.pos
-                if offset.x < 0:
-                    other = (offset.x + self.tiles.width )
-                else:
-                    other = (offset.x - self.tiles.width )
-                if abs(other) < abs(offset.x):
-                    offset.x = other
+                offset = utils.WrapDistance(wizard.pos,self.pos,self.tiles.width)
 
                 distance = offset.length()
                 if match[0] == None or distance < match[0]:
-                    match = [distance,wizard,offset]
+                    match = [distance,wizard]
             if match[1] == None:
                 #wtf? There are no other wizards? the game should have ended
                 return False
-            distance,wizard,offset = match
+            distance,wizard = match
             current_pos = self.pos
             while action_points > 0:
+                offset = wizard.pos - current_pos
                 if distance < WizardBlastAction.range:
                     self.action_list.append( WizardBlastAction(offset,t,self) )
                     action_points -= WizardBlastAction.cost
@@ -262,6 +257,7 @@ class Wizard(object):
                     target.x = ((target.x+self.tiles.width)%self.tiles.width)
                     target_tile = self.tiles.GetTile(target)
                     if target_tile.movement_cost <= action_points:
+                        current_pos = current_pos + vector
                         self.action_list.append( MoveAction(vector,t,self) )
                         action_points -= target_tile.movement_cost
                     else:
