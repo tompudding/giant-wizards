@@ -18,7 +18,7 @@ class MainMenu(object):
                           0)
         self.static_text = []
         self.buttons = []
-        self.state = ['Human','CPU','CPU','CPU']
+        
         #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
         callbacks = [self.PlayerChange0,
                      self.PlayerChange1,
@@ -30,7 +30,7 @@ class MainMenu(object):
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
-            button = texture.TextButtonUI(self.state[i],Point(0.50*gamedata.screen.x,
+            button = texture.TextButtonUI(gamedata.player_config[i],Point(0.50*gamedata.screen.x,
                                                          (0.55-i*0.1)*gamedata.screen.y),
                                           size=0.7,
                                           callback = callbacks[i],
@@ -124,13 +124,13 @@ class MainMenu(object):
         self.Draw()
 
     def PlayerChange(self,i):
-        if self.state[i] == 'Human':
-            self.state[i] = 'CPU'
-        elif self.state[i] == 'CPU':
-            self.state[i] = 'Off'
+        if gamedata.player_config[i] == 'Human':
+            gamedata.player_config[i] = 'CPU'
+        elif gamedata.player_config[i] == 'CPU':
+            gamedata.player_config[i] = 'Off'
         else:
-            self.state[i] = 'Human'
-        self.buttons[i].SetText(self.state[i])
+            gamedata.player_config[i] = 'Human'
+        self.buttons[i].SetText(gamedata.player_config[i])
 
     def PlayerChange0(self,pos):
         return self.PlayerChange(0)
@@ -143,14 +143,22 @@ class MainMenu(object):
 
     def Play(self,pos):
         states = []
-        for state in self.state:
+        num_human = 0
+        num_cpu   = 0
+        for state in gamedata.player_config:
             if state == 'Human':
                 states.append(True)
+                num_human += 1
             elif state == 'CPU':
                 states.append(False)
+                num_cpu += 1
             else:
                 states.append(None)
-        
+
+        #Check that this is a valid configuration before continuing
+        if num_human == 0:
+            if num_cpu <= 1:
+                return
         
         for a in self.static_text:
             a.Delete()

@@ -23,6 +23,7 @@ class GameData(object):
     text_manager = None
     main_menu = None
     current_view = None
+    player_config = ['Human','CPU','CPU','CPU']
 
 def Init(gamedata):
     w,h = (1280,720)
