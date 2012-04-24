@@ -447,10 +447,11 @@ class GameWindow(object):
                 positions.append(pos)
                 break
                 
+        print players
             
         for i in xrange(len(players)):
             isplayer,name,type = players[i]
-            if player_states[i] != None:
+            if player_states[type] != None:
                 self.tiles.AddWizard(pos  = positions[i],
                                      type = type,
                                      isPlayer = isplayer,
