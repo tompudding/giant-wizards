@@ -8,6 +8,7 @@ from utils import Point
 
 gamedata = None
 cache = {}
+global_scale = 0.5
 
 class Texture(object):
     def __init__(self,filename):
@@ -53,9 +54,11 @@ class TextureAtlas(object):
                 w            ,\
                 h            = line.strip().split(':')
                 #print image_name,image_filename
-                assert(image_name) == image_filename
+                #assert(image_name) == image_filename
                 w = int(w)
                 h = int(h)
+                if subimage_name.startswith('font_'):
+                    subimage_name = chr(int(subimage_name[5:7],16))
                 self.subimages[subimage_name] = SubImage(Point(float(x)/self.texture.width,float(y)/self.texture.height),(Point(w,h)))
 
     def Subimage(self,name):
@@ -70,6 +73,11 @@ class TextureAtlas(object):
         for i in xrange(len(tc)):
             self.TransformCoord(subimage,tc[i])
 
+    def TextureCoords(self,subimage):
+        full_tc = [[0,0],[0,1],[1,1],[1,0]]
+        self.TransformCoords(subimage,full_tc)
+        return full_tc
+
 class TextObject(object):
     def __init__(self,text,textmanager,static = True):
         self.text = text
@@ -82,17 +90,22 @@ class TextObject(object):
         #set up the position for the characters
         self.pos = pos
         self.scale = scale
+        cursor = [0,0]
         for (i,quad) in enumerate(self.quads):
+            quad.width
             utils.setvertices(quad.vertex,
-                              pos+Point(self.textmanager.font_width*i*scale,0),
-                              pos+Point((self.textmanager.font_width*(i+1)*scale),
-                                        self.textmanager.font_height*scale),
+                              pos+Point(cursor[0]*self.scale*global_scale,0),
+                              pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
+                                        quad.height*self.scale*global_scale),
                               utils.text_level)
+            cursor[0] += quad.width
+        height = max([q.height for q in self.quads])
+        
             #utils.setvertices(quad.vertex,
             #                  Point(0,0),
             #                  gamedata.screen,
             #                  utils.text_level)
-        self.top_right = pos+Point((self.textmanager.font_width*len(self.quads)*scale),self.textmanager.font_height*scale)
+        self.top_right = pos+Point(cursor[0]*self.scale*global_scale,height*self.scale*global_scale)
             
 
     def Delete(self):
@@ -116,30 +129,19 @@ class TextObject(object):
 
 class TextManager(object):
     def __init__(self):
-        self.texture = Texture('font.png')
+        self.atlas = TextureAtlas('droidsans.png','droidsans.txt')
         self.quads = utils.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
-        self.font_width = 38
-        self.font_height = 74
 
     def Letter(self,char,static):
-        quad = utils.Quad(self.quads if static else gamedata.nonstatic_text_buffer)
-        x = (ord(char)%16)
-        y = 7-(ord(char)/16)
-        left   = float(x*self.font_width)/self.texture.width
-        top    = float(432+(y+1)*self.font_height)/self.texture.height
-        right  = float((x+1)*self.font_width)/self.texture.width
-        bottom = float(432+(y)*self.font_height)/self.texture.height
-        #top_left_x = 0
-        #top_left_y = 1
-        #bottom_right_x = 1
-        #bottom_right_y = 0
-        
-        quad.tc[0:4]  = numpy.array(((left,bottom),(left,top),(right,top),(right,bottom)),numpy.float32)
+        quad = utils.Quad(self.quads if static else gamedata.nonstatic_text_buffer)    
+        quad.tc[0:4]  = self.atlas.TextureCoords(char)
+        #this is a bit dodge, should get its own class if I want to store extra things in it
+        quad.width,quad.height = self.atlas.Subimage(char).size
         return quad
     
 
     def Draw(self):
-        glBindTexture(GL_TEXTURE_2D,self.texture.texture)
+        glBindTexture(GL_TEXTURE_2D,self.atlas.texture.texture)
         glLoadIdentity()
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)

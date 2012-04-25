@@ -45,6 +45,7 @@ def Init(gamedata):
     glEnable(GL_ALPHA_TEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(1.0,1.0,1.0,1.0)
+    glShadeModel(GL_SMOOTH)
 
 def main():
     #first make a gamedata struct and set it up in the other modules so they can access it

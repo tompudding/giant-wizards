@@ -219,7 +219,7 @@ class Tiles(object):
         #now draw the non-static text that moves with the board
         glVertexPointerf(gamedata.nonstatic_text_buffer.vertex_data)
         glTexCoordPointerf(gamedata.nonstatic_text_buffer.tc_data)
-        glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.texture.texture)
+        glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.atlas.texture.texture)
         glDrawElements(GL_QUADS,gamedata.nonstatic_text_buffer.current_size,GL_UNSIGNED_INT,gamedata.nonstatic_text_buffer.indices)
 
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
