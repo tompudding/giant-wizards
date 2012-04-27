@@ -310,11 +310,15 @@ class Tiles(object):
                 self.selected_quad.Enable()
                 self.selected = GridCoords(current_viewpos).to_int()
                 self.selected.x = (self.selected.x+self.width) % self.width
-                self.hovered_player = self.GetTile(self.selected).GetActor()
-                if self.hovered_player is self.current_player:
-                    self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
-                else:
-                    self.selected_quad.tc[0:4] = self.tex_coords['selected']
+                if self.selected.y >= self.height: #There's one pixel row at the top that's off the table
+                    self.selected.y = self.height
+                tile = self.GetTile(self.selected)
+                if tile:
+                    self.hovered_player = tile.GetActor()
+                    if self.hovered_player is self.current_player:
+                        self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+                    else:
+                        self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
     def Update(self,t):
         if self.gameover:
@@ -345,7 +349,11 @@ class Tiles(object):
 
     def GetTile(self,pos):
         pos.x = pos.x%self.width
-        return self.map[pos.x][pos.y]
+        try:
+            out = self.map[pos.x][pos.y]
+        except IndexError:
+            return None
+        return out
 
     def RegisterUIElement(self,element,height):
         a = {}
@@ -369,7 +377,8 @@ class Tiles(object):
 
     def RemoveWizard(self,wizard):
         tile = self.GetTile(wizard.pos)
-        tile.SetActor(None)
+        if tile:
+            tile.SetActor(None)
         pos = self.wizards.index(wizard)
         del self.wizards[pos]
         if len(self.wizards) == 1:
@@ -436,7 +445,7 @@ class GameWindow(object):
                     break
                 pos = Point(*[random.randint(0,v-1) for v in map_size])
                 target_tile = self.tiles.GetTile(pos)
-                if target_tile.name == 'mountain':
+                if target_tile and target_tile.name == 'mountain':
                     continue
                 try:
                     for other_pos in positions:
