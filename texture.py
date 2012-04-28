@@ -255,6 +255,7 @@ class TextButtonUI(UIElement):
         self.SetVertices()
 
     def Hover(self):
+        #print pygame.mouse.get_cursor()
         self.hovered = True
         for i in xrange(4):
             self.hover_quads[i].Enable()
@@ -294,4 +295,19 @@ class TextButtonUI(UIElement):
             self.callback(pos)
             
         
+class TexturedButton(TextButtonUI):
+    def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
+        self.text = TextObject(text,gamedata.text_manager)
+        self.text.Position(pos,size)
+        self.pos = pos
+        self.callback = callback
+        super(TextButtonUI,self).__init__(pos,self.text.top_right)
+        self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
+        self.line_width = line_width
+        self.SetVertices()
+        self.hovered = False
+        self.selected = False
+        for i in xrange(4):
+            self.hover_quads[i].Disable()
+
         

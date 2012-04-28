@@ -18,6 +18,7 @@ class MainMenu(object):
                           0)
         self.static_text = []
         self.buttons = []
+        offset = Point(-0.005*gamedata.screen.x,-0.045*gamedata.screen.y)
         
         #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
         callbacks = [self.PlayerChange0,
@@ -26,24 +27,24 @@ class MainMenu(object):
                      self.PlayerChange3]
         for i,name in enumerate(game_window.names):
             item = texture.TextObject(name,gamedata.text_manager)
-            item.Position(Point(0.05*gamedata.screen.x,
+            item.Position(offset+Point(0.05*gamedata.screen.x,
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
-            button = texture.TextButtonUI(gamedata.player_config[i],Point(0.50*gamedata.screen.x,
+            button = texture.TextButtonUI(gamedata.player_config[i],offset+Point(0.50*gamedata.screen.x,
                                                          (0.55-i*0.1)*gamedata.screen.y),
                                           size=0.7,
                                           callback = callbacks[i],
                                           line_width=4)
             self.RegisterUIElement(button,1)
             self.buttons.append(button)
-        self.play_button = texture.TextButtonUI('Play',Point(0.22*gamedata.screen.x,
+        self.play_button = texture.TextButtonUI('Play',offset+Point(0.22*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Play,
                                                 line_width=4)
         self.RegisterUIElement(self.play_button,1)
-        self.exit_button = texture.TextButtonUI('Exit',Point(0.35*gamedata.screen.x,
+        self.exit_button = texture.TextButtonUI('Exit',offset+Point(0.35*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Quit,
