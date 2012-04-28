@@ -65,6 +65,15 @@ class Viewpos(object):
                 self.pos = (self.start_point + (self.target_change*partial)).to_int()
                 #print 'p',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
         
+class TileHighlights(object):
+    def __init__(self,tiles,size):
+        self.tiles = tiles
+        self.size  = size
+        self.quads = [utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['highlight']) for i in xrange(100)]
+        for q in self.highlight_quads:
+            q.Disable()
+
+            
 
 class Tiles(object):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
@@ -178,6 +187,7 @@ class Tiles(object):
         self.viewpos = Viewpos(Point(0,0),self)
         self.selected      = None
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
+        #self.highlights    = TileHighlights(100)
 
     def ValidViewpos(self,viewpos):
         #viewpos = list(viewpos)
@@ -297,6 +307,7 @@ class Tiles(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
+
 
             
     def MouseButtonDown(self,pos,button):

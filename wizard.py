@@ -85,8 +85,8 @@ class WizardBlastAction(Action):
                 part = float(t-self.start_time)/self.duration
                 pos = self.start_pos + self.vector*part
                 utils.setvertices(self.quad.vertex,
-                                  utils.WorldCoords(pos),
-                                  utils.WorldCoords(pos+Point(1,1)),
+                                  utils.WorldCoords(pos).to_int(),
+                                  utils.WorldCoords(pos+Point(1,1)).to_int(),
                                   0.5)
                 return False
 
@@ -104,9 +104,12 @@ class ActionChoice(object):
         
     def Enable(self):
         self.text.Enable()
+        tiles = self.wizard.tiles
+        
 
     def Disable(self):
         self.text.Disable()
+        
 
     def Selected(self):
         self.text.Selected()
@@ -246,7 +249,7 @@ class Wizard(object):
             distance,wizard = match
             current_pos = self.pos
             while action_points > 0:
-                offset = utils.WrapDistance(wizard.pos,self.pos,self.tiles.width)
+                offset = utils.WrapDistance(wizard.pos,current_pos,self.tiles.width)
                 if distance < WizardBlastAction.range:
                     self.action_list.append( WizardBlastAction(offset,t,self) )
                     action_points -= WizardBlastAction.cost
