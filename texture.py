@@ -97,7 +97,7 @@ class TextObject(object):
                               pos+Point(cursor[0]*self.scale*global_scale,0),
                               pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
                                         quad.height*self.scale*global_scale),
-                              utils.text_level)
+                              utils.text_level if self.static else 0.1)
             cursor[0] += quad.width
         height = max([q.height for q in self.quads])
         

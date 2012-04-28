@@ -22,6 +22,7 @@ coast_bottom_left_right_top : 5,2,1,1
 
 selected            : 0,2,1,1
 selected_hover      : 1,2,1,1
+highlight           : 6,2,1,1
 purple_wizard_grass : 0,3,1,1
 red_wizard_grass    : 0,4,1,1
 yellow_wizard_grass : 0,5,1,1
