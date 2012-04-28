@@ -61,6 +61,7 @@ class Viewpos(object):
                 return
             else:
                 partial = float(t-self.start_time)/self.duration
+                partial = partial*partial*(3 - 2*partial) #smoothstep
                 self.pos = (self.start_point + (self.target_change*partial)).to_int()
                 #print 'p',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
         
