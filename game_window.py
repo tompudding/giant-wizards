@@ -22,6 +22,47 @@ class TileData(object):
 
     def Empty(self):
         return self.actor == None
+
+class Viewpos(object):
+    def __init__(self,point,tiles):
+        self.pos = point
+        self.tiles = tiles
+        self.NoTarget()
+
+    def NoTarget(self):
+        self.target        = None
+        self.target_change = None
+        self.start_point   = None
+        self.target_time   = None
+        self.start_time    = None
+
+    def Set(self,point):
+        self.pos = point
+        self.NoTarget()
+
+    def SetTarget(self,point,t,rate=2):
+        self.target = point
+        self.target_change = utils.WrapDistance(self.target,self.pos,self.tiles.width*gamedata.tile_dimensions.x)
+        self.start_point   = self.pos
+        self.start_time    = t
+        self.duration      = self.target_change.length()/rate
+        self.target_time   = self.start_time + self.duration
+
+    def Get(self):
+        return self.pos
+
+    def Update(self,t):
+        if self.target:
+            if t >= self.target_time:
+                self.pos = self.target
+                #print 'f',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
+                self.NoTarget()
+            elif t < self.start_time: #I don't think we should get this
+                return
+            else:
+                partial = float(t-self.start_time)/self.duration
+                self.pos = (self.start_point + (self.target_change*partial)).to_int()
+                #print 'p',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
         
 
 class Tiles(object):
@@ -41,6 +82,7 @@ class Tiles(object):
         self.current_action = None
         self.player_action = None
         self.gameover = False
+        self.last_time = 0
         
         gamedata.map_size = self.map_size
         
@@ -132,12 +174,11 @@ class Tiles(object):
 
         self.text = texture.TextObject('a',gamedata.text_manager)
         self.text.Position(Point(10,10),0.5)
-
-        self.SetViewpos(Point(0,0)) 
+        self.viewpos = Viewpos(Point(0,0),self)
         self.selected      = None
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
 
-    def SetViewpos(self,viewpos):
+    def ValidViewpos(self,viewpos):
         #viewpos = list(viewpos)
         top_left= Point(0,gamedata.screen.y)
         top_right = gamedata.screen
@@ -166,7 +207,7 @@ class Tiles(object):
             viewgrid.y = self.height
             viewpos = (WorldCoords(viewgrid).to_int())-top_right
         
-        self.viewpos = viewpos        
+        return viewpos
 
     def NextPlayer(self):
         if self.current_player == None:
@@ -181,15 +222,24 @@ class Tiles(object):
         self.current_player.StartTurn()
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!
-        if self.current_player.IsPlayer():
-            self.selected_player = self.current_player
+        #if self.current_player.IsPlayer():
+        #    self.selected_player = self.current_player
+        #    self.selected_player.Select()
+
+    def SelectNextPlayerControlled(self,adjust):
+        if not self.current_action and self.current_player.IsPlayer():
+            self.selected_player = self.current_player.NextControlled(adjust)
             self.selected_player.Select()
+            target = WorldCoords(self.selected_player.pos)-(gamedata.screen/2)
+            self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
+            
+        
         
     def Draw(self):
         zcoord = 0
         glBindTexture(GL_TEXTURE_2D, self.atlas.texture.texture)
         glLoadIdentity()
-        glTranslate(-self.viewpos.x,-self.viewpos.y,0)
+        glTranslate(-self.viewpos.Get().x,-self.viewpos.Get().y,0)
 
 
         if self.selected:
@@ -250,7 +300,11 @@ class Tiles(object):
             
     def MouseButtonDown(self,pos,button):
         if button == 3:
-            self.dragging = self.viewpos + pos
+            self.dragging = self.viewpos.Get() + pos
+        elif button == 4: #scroll_up
+            self.SelectNextPlayerControlled(1)
+        elif button == 5:
+            self.SelectNextPlayerControlled(-1)
         
             
     def MouseButtonUp(self,pos,button):
@@ -270,27 +324,27 @@ class Tiles(object):
                 else:
                     if self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked
-                        current_viewpos = self.viewpos + pos
+                        current_viewpos = self.viewpos.Get() + pos
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
                         self.player_action.OnClick(utils.GridCoords(current_viewpos),button)
                      
                     #Remove the ability of the player to deselect his wizard, since we didn't get round to implementing
                     #monsters we don't need it
-                    #elif self.hovered_player is not self.current_player:
-                    #    print 'unselect!'
-                    #    self.selected_player.Unselect()
-                    #    self.selected_player = None
+                    elif self.hovered_player is not self.current_player:
+                        print 'unselect!'
+                        self.selected_player.Unselect()
+                        self.selected_player = None
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
             new_setpos = self.dragging - pos
-            self.SetViewpos(self.dragging - pos)
-            difference = self.viewpos - (new_setpos)
+            self.viewpos.Set(self.ValidViewpos(self.dragging - pos))
+            difference = self.viewpos.Get() - (new_setpos)
             #if difference is non-zero it means that we didn't get what we requested for some reason,
             #so we should update dragging so it still points at the right place
-            self.dragging = self.viewpos + pos
+            self.dragging = self.viewpos.Get() + pos
             
-        current_viewpos = self.viewpos + pos
+        current_viewpos = self.viewpos.Get() + pos
         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
         hovered_ui = self.HoveredUiElement(pos)
         if hovered_ui:
@@ -321,8 +375,10 @@ class Tiles(object):
                         self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
     def Update(self,t):
+        self.last_time = t
         if self.gameover:
             return
+        self.viewpos.Update(t)
         if self.current_action:
             finished = self.current_action.Update(t)
             if finished:
@@ -456,7 +512,6 @@ class GameWindow(object):
                 positions.append(pos)
                 break
                 
-        print players
             
         for i in xrange(len(players)):
             isplayer,name,type = players[i]

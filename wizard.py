@@ -220,6 +220,9 @@ class Wizard(object):
     def IsPlayer(self):
         return self.isPlayer
 
+    def NextControlled(self,amount):
+        return self
+
     def TakeAction(self,t):
         if self.action_list == None:
             #For a computer player, decide what to do
@@ -243,7 +246,7 @@ class Wizard(object):
             distance,wizard = match
             current_pos = self.pos
             while action_points > 0:
-                offset = wizard.pos - current_pos
+                offset = utils.WrapDistance(wizard.pos,self.pos,self.tiles.width)
                 if distance < WizardBlastAction.range:
                     self.action_list.append( WizardBlastAction(offset,t,self) )
                     action_points -= WizardBlastAction.cost
