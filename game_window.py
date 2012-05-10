@@ -72,7 +72,6 @@ class TileHighlights(object):
         self.quads = [utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['highlight']) for i in xrange(100)]
         for q in self.highlight_quads:
             q.Disable()
-
             
 
 class Tiles(object):
@@ -93,6 +92,13 @@ class Tiles(object):
         self.player_action = None
         self.gameover = False
         self.last_time = 0
+
+        self.ui_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+                                    Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
+                                    (0,0,0,0.6))
+        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.8,gamedata.screen.y*0.07),callback = self.EndTurn)
+        self.end_turn.MakeSelectable()
+        self.RegisterUIElement(self.end_turn,1)
         
         gamedata.map_size = self.map_size
         
@@ -230,12 +236,17 @@ class Tiles(object):
             self.current_player = self.wizards[self.current_player_index]
         self.selected_player = None
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
+        if self.current_player.IsPlayer():
+            self.end_turn.MakeSelectable()
+        else:
+            self.end_turn.MakeUnselectable()
         self.current_player.StartTurn()
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!
-        #if self.current_player.IsPlayer():
-        #    self.selected_player = self.current_player
-        #    self.selected_player.Select()
+        if self.current_player.IsPlayer():
+            #self.selected_player = self.current_player
+            #self.selected_player.Select()
+            self.SelectNextPlayerControlled(1)
 
     def SelectNextPlayerControlled(self,adjust):
         if not self.current_action and self.current_player.IsPlayer():
@@ -245,6 +256,9 @@ class Tiles(object):
             self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
             
         
+    def EndTurn(self,pos):
+        if self.current_player.IsPlayer():
+            self.current_player.EndTurn(pos)
         
     def Draw(self):
         zcoord = 0
@@ -411,7 +425,7 @@ class Tiles(object):
     def KeyDown(self,key):
         if key == pygame.locals.K_RETURN:
             if self.current_player.IsPlayer():
-                self.NextPlayer()
+                self.current_player.EndTurn(Point(0,0))
         elif key == pygame.locals.K_ESCAPE:
             self.Quit(0)
 
@@ -438,7 +452,7 @@ class Tiles(object):
         #not very efficient, but I only have 2 days, come on.
         match = [-1,None]
         for ui,height in self.uielements.iteritems():
-            if pos in ui:
+            if pos in ui and ui.On():
                 if height > match[0]:
                     match = [height,ui]
         return match[1]

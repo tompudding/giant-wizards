@@ -158,6 +158,7 @@ class UIElement(object):
         self.bottom_left = pos
         self.top_right = tr
         self.size = tr - pos
+        self.on = True
 
     def __contains__(self,pos):
         if pos.x < self.bottom_left.x or pos.x > self.top_right.x:
@@ -168,8 +169,18 @@ class UIElement(object):
 
     def Hover(self):
         pass
+
     def EndHover(self):
         pass
+
+    def On(self):
+        return self.on
+
+    def MakeSelectable(self):
+        self.on = True
+
+    def MakeUnselectable(self):
+        self.on = False
 
     def __hash__(self):
         return hash((self.bottom_left,self.top_right))
@@ -178,7 +189,9 @@ class BoxUI(UIElement):
     def __init__(self,pos,tr,colour):
         super(BoxUI,self).__init__(pos,tr)
         self.quad = utils.Quad(gamedata.ui_buffer)
-        self.quad.SetColour(colour)
+        self.colour = colour
+        self.unselectable_colour = tuple(component*0.5 for component in self.colour)
+        self.quad.SetColour(self.colour)
         self.quad.SetVertices(self.bottom_left,
                               self.top_right,
                               utils.ui_level)
@@ -191,6 +204,14 @@ class BoxUI(UIElement):
 
     def Enable(self):
         self.quad.Enable()
+
+    def MakeSelectable(self):
+        super(BoxUI,self).Selectable()
+        self.quad.SetColour(self.colour)
+
+    def MakeUnselectable(self):
+        super(BoxUI,self).MakeUnselectable()
+        self.quad.SetColour(self.unselectable_colour)
 
     def OnClick(self,pos,button):
         pass

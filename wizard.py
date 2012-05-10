@@ -141,7 +141,7 @@ class Wizard(object):
         self.health = 10
         self.quad = utils.Quad(gamedata.quad_buffer)
         self.action_points = 0
-        self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+        self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                          (0,0,0,0.6))
         self.title = texture.TextObject(name+':',gamedata.text_manager)
@@ -154,7 +154,7 @@ class Wizard(object):
         self.action_choices = [ActionChoice(MoveAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
-                                            callback = None),
+                                            callback = self.HandleMove),
                                ActionChoice(WizardBlastAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
                                             self,
@@ -172,8 +172,8 @@ class Wizard(object):
             t.Disable()
         for a in self.action_choices:
             a.Disable()
-        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
-        self.end_turn.Disable()
+        #self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
+        #self.end_turn.Disable()
         
                           
         self.isPlayer = isPlayer
@@ -204,10 +204,10 @@ class Wizard(object):
         for a in self.action_choices:
             a.Enable()
             self.tiles.RegisterUIElement(a.text,1)
-        self.end_turn.Enable()
+        #self.end_turn.Enable()
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box,0)
-        self.tiles.RegisterUIElement(self.end_turn,1)
+        #self.tiles.RegisterUIElement(self.end_turn,1)
         self.HandleAction(Point(0,0),self.action_choices[0])
     
     def Unselect(self):
@@ -217,10 +217,10 @@ class Wizard(object):
         for a in self.action_choices:
             a.Disable()
             self.tiles.RemoveUIElement(a.text)
-        self.end_turn.Disable()
+        #self.end_turn.Disable()
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
-        self.tiles.RemoveUIElement(self.end_turn)
+        #self.tiles.RemoveUIElement(self.end_turn)
 
     def Update(self,t):
         if not self.selected:
