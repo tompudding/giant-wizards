@@ -84,10 +84,9 @@ class WizardBlastAction(Action):
             elif t > self.start_time:
                 part = float(t-self.start_time)/self.duration
                 pos = self.start_pos + self.vector*part
-                utils.setvertices(self.quad.vertex,
-                                  utils.WorldCoords(pos).to_int(),
-                                  utils.WorldCoords(pos+Point(1,1)).to_int(),
-                                  0.5)
+                self.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                                      utils.WorldCoords(pos+Point(1,1)).to_int(),
+                                      0.5)
                 return False
 
     def Valid(self):
@@ -180,12 +179,13 @@ class Wizard(object):
         self.action_list = [] if self.IsPlayer() else None
         self.tiles = tiles
         self.selected = False
+        self.flash_state = True
         
     def SetPos(self,pos):
         self.pos = pos
         tile_data = self.tiles.GetTile(pos)
         tile_type = tile_data.name
-        utils.setvertices(self.quad.vertex,utils.WorldCoords(self.pos),utils.WorldCoords(self.pos)+gamedata.tile_dimensions,0.5)
+        self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos)+gamedata.tile_dimensions,0.5)
         if 'coast' in tile_type:
             tile_type = 'water'
         full_type = wizard_types[self.type] + '_' + tile_type
@@ -218,6 +218,22 @@ class Wizard(object):
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
         self.tiles.RemoveUIElement(self.end_turn)
+
+    def Update(self,t):
+        if not self.selected:
+            self.quad.Enable()
+            self.flash_state = True
+            return
+        if (t%800) > 400:
+            #want to be on
+            if not self.flash_state:
+                self.quad.Enable()
+                self.flash_state = True
+        else:
+            #want to be off
+            if self.flash_state:
+                self.quad.Disable()
+                self.flash_state = False
         
 
     def IsPlayer(self):

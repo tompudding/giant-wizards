@@ -12,10 +12,9 @@ class MainMenu(object):
         self.texture = texture.Texture('main.png')
         self.uielements = {}
         self.backdrop = utils.Quad(gamedata.quad_buffer,tc = utils.full_tc)
-        utils.setvertices(self.backdrop.vertex,
-                          Point(0,0),
-                          gamedata.screen,
-                          0)
+        self.backdrop.SetVertices(Point(0,0),
+                                  gamedata.screen,
+                                  0)
         self.static_text = []
         self.buttons = []
         offset = Point(-0.005*gamedata.screen.x,-0.045*gamedata.screen.y)

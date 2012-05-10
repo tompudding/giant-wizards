@@ -93,18 +93,13 @@ class TextObject(object):
         cursor = [0,0]
         for (i,quad) in enumerate(self.quads):
             quad.width
-            utils.setvertices(quad.vertex,
-                              pos+Point(cursor[0]*self.scale*global_scale,0),
-                              pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
-                                        quad.height*self.scale*global_scale),
-                              utils.text_level if self.static else 0.1)
+            quad.SetVertices(pos+Point(cursor[0]*self.scale*global_scale,0),
+                             pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
+                                       quad.height*self.scale*global_scale),
+                             utils.text_level if self.static else 0.1)
             cursor[0] += quad.width
         height = max([q.height for q in self.quads])
         
-            #utils.setvertices(quad.vertex,
-            #                  Point(0,0),
-            #                  gamedata.screen,
-            #                  utils.text_level)
         self.top_right = pos+Point(cursor[0]*self.scale*global_scale,height*self.scale*global_scale)
             
 
@@ -183,11 +178,10 @@ class BoxUI(UIElement):
     def __init__(self,pos,tr,colour):
         super(BoxUI,self).__init__(pos,tr)
         self.quad = utils.Quad(gamedata.ui_buffer)
-        utils.setcolour(self.quad.colour,colour)
-        utils.setvertices(self.quad.vertex,
-                          self.bottom_left,
-                          self.top_right,
-                          utils.ui_level)
+        self.quad.SetColour(colour)
+        self.quad.SetVertices(self.bottom_left,
+                              self.top_right,
+                              utils.ui_level)
 
     def Delete(self):
         self.quad.Delete()
@@ -218,30 +212,26 @@ class TextButtonUI(UIElement):
 
     def SetVertices(self):
         for i in xrange(4):
-            utils.setcolour(self.hover_quads[i].colour,(1,0,0,1))
+            self.hover_quads[i].SetColour((1,0,0,1))
         
         #top bar
-        utils.setvertices(self.hover_quads[0].vertex,
-                          Point(self.pos.x,self.top_right.y-self.line_width),
-                          self.top_right,
-                          utils.ui_level+1)
+        self.hover_quads[0].SetVertices(Point(self.pos.x,self.top_right.y-self.line_width),
+                                        self.top_right,
+                                        utils.ui_level+1)
         #right bar
-        utils.setvertices(self.hover_quads[1].vertex,
-                          Point(self.top_right.x-self.line_width,self.pos.y),
-                          self.top_right,
-                          utils.ui_level+1)
+        self.hover_quads[1].SetVertices(Point(self.top_right.x-self.line_width,self.pos.y),
+                                        self.top_right,
+                                        utils.ui_level+1)
         
         #bottom bar
-        utils.setvertices(self.hover_quads[2].vertex,
-                          self.pos,
-                          Point(self.top_right.x,self.pos.y+self.line_width),
-                          utils.ui_level+1)
+        self.hover_quads[2].SetVertices(self.pos,
+                                        Point(self.top_right.x,self.pos.y+self.line_width),
+                                        utils.ui_level+1)
 
         #left bar
-        utils.setvertices(self.hover_quads[3].vertex,
-                          self.pos,
-                          Point(self.pos.x+self.line_width,self.top_right.y),
-                          utils.ui_level+1)
+        self.hover_quads[3].SetVertices(self.pos,
+                                        Point(self.pos.x+self.line_width,self.top_right.y),
+                                        utils.ui_level+1)
                           
     def Delete(self):
         for quad in self.hover_quads:
@@ -269,13 +259,13 @@ class TextButtonUI(UIElement):
     def Selected(self):
         self.selected = True
         for i in xrange(4):
-            utils.setcolour(self.hover_quads[i].colour,(0,0,1,1))
+            self.hover_quads[i].SetColour((0,0,1,1))
             self.hover_quads[i].Enable()
 
     def Unselected(self):
         self.selected = False
         for i in xrange(4):
-            utils.setcolour(self.hover_quads[i].colour,(1,0,0,1))
+            self.hover_quads[i].SetColour((1,0,0,1))
         if not self.hovered and not self.selected:
             for i in xrange(4):
                 self.hover_quads[i].Disable()

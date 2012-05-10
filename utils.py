@@ -102,6 +102,14 @@ class Quad(object):
                 self.vertex[i] = self.old_vertices[i]
             self.old_vertices = None
 
+    def SetVertices(self,bl,tr,z):
+        setvertices(self.vertex,bl,tr,z)
+        if self.old_vertices != None:
+            self.old_vertices = numpy.vertex[0:4]
+    
+    def SetColour(self,colour):
+        setcolour(self.colour,colour)
+
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)
     vertex[1] = (bl.x,tr.y,z)

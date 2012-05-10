@@ -179,7 +179,7 @@ class Tiles(object):
                 tex_coords=self.tex_coords[tile_data.name]
                 temp_quad = utils.Quad(gamedata.quad_buffer,tc = tex_coords,index = index)
                 index += 4
-                utils.setvertices(temp_quad.vertex,world,world + gamedata.tile_dimensions,0)
+                temp_quad.SetVertices(world,world + gamedata.tile_dimensions,0)
                 
 
         self.text = texture.TextObject('a',gamedata.text_manager)
@@ -255,8 +255,7 @@ class Tiles(object):
 
         if self.selected:
             world = WorldCoords(self.selected)
-            utils.setvertices(self.selected_quad.vertex,world,world + gamedata.tile_dimensions,zcoord+1)
-
+            self.selected_quad.SetVertices(world,world + gamedata.tile_dimensions,zcoord+1)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
@@ -391,6 +390,8 @@ class Tiles(object):
         if self.gameover:
             return
         self.viewpos.Update(t)
+        for wizard in self.wizards:
+            wizard.Update(t)
         if self.current_action:
             finished = self.current_action.Update(t)
             if finished:
