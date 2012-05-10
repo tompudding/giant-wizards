@@ -105,7 +105,7 @@ class Quad(object):
     def SetVertices(self,bl,tr,z):
         setvertices(self.vertex,bl,tr,z)
         if self.old_vertices != None:
-            self.old_vertices = numpy.vertex[0:4]
+            self.old_vertices = numpy.copy(self.vertex[0:4])
     
     def SetColour(self,colour):
         setcolour(self.colour,colour)
