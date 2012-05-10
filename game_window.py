@@ -252,7 +252,6 @@ class Tiles(object):
         glLoadIdentity()
         glTranslate(-self.viewpos.Get().x,-self.viewpos.Get().y,0)
 
-
         if self.selected:
             world = WorldCoords(self.selected)
             self.selected_quad.SetVertices(world,world + gamedata.tile_dimensions,zcoord+1)

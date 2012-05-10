@@ -154,11 +154,13 @@ class Wizard(object):
         self.action_choices = [ActionChoice(MoveAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
-                                            callback = self.HandleMove),
+                                            callback = None),
                                ActionChoice(WizardBlastAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
                                             self,
                                             callback = self.HandleBlast)]
+        #move is special so make a shortcut for it
+        self.move = self.action_choices[0]
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
         self.health_text = texture.TextObject('%d' % self.health,gamedata.text_manager,static = False)
@@ -206,6 +208,7 @@ class Wizard(object):
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box,0)
         self.tiles.RegisterUIElement(self.end_turn,1)
+        self.HandleAction(Point(0,0),self.action_choices[0])
     
     def Unselect(self):
         self.selected = False
@@ -339,8 +342,12 @@ class Wizard(object):
 
     def HandleAction(self,pos,action):
         if self.tiles.player_action is action:
-            self.tiles.player_action = None
-            action.Unselected()
+            if action is self.move: #always keep move selected if nothing else is
+                return
+            else:
+                self.tiles.player_action = self.move
+                action.Unselected()
+                self.move.Selected()
         else:
             if self.tiles.player_action:
                 self.tiles.player_action.Unselected()
@@ -348,7 +355,7 @@ class Wizard(object):
             self.tiles.player_action = action
 
     def HandleMove(self,pos):
-        self.HandleAction(pos,self.action_choices[0])
+        self.HandleAction(pos,self.move)
         
     def HandleBlast(self,pos):
         self.HandleAction(pos,self.action_choices[1])
