@@ -452,7 +452,7 @@ class Tiles(object):
         #not very efficient, but I only have 2 days, come on.
         match = [-1,None]
         for ui,height in self.uielements.iteritems():
-            if pos in ui and ui.On():
+            if pos in ui and ui.Selectable():
                 if height > match[0]:
                     match = [height,ui]
         return match[1]

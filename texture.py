@@ -173,7 +173,7 @@ class UIElement(object):
     def EndHover(self):
         pass
 
-    def On(self):
+    def Selectable(self):
         return self.on
 
     def MakeSelectable(self):
