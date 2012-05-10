@@ -238,8 +238,10 @@ class Tiles(object):
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
         if self.current_player.IsPlayer():
             self.end_turn.MakeSelectable()
+            self.ui_box.MakeSelectable()
         else:
             self.end_turn.MakeUnselectable()
+            self.ui_box.MakeUnselectable()
         self.current_player.StartTurn()
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!

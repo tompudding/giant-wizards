@@ -190,7 +190,7 @@ class BoxUI(UIElement):
         super(BoxUI,self).__init__(pos,tr)
         self.quad = utils.Quad(gamedata.ui_buffer)
         self.colour = colour
-        self.unselectable_colour = tuple(component*0.5 for component in self.colour)
+        self.unselectable_colour = tuple(component*0.6 for component in self.colour)
         self.quad.SetColour(self.colour)
         self.quad.SetVertices(self.bottom_left,
                               self.top_right,
