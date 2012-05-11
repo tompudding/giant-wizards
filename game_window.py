@@ -126,6 +126,7 @@ class Tiles(object):
                                       Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
                                       (0,0,0,0.6))
         self.control_box.AddButton('End Turn',Point(0.3,0.15),self.EndTurn)
+        self.control_box.AddButton('Centre',Point(0.3,0.4),self.CentreSelected)
 
         self.control_box.Register(self,1)
         self.control_box.MakeSelectable()
@@ -274,17 +275,17 @@ class Tiles(object):
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!
         if self.current_player.IsPlayer():
-            #self.selected_player = self.current_player
-            #self.selected_player.Select()
             self.SelectNextPlayerControlled(1)
 
     def SelectNextPlayerControlled(self,adjust):
         if not self.current_action and self.current_player.IsPlayer():
             self.selected_player = self.current_player.NextControlled(adjust)
             self.selected_player.Select()
-            target = WorldCoords(self.selected_player.pos)-(gamedata.screen/2)
-            self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
+            self.CentreSelected()
             
+    def CentreSelected(self,pos = None):
+        target = WorldCoords(self.selected_player.pos)-(gamedata.screen/2)
+        self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
         
     def EndTurn(self,pos):
         if self.current_player.IsPlayer():
