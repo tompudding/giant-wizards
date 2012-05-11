@@ -104,6 +104,6 @@ if __name__ == '__main__':
 
     try:
         main()
-    except:
-        print 'fd'
+    except Exception, e:
+        print 'Caught exception, writing to error log...'
         logging.exception("Oops:")

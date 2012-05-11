@@ -265,6 +265,9 @@ class TextButtonUI(UIElement):
         self.top_right = self.text.top_right
         self.SetVertices()
 
+    def GetText(self):
+        return self.text.text
+
     def Hover(self):
         #print pygame.mouse.get_cursor()
         self.hovered = True

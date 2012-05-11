@@ -72,7 +72,36 @@ class TileHighlights(object):
         self.quads = [utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['highlight']) for i in xrange(100)]
         for q in self.highlight_quads:
             q.Disable()
-            
+
+class ControlBox(texture.UIElement):
+    def __init__(self,bl,tr,colour):
+        self.bl       = bl
+        self.tr       = tr
+        self.size     = tr-bl
+        self.colour   = colour
+        self.ui_box   = texture.BoxUI(bl,
+                                      tr,
+                                      colour)
+        self.buttons  = {}
+        self.elements = [self.ui_box]
+
+    def AddButton(self,text,pos,callback):
+        button = texture.TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+        button.level = 2
+        self.buttons[text] = button
+        self.elements.append(button)
+
+    def Register(self,tiles,level):
+        for element in self.elements:
+            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,texture.TextButtonUI) else level)
+        
+    def MakeSelectable(self):
+        for element in self.elements:
+            element.MakeSelectable()
+
+    def MakeUnselectable(self):
+        for element in self.elements:
+            element.MakeUnselectable()
 
 class Tiles(object):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
@@ -93,12 +122,13 @@ class Tiles(object):
         self.gameover = False
         self.last_time = 0
 
-        self.ui_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
-                                    Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
-                                    (0,0,0,0.6))
-        self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.8,gamedata.screen.y*0.07),callback = self.EndTurn)
-        self.end_turn.MakeSelectable()
-        self.RegisterUIElement(self.end_turn,1)
+        self.control_box = ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+                                      Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
+                                      (0,0,0,0.6))
+        self.control_box.AddButton('End Turn',Point(0.3,0.15),self.EndTurn)
+
+        self.control_box.Register(self,1)
+        self.control_box.MakeSelectable()
         
         gamedata.map_size = self.map_size
         
@@ -237,11 +267,9 @@ class Tiles(object):
         self.selected_player = None
         self.text.SetText('It\'s %s\'s turn.' % (self.current_player.name))
         if self.current_player.IsPlayer():
-            self.end_turn.MakeSelectable()
-            self.ui_box.MakeSelectable()
+            self.control_box.MakeSelectable()
         else:
-            self.end_turn.MakeUnselectable()
-            self.ui_box.MakeUnselectable()
+            self.control_box.MakeUnselectable()
         self.current_player.StartTurn()
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!
