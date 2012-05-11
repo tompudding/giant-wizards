@@ -206,7 +206,7 @@ class BoxUI(UIElement):
         self.quad.Enable()
 
     def MakeSelectable(self):
-        super(BoxUI,self).Selectable()
+        super(BoxUI,self).MakeSelectable()
         self.quad.SetColour(self.colour)
 
     def MakeUnselectable(self):

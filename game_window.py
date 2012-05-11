@@ -309,7 +309,6 @@ class Tiles(object):
         glColorPointer(4,GL_FLOAT,0,gamedata.quad_buffer.colour_data)
 
         glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
-        glDrawElements(GL_QUADS,gamedata.quad_buffer.current_size,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
 
         #draw it again for the wrapping
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
