@@ -458,6 +458,8 @@ class Tiles(object):
             finished = self.current_action.Update(t)
             if finished:
                 self.current_action = None
+                if self.player_action:
+                    self.player_action.Selected()
         else:
             #Don't allow the AI to take a move until the screen has finished centering on them
             if not self.viewpos.HasTarget():

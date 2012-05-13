@@ -97,6 +97,7 @@ class WizardBlastAction(Action):
             if self.wizard.action_points >= WizardBlastAction.cost:
                 self.wizard.AdjustActionPoints(-WizardBlastAction.cost)
                 self.firing = True
+                self.quad.Enable()
             else:
                 #we're not going to do it so we're already finished
                 return True
@@ -128,9 +129,10 @@ class ActionChoice(object):
         self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = callback)
         self.wizard = wizard
         self.quads = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
+        self.selected = False
         self.UpdateQuads()
-        for q in self.quads:
-            q.Disable()
+        #for q in self.quads:
+        #    q.Disable()
 
     def UpdateQuads(self):
         for quad,p in zip(self.quads,self.action.valid_vectors):
@@ -139,7 +141,9 @@ class ActionChoice(object):
                              utils.WorldCoords(pos+Point(1,1)).to_int(),
                              0.6)
             quad.SetColour((1,1,1,0.3))
-        
+            if not self.selected:
+                quad.Disable()
+
     def Enable(self):
         self.text.Enable()
         #for q in self.quads:
@@ -152,11 +156,14 @@ class ActionChoice(object):
 
     def Selected(self):
         self.text.Selected()
+        print 'coleffed'
+        self.selected = True
         for q in self.quads:
             q.Enable()
 
     def Unselected(self):
         self.text.Unselected()
+        self.selected = False
         for q in self.quads:
             q.Disable()
 
@@ -175,6 +182,10 @@ class ActionChoice(object):
 
         action = self.action(vector,0,self.wizard)
         if action.Valid():
+            self.selected = False
+            for q in self.quads:
+                q.Disable()
+            
             self.wizard.action_list.append(action)
         
 
