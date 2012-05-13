@@ -254,9 +254,9 @@ class Tiles(object):
 
         #top
         viewgrid = GridCoords((viewpos+top_right).to_float())
-        if viewgrid.y > self.height:
+        if viewgrid.y >= self.height:
             viewgrid.y = self.height
-            viewpos = (WorldCoords(viewgrid).to_int())-top_right
+            viewpos = (WorldCoords(viewgrid).to_int())-top_right-Point(0,1)
         
         return viewpos
 
@@ -544,6 +544,7 @@ class Tiles(object):
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)
+        gamedata.colour_tiles.truncate(0)
         gamedata.text_manager.Purge()
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         gamedata.current_view = main_menu.MainMenu()
