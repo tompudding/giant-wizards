@@ -111,10 +111,11 @@ class WizardBlastAction(Action):
                 if target:
                     damage = random.randint(WizardBlastAction.min_damage,WizardBlastAction.max_damage)
                     target.Damage(damage)
+                self.quad.Disable()
                 self.quad.Delete()
                 self.quad = None
                 return True
-            elif t > self.start_time:
+            elif t >= self.start_time:
                 part = float(t-self.start_time)/self.duration
                 pos = self.start_pos + self.vector*part
                 self.quad.SetVertices(utils.WorldCoords(pos).to_int(),
@@ -156,7 +157,6 @@ class ActionChoice(object):
 
     def Selected(self):
         self.text.Selected()
-        print 'coleffed'
         self.selected = True
         for q in self.quads:
             q.Enable()
