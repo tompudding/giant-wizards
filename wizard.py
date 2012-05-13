@@ -149,6 +149,9 @@ class ActionChoice(object):
             quad.SetVertices(utils.WorldCoords(pos).to_int(),
                              utils.WorldCoords(pos+Point(1,1)).to_int(),
                              0.6)
+            #This commented out bit makes the colours smooth. I think pixellated looks better
+            #vertices = p,p+Point(0,1),p+Point(1,1),p+Point(1,0)
+            #quad.SetColours(self.action.ColourFunction(p) for p in vertices)
             quad.SetColour(self.action.ColourFunction(p))
             if not self.selected:
                 quad.Disable()

@@ -112,6 +112,11 @@ class Quad(object):
     def SetColour(self,colour):
         setcolour(self.colour,colour)
 
+    def SetColours(self,colours):
+        for current,target in zip(self.colour,colours):
+            for i in xrange(4):
+                current[i] = target[i]
+
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)
     vertex[1] = (bl.x,tr.y,z)
