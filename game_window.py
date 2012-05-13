@@ -48,6 +48,9 @@ class Viewpos(object):
         self.duration      = self.target_change.length()/rate
         self.target_time   = self.start_time + self.duration
 
+    def HasTarget(self):
+        return self.target != None
+
     def Get(self):
         return self.pos
 
@@ -276,6 +279,8 @@ class Tiles(object):
         #guys to select, as he only has one!
         if self.current_player.IsPlayer():
             self.SelectNextPlayerControlled(1)
+        else:
+            self.CentreCurrent()
 
     def SelectNextPlayerControlled(self,adjust):
         if not self.current_action and self.current_player.IsPlayer():
@@ -285,6 +290,10 @@ class Tiles(object):
             
     def CentreSelected(self,pos = None):
         target = WorldCoords(self.selected_player.pos)-(gamedata.screen/2)
+        self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
+
+    def CentreCurrent(self,pos = None):
+        target = WorldCoords(self.current_player.pos)-(gamedata.screen/2)
         self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
         
     def EndTurn(self,pos):
@@ -440,11 +449,13 @@ class Tiles(object):
             if finished:
                 self.current_action = None
         else:
-            action = self.current_player.TakeAction(t)
-            if action == False:
-                self.NextPlayer()
-            if action != None:
-                self.current_action = action
+            #Don't allow the AI to take a move until the screen has finished centering on them
+            if not self.viewpos.HasTarget():
+                action = self.current_player.TakeAction(t)
+                if action == False:
+                    self.NextPlayer()
+                if action != None:
+                    self.current_action = action
 
     def AddWizard(self,pos,type,isPlayer,name):
         target_tile = self.GetTile(pos)

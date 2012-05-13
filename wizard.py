@@ -25,10 +25,27 @@ class MoveAction(Action):
             self.start_time = t
             self.end_time = t + (self.vector.length()*1000/self.speed)
             self.duration = self.end_time - self.start_time
+            self.start_pos = self.wizard.pos
+            self.end_pos  = self.start_pos + self.vector
             self.initialised = True
+            self.attacking   = not self.wizard.tiles.GetTile(self.end_pos).Empty() 
         if t > self.end_time:
             self.wizard.MoveRelative(self.vector)
             return True
+        else:
+            part = float(t-self.start_time)/self.duration
+            if not self.attacking:
+                pos = self.start_pos + self.vector*part
+            else:
+                #go halfway then come back
+                pos = self.start_pos + self.vector*(part if part < 0.5 else (1-part))
+                
+            self.wizard.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                                         utils.WorldCoords(pos+Point(1,1)).to_int(),
+                                         0.5)
+            self.wizard.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
+                                                                     pos.y + 0.8)),
+                                             0.3)
         return False
 
     def Valid(self):
