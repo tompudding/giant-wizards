@@ -1,4 +1,4 @@
-import utils,texture,random
+import utils,texture,random,math
 from utils import Point
 
 gamedata = None
@@ -64,11 +64,15 @@ class MoveAction(Action):
         if self.vector.length() < 1.5:
             return True
         return False
+
+    @staticmethod
+    def ColourFunction(pos):
+        return (1,1,1,0.3)
         
 class WizardBlastAction(Action):
     name = 'Wizard Blast'
     cost = 2
-    range = 5
+    range = 5.0
     min_damage = 1
     max_damage = 3
     valid_vectors = set(Point(x,y) for x in xrange(-5,6) \
@@ -122,6 +126,10 @@ class WizardBlastAction(Action):
                                       utils.WorldCoords(pos+Point(1,1)).to_int(),
                                       0.5)
                 return False
+    @staticmethod
+    def ColourFunction(pos):
+        part = (pos.length()/WizardBlastAction.range)*math.pi
+        return (math.sin(part),math.sin(part+math.pi*0.3),math.sin(part+math.pi*0.6),0.3)
 
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
@@ -141,7 +149,7 @@ class ActionChoice(object):
             quad.SetVertices(utils.WorldCoords(pos).to_int(),
                              utils.WorldCoords(pos+Point(1,1)).to_int(),
                              0.6)
-            quad.SetColour((1,1,1,0.3))
+            quad.SetColour(self.action.ColourFunction(p))
             if not self.selected:
                 quad.Disable()
 
