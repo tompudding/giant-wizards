@@ -189,7 +189,11 @@ class Point(object):
 
     def length(self):
         a = math.sqrt(self.x**2 + self.y**2)
-        b = math.sqrt((gamedata.map_size[0]-self.x)**2+self.y**2)
+        try:
+            b = math.sqrt((gamedata.map_size[0]-self.x)**2+self.y**2)
+        except AttributeError:
+            #Maybe gamedata isn't set up yet.
+            return a
         return min(a,b)
 
 def GridCoordsX(point):

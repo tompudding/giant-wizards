@@ -9,16 +9,25 @@ wizard_types = ['purple_wizard',
                 'green_wizard']
 
 class Action(object):
-    pass
+    def Valid(self):
+        #if self.vector.length() < WizardBlastAction.range:
+        #    return True
+        if self.vector in self.valid_vectors:
+            return True
+        return False
 
 class MoveAction(Action):
     name = 'Move'
     cost = 1
+    valid_vectors = set(Point(x,y) for x in xrange(-1,2) \
+                                   for y in xrange(-1,2) \
+                            if Point(x,y).length() != 0 )
     def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
         self.initialised = False
         self.speed = speed
         self.wizard = wizard
+        
         
     def Update(self,t):
         if not self.initialised:
@@ -28,11 +37,14 @@ class MoveAction(Action):
             self.start_pos = self.wizard.pos
             self.end_pos  = self.start_pos + self.vector
             self.initialised = True
-            self.attacking   = not self.wizard.tiles.GetTile(self.end_pos).Empty() 
+            target_tile = self.wizard.tiles.GetTile(self.end_pos)
+            self.attacking   = not target_tile.Empty() 
+            self.will_move = self.wizard.action_points >= target_tile.movement_cost
+        
         if t > self.end_time:
             self.wizard.MoveRelative(self.vector)
             return True
-        else:
+        elif self.will_move:
             part = float(t-self.start_time)/self.duration
             if not self.attacking:
                 pos = self.start_pos + self.vector*part
@@ -59,6 +71,9 @@ class WizardBlastAction(Action):
     range = 5
     min_damage = 1
     max_damage = 3
+    valid_vectors = set(Point(x,y) for x in xrange(-5,6) \
+                                   for y in xrange(-5,6) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 5)
     def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
         self.wizard = wizard
@@ -106,32 +121,44 @@ class WizardBlastAction(Action):
                                       0.5)
                 return False
 
-    def Valid(self):
-        if self.vector.length() < WizardBlastAction.range:
-            return True
-        return False
-
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
         self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
         self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = callback)
         self.wizard = wizard
+        self.quads = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
+        self.UpdateQuads()
+        for q in self.quads:
+            q.Disable()
+
+    def UpdateQuads(self):
+        for quad,p in zip(self.quads,self.action.valid_vectors):
+            pos = self.wizard.pos + p
+            quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                             utils.WorldCoords(pos+Point(1,1)).to_int(),
+                             0.6)
+            quad.SetColour((1,1,1,0.3))
         
     def Enable(self):
         self.text.Enable()
-        tiles = self.wizard.tiles
-        
+        #for q in self.quads:
+        #    q.Enable()        
 
     def Disable(self):
         self.text.Disable()
-        
+        #for q in self.quads:
+        #    q.Disable()
 
     def Selected(self):
         self.text.Selected()
+        for q in self.quads:
+            q.Enable()
 
     def Unselected(self):
         self.text.Unselected()
+        for q in self.quads:
+            q.Disable()
 
     def OnClick(self,pos,button):
         pos = pos.to_int()
@@ -213,6 +240,8 @@ class Wizard(object):
         self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
                                                           self.pos.y + 0.8)),
                                   0.3)
+        if self.tiles.player_action:
+            self.tiles.player_action.UpdateQuads()
 
     def Select(self):
         self.selected = True
@@ -225,7 +254,7 @@ class Wizard(object):
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box,0)
         #self.tiles.RegisterUIElement(self.end_turn,1)
-        self.HandleAction(Point(0,0),self.action_choices[0])
+        self.HandleAction(Point(0,0),self.move)
     
     def Unselect(self):
         self.selected = False
@@ -360,6 +389,7 @@ class Wizard(object):
     def HandleAction(self,pos,action):
         if self.tiles.player_action is action:
             if action is self.move: #always keep move selected if nothing else is
+                action.UpdateQuads()
                 return
             else:
                 self.tiles.player_action = self.move
@@ -370,6 +400,7 @@ class Wizard(object):
                 self.tiles.player_action.Unselected()
             action.Selected()
             self.tiles.player_action = action
+        self.tiles.player_action.UpdateQuads()
 
     def HandleMove(self,pos):
         self.HandleAction(pos,self.move)

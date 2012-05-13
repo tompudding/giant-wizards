@@ -20,6 +20,7 @@ class GameData(object):
     quad_buffer = utils.QuadBuffer(131072)
     ui_buffer   = utils.QuadBuffer(131072)
     nonstatic_text_buffer = utils.QuadBuffer(131072)
+    colour_tiles = utils.QuadBuffer(131072)
     text_manager = None
     main_menu = None
     current_view = None
@@ -41,7 +42,7 @@ def Init(gamedata):
     glEnable(GL_TEXTURE_2D)
     glEnable(GL_BLEND)
     glEnable(GL_DEPTH_TEST)
-    glAlphaFunc(GL_GREATER, 0.3)
+    glAlphaFunc(GL_GREATER, 0.01)
     glEnable(GL_ALPHA_TEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(1.0,1.0,1.0,1.0)

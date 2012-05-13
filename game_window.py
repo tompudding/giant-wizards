@@ -339,19 +339,29 @@ class Tiles(object):
 
         glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
         glDrawElements(GL_QUADS,gamedata.nonstatic_text_buffer.current_size,GL_UNSIGNED_INT,gamedata.nonstatic_text_buffer.indices)
-        
 
-        glDisableClientState(GL_VERTEX_ARRAY)
+        #now draw the coloured tiles
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
-        glDisableClientState(GL_COLOR_ARRAY)
+        glDisable(GL_TEXTURE_2D)
+        glVertexPointerf(gamedata.colour_tiles.vertex_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.colour_tiles.colour_data)
+        glDrawElements(GL_QUADS,gamedata.colour_tiles.current_size,GL_UNSIGNED_INT,gamedata.colour_tiles.indices)
+
+        glTranslate((-2*self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.colour_tiles.current_size,GL_UNSIGNED_INT,gamedata.colour_tiles.indices)
+
+        glTranslate((self.width*gamedata.tile_dimensions.x),0,0)
+        glDrawElements(GL_QUADS,gamedata.colour_tiles.current_size,GL_UNSIGNED_INT,gamedata.colour_tiles.indices)
+        #glDisableClientState(GL_VERTEX_ARRAY)
+        #glDisableClientState(GL_COLOR_ARRAY)
         self.DrawUI()
 
     def DrawUI(self):
         glLoadIdentity()
 
-        glDisable(GL_TEXTURE_2D)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
+        #glDisable(GL_TEXTURE_2D)
+        #glEnableClientState(GL_VERTEX_ARRAY)
+        #glEnableClientState(GL_COLOR_ARRAY)
         glVertexPointerf(gamedata.ui_buffer.vertex_data)
         glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
         glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
