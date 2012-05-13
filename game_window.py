@@ -572,7 +572,7 @@ class GameWindow(object):
             if total_tried > 100:
                 #something is wrong here
                 print 'Something very wrong has happened to the map. Try again?'
-                raise SystemExit
+                raise ValueError
             while not good_position:
                 tries += 1
                 if tries > 10000:

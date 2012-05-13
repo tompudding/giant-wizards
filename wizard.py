@@ -200,7 +200,7 @@ class ActionChoice(object):
             self.wizard.action_list.append(action)
         
 
-class Wizard(object):
+class Actor(object):
     def __init__(self,pos,type,tiles,isPlayer,name):
         self.pos = pos
         self.type = type
@@ -216,17 +216,8 @@ class Wizard(object):
         self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
         self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
-
-        self.action_choices = [ActionChoice(MoveAction,
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
-                                            self,
-                                            callback = self.HandleMove),
-                               ActionChoice(WizardBlastAction,
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
-                                            self,
-                                            callback = self.HandleBlast)]
-        #move is special so make a shortcut for it
-        self.move = self.action_choices[0]
+        
+        
         
         self.static_text = [self.title,self.action_points_text,self.action_header]
         self.health_text = texture.TextObject('%d' % self.health,gamedata.text_manager,static = False)
@@ -236,8 +227,7 @@ class Wizard(object):
         self.options_box.Disable()
         for t in self.static_text:
             t.Disable()
-        for a in self.action_choices:
-            a.Disable()
+        
         #self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
         #self.end_turn.Disable()
         
@@ -253,10 +243,10 @@ class Wizard(object):
         self.pos = pos
         tile_data = self.tiles.GetTile(pos)
         tile_type = tile_data.name
-        self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos)+gamedata.tile_dimensions,0.5)
+        self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos + Point(1,1)),0.5)
         if 'coast' in tile_type:
             tile_type = 'water'
-        full_type = wizard_types[self.type] + '_' + tile_type
+        full_type = self.type + '_' + tile_type
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)
         self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
@@ -311,13 +301,14 @@ class Wizard(object):
         return self.isPlayer
 
     def NextControlled(self,amount):
-        return self
+        self.controlled_index += len(self.controlled) + amount #add the length in case amount is negative
+        self.controlled_index %= len(self.controlled)
+        return self.controlled[self.controlled_index]
 
     def TakeAction(self,t):
         if self.action_list == None:
             #For a computer player, decide what to do
             #regular players populate this list themselves
-            #for now just move right 1 square
             action_points = self.action_points
             self.action_list = []
             #Find the nearest enemy
@@ -444,3 +435,22 @@ class Wizard(object):
             self.health_text.Delete()
             self.tiles.RemoveWizard(self)
                 
+
+class Wizard(Actor):
+    def __init__(self,pos,type,tiles,isPlayer,name):
+        full_type = wizard_types[type]
+        super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name)
+        self.controlled = [self]
+        self.controlled_index = 0
+        self.action_choices = [ActionChoice(MoveAction,
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                            self,
+                                            callback = self.HandleMove),
+                               ActionChoice(WizardBlastAction,
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
+                                            self,
+                                            callback = self.HandleBlast)]
+        #move is special so make a shortcut for it
+        self.move = self.action_choices[0]
+        for a in self.action_choices:
+            a.Disable()
