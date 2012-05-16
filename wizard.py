@@ -10,8 +10,6 @@ wizard_types = ['purple_wizard',
 
 class Action(object):
     def Valid(self):
-        #if self.vector.length() < WizardBlastAction.range:
-        #    return True
         if self.vector in self.valid_vectors:
             return True
         return False
@@ -68,13 +66,11 @@ class MoveAction(Action):
     @staticmethod
     def ColourFunction(pos):
         return (1,1,1,0.3)
-        
-class WizardBlastAction(Action):
-    name = 'Wizard Blast'
+
+class BlastAction(Action):
+    name = 'Blast'
     cost = 2
     range = 5.0
-    min_damage = 1
-    max_damage = 3
     valid_vectors = set(Point(x,y) for x in xrange(-5,6) \
                                    for y in xrange(-5,6) \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 5)
@@ -86,6 +82,9 @@ class WizardBlastAction(Action):
         self.speed = speed
         self.initialised = False
         self.firing = None
+
+    def Impact(self):
+        raise NotImplemented
         
     def Update(self,t):
         if not self.initialised:
@@ -109,12 +108,8 @@ class WizardBlastAction(Action):
         if self.firing:
             if t > self.end_time:
                 #check to see if the target needs to take damage
+                self.Impact()
                 
-                target_tile = self.wizard.tiles.GetTile(self.end_pos)
-                target = target_tile.GetActor()
-                if target:
-                    damage = random.randint(WizardBlastAction.min_damage,WizardBlastAction.max_damage)
-                    target.Damage(damage)
                 self.quad.Disable()
                 self.quad.Delete()
                 self.quad = None
@@ -131,6 +126,35 @@ class WizardBlastAction(Action):
         part = (pos.length()/WizardBlastAction.range)*math.pi
         return (math.sin(part),math.sin(part+math.pi*0.3),math.sin(part+math.pi*0.6),0.3)
 
+class WizardBlastAction(BlastAction):
+    name = 'Wizard Blast'
+    cost = 2
+    min_damage = 1
+    max_damage = 3
+
+    def Impact(self):
+        target_tile = self.wizard.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if target:
+            damage = random.randint(self.min_damage,self.max_damage)
+            target.Damage(damage)
+
+
+# class SummonGorillaAction(BlastAction):
+#     name  = 'Summon Gorilla'
+#     cost  = 4
+#     range = 4
+#     valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
+#                                    for y in xrange(-3,4) \
+#                             if Point(x,y).length() != 0 and Point(x,y).length() < 4)
+
+#     def Impact(self):
+#         target_tile = self.wizard.tiles.GetTile(self.end_pos)
+#         target = target_tile.GetActor()
+#         if not target:
+#             gorilla = Gorilla(self.end_pos,)
+            
+
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
@@ -140,8 +164,6 @@ class ActionChoice(object):
         self.quads = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
         self.selected = False
         self.UpdateQuads()
-        #for q in self.quads:
-        #    q.Disable()
 
     def UpdateQuads(self):
         for quad,p in zip(self.quads,self.action.valid_vectors):
@@ -158,13 +180,9 @@ class ActionChoice(object):
 
     def Enable(self):
         self.text.Enable()
-        #for q in self.quads:
-        #    q.Enable()        
 
     def Disable(self):
         self.text.Disable()
-        #for q in self.quads:
-        #    q.Disable()
 
     def Selected(self):
         self.text.Selected()
@@ -227,10 +245,6 @@ class Actor(object):
         self.options_box.Disable()
         for t in self.static_text:
             t.Disable()
-        
-        #self.end_turn = texture.TextButtonUI('End Turn',Point(gamedata.screen.x*0.72,gamedata.screen.y*0.07),callback = self.EndTurn)
-        #self.end_turn.Disable()
-        
                           
         self.isPlayer = isPlayer
         self.name = name
@@ -262,10 +276,8 @@ class Actor(object):
         for a in self.action_choices:
             a.Enable()
             self.tiles.RegisterUIElement(a.text,1)
-        #self.end_turn.Enable()
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box,0)
-        #self.tiles.RegisterUIElement(self.end_turn,1)
         self.HandleAction(Point(0,0),self.move)
     
     def Unselect(self):
@@ -275,10 +287,8 @@ class Actor(object):
         for a in self.action_choices:
             a.Disable()
             self.tiles.RemoveUIElement(a.text)
-        #self.end_turn.Disable()
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
-        #self.tiles.RemoveUIElement(self.end_turn)
 
     def Update(self,t):
         if not self.selected:
@@ -433,8 +443,7 @@ class Actor(object):
         if self.health <= 0:
             self.quad.Delete()
             self.health_text.Delete()
-            self.tiles.RemoveWizard(self)
-                
+            self.tiles.RemoveActor(self)
 
 class Wizard(Actor):
     def __init__(self,pos,type,tiles,isPlayer,name):
@@ -454,3 +463,15 @@ class Wizard(Actor):
         self.move = self.action_choices[0]
         for a in self.action_choices:
             a.Disable()
+
+    def Damage(self,value):
+        self.health -= value
+        self.health_text.SetText('%d' % self.health)
+        if self.health <= 0:
+            self.quad.Delete()
+            self.health_text.Delete()
+            self.tiles.RemoveWizard(self)
+
+#class Gorilla(Actor):
+#    def __init__(self,pos,type,tiles,isPlayer,name):
+        

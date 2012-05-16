@@ -510,10 +510,13 @@ class Tiles(object):
                     match = [height,ui]
         return match[1]
 
-    def RemoveWizard(self,wizard):
-        tile = self.GetTile(wizard.pos)
+    def RemoveActor(self,actor):
+        tile = self.GetTile(actor.pos)
         if tile:
             tile.SetActor(None)
+
+    def RemoveWizard(self,wizard):
+        self.RemoveActor(wizard)
         pos = self.wizards.index(wizard)
         del self.wizards[pos]
         if len(self.wizards) == 1:
