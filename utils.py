@@ -203,6 +203,44 @@ class Point(object):
             return a
         return min(a,b)
 
+    def DistanceHeuristic(self,other):
+        return (other-self).diaglength()
+
+    def diaglength(self):
+        return max(abs(self.x),abs(self.y))
+
+class Path(object):
+    def __init__(self,start):
+        self.path = [start]
+        node = start.parent
+        while node:
+            self.path.insert(0,node)
+            node = node.parent
+
+        self.quads = []
+        for p in self.path:
+            q = utils.Quad(gamedata.quad_buffer)
+            #q.
+            
+
+    def Segments(self):
+        steps = [self.path[i+1]-self.path[i] for i in xrange(len(self.path)-1)]
+        last = None
+        length = 1
+        while steps:
+            a = steps.pop(0)
+            if not last:
+                last = a
+                continue
+            if a == last:
+                length += 1
+            else:
+                yield last,length
+                last = a
+                length = 1
+        if length:
+            yield last,length
+
 def GridCoordsX(point):
     return (float(point.x)/gamedata.tile_dimensions.x)
 
@@ -224,3 +262,25 @@ def WrapDistance(a,b,width):
     if abs(other) < abs(offset.x):
         offset.x = other
     return offset
+
+def fbisect_left(a, x, lo=0, hi=None):
+    """Return the index where to insert item x in list a, assuming a is sorted.
+
+    The return value i is such that all e in a[:i] have e < x, and all e in
+    a[i:] have e >= x.  So if x already appears in the list, a.insert(x) will
+    insert just before the leftmost x already there.
+
+    Optional args lo (default 0) and hi (default len(a)) bound the
+    slice of a to be searched.
+    """
+
+    if lo < 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = len(a)
+    while lo < hi:
+        mid = (lo+hi)//2
+        if a[mid].f < x.f: lo = mid+1
+        else: hi = mid
+    return lo
+

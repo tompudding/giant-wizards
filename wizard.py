@@ -15,11 +15,8 @@ class Action(object):
         return False
 
 class MoveAction(Action):
-    name = 'Move'
+    
     cost = 1
-    valid_vectors = set(Point(x,y) for x in xrange(-1,2) \
-                                   for y in xrange(-1,2) \
-                            if Point(x,y).length() != 0 )
     def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
         self.initialised = False
@@ -63,9 +60,32 @@ class MoveAction(Action):
             return True
         return False
 
+class MoveActionCreator(object):
+    name = 'Move'
+    cost = 1
+    def __init__(self,wizard):
+        self.last_ap = -1
+        self._valid_vectors = None
+        self.wizard = wizard
+
+    @property
+    def valid_vectors(self):
+        if self.last_ap != self.wizard.action_points:
+            ap = self.wizard.action_points
+            self._valid_vectors = set(Point(x,y) for x in xrange(-ap,ap+1) 
+                                         for y in xrange(-ap,ap+1) \
+                                         if Point(x,y).diaglength() != 0  and Point(x,y).diaglength() <= ap)
+            self.last_ap = ap
+        return self._valid_vectors
+
+    def __call__(self,vector,t,wizard,speed=4):
+        return MoveAction(vector,t,wizard,speed)
+
     @staticmethod
     def ColourFunction(pos):
-        return (1,1,1,0.3)
+        return (1-pos.length()/5.,1-pos.length()/5.,1-pos.length()/5.,0.6)
+        #return (1,1,1,1)
+
 
 class BlastAction(Action):
     name = 'Blast'
@@ -166,6 +186,13 @@ class ActionChoice(object):
         self.UpdateQuads()
 
     def UpdateQuads(self):
+        if len(self.action.valid_vectors) > len(self.quads):
+            self.quads.extend([utils.Quad(gamedata.colour_tiles) for p in xrange(len(self.action.valid_vectors)-len(self.quads))])
+        elif len(self.quads) > len(self.action.valid_vectors):
+            diff = len(self.quads) - len(self.action.valid_vectors)
+            for quad in self.quads[:diff]:
+                quad.Delete()
+            self.quads = self.quads[diff:]
         for quad,p in zip(self.quads,self.action.valid_vectors):
             pos = self.wizard.pos + p
             quad.SetVertices(utils.WorldCoords(pos).to_int(),
@@ -451,7 +478,7 @@ class Wizard(Actor):
         super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name)
         self.controlled = [self]
         self.controlled_index = 0
-        self.action_choices = [ActionChoice(MoveAction,
+        self.action_choices = [ActionChoice(MoveActionCreator(self),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
                                             callback = self.HandleMove),

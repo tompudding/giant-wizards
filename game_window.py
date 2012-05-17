@@ -8,20 +8,35 @@ import texture,numpy,random,perlin,wizard,pygame,main_menu
 gamedata = None
 
 class TileData(object):
-    def __init__(self,pos,name,movement_cost):
-        self.pos = pos
-        self.name = name
+    IMPASSABLE = 1000
+    def __init__(self,pos,name,movement_cost,tiles):
+        self.pos           = pos
+        self.name          = name
         self.movement_cost = movement_cost
-        self.actor = None
+        self.actor         = None
+        self.tiles         = tiles
 
     def GetActor(self):
         return self.actor
 
     def SetActor(self,actor):
+        self.tiles.InvalidateCache()
         self.actor = actor
 
     def Empty(self):
         return self.actor == None
+
+    def Impassable(self):
+        return self.movement_cost == self.IMPASSABLE
+
+    def MovementCost(self,ignore = None):
+        a = 0  
+        
+        if self.actor:
+            if not ignore is self.actor:
+                return TileData.IMPASSABLE
+        return self.movement_cost
+
 
 class Viewpos(object):
     def __init__(self,point,tiles):
@@ -46,6 +61,8 @@ class Viewpos(object):
         self.start_point   = self.pos
         self.start_time    = t
         self.duration      = self.target_change.length()/rate
+        if self.duration < 200:
+            self.duration = 200
         self.target_time   = self.start_time + self.duration
 
     def HasTarget(self):
@@ -124,6 +141,7 @@ class Tiles(object):
         self.player_action = None
         self.gameover = False
         self.last_time = 0
+        self.pathcache = {}
 
         self.control_box = ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                       Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -174,7 +192,7 @@ class Tiles(object):
                 noise_level = self.noise.noise2(x*0.1,y*0.1)
                 if noise_level >= 0.8:
                     type = 'mountain'
-                    movement_cost = 99
+                    movement_cost = TileData.IMPASSABLE
                 elif noise_level >= 0.6:
                     type = 'tree'
                     movement_cost = 1
@@ -184,7 +202,7 @@ class Tiles(object):
                 else:
                     type = 'water'
                     movement_cost = 2
-                col.append( TileData(Point(x,y),type,movement_cost))
+                col.append( TileData(Point(x,y),type,movement_cost,self))
             self.map.append(col)
 
         #sort out the coasts
@@ -228,6 +246,12 @@ class Tiles(object):
         self.selected      = None
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
         #self.highlights    = TileHighlights(100)
+        path = self.PathTo(Point(0,0),Point(19,19))
+        if path:
+            for point in path.path:
+                print point
+        else:
+            print 'No path!'
 
     def ValidViewpos(self,viewpos):
         #viewpos = list(viewpos)
@@ -372,6 +396,7 @@ class Tiles(object):
 
             
     def MouseButtonDown(self,pos,button):
+        print GridCoords(self.viewpos.Get() + pos).to_int()
         if button == 3:
             self.dragging = self.viewpos.Get() + pos
         elif button == 4: #scroll_up
@@ -471,6 +496,7 @@ class Tiles(object):
 
     def AddWizard(self,pos,type,isPlayer,name):
         target_tile = self.GetTile(pos)
+        self.InvalidateCache()
         new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
         new_wizard.SetPos(pos)
         self.wizards.append(new_wizard)
@@ -513,6 +539,7 @@ class Tiles(object):
     def RemoveActor(self,actor):
         tile = self.GetTile(actor.pos)
         if tile:
+            self.InvalidateCache()
             tile.SetActor(None)
 
     def RemoveWizard(self,wizard):
@@ -538,6 +565,7 @@ class Tiles(object):
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
         self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
+        self.InvalidateCache()
         self.selected_quad.Delete()
 
     def Quit(self,pos):
@@ -552,6 +580,102 @@ class Tiles(object):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         gamedata.current_view = main_menu.MainMenu()
         #raise SystemExit
+
+    def InvalidateCache(self):
+        self.pathcache = {}
+
+    def PathTo(self,start,end):
+        #A noddy my-first implementation of A* in python
+        #update the map items with current positions of the sprites
+        #they're not used normally so we can do what we like with them
+        try:
+            return self.pathcache[start,end]
+        except KeyError:
+            #oh well, it was worth a try
+            pass
+        cell = self.map[end.x][end.y]
+        if cell.Impassable():
+            #if we can't move into the last tile, there's no point
+            return None
+        if start == end:
+            return None
+
+        Closed = set()
+        #open is sorted by 'F' value
+        Open   = [start]
+        Opend  = {start:start}
+        start.g = 0
+        start.h = start.DistanceHeuristic(end)
+        start.f = start.h
+        start.parent = None
+        #get the object we're going from so we can ignore it in terms of being passable
+        start_object = self.map[start.x][start.y].GetActor()
+        #print 'PATH:',start,',',end
+        while True:
+            if len(Open) == 0: #no path, boo
+                return None
+            current = Open.pop(0)
+            del Opend[current]
+            if current == end:# or len(Open) > 100:
+                #yay, we're finished
+                path = utils.Path(current)
+                self.pathcache[start,end] = path
+                return path
+                
+            Closed.add(current)
+            for x in xrange(current.x-1,current.x+2):
+                if x < 0 or x >= len(self.map):
+                    continue
+                for y in xrange(current.y-1,current.y+2):
+                    if y < 0 or y >= len(self.map[x]):
+                        continue
+
+                    target = Point(x,y)
+                    
+                    if target in Closed:
+                        continue
+                    if target == current:
+                        continue
+
+                    cost = 0
+                    for tile in current,target:
+                        cell = self.map[tile.x][tile.y]
+                        this_cost = cell.MovementCost(ignore = start_object)
+                        if this_cost == TileData.IMPASSABLE:
+                            cost = this_cost
+                            break
+                        cost += this_cost
+
+                    if cost == TileData.IMPASSABLE:
+                        if target == end:
+                            return None
+                        continue
+
+                    newg = current.g + cost
+                    try:
+                        target_new = Opend[target]
+                    except KeyError:
+                        target_new = None
+                    
+                    if target_new == None:
+                        target.g    = newg
+                        #Open is sorted by g+h, so find the position this goes with a binary search
+                        #and put it in the right place
+
+                        target.h = target.DistanceHeuristic(end)
+                        target.f = target.g + target.h
+                        target.parent = current
+                        i = utils.fbisect_left(Open,target)
+
+                        Open.insert(i,target)
+                        Opend[target] = target
+                    else: #target's already in open
+                        target = target_new
+                        if newg < target.g:
+                            target.g = newg
+                            target.f = target.g + target.h
+                            target.parent = current
+
         
 names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
         
