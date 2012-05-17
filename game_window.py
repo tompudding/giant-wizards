@@ -142,6 +142,7 @@ class Tiles(object):
         self.gameover = False
         self.last_time = 0
         self.pathcache = {}
+        self.path = None
 
         self.control_box = ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                       Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -246,12 +247,7 @@ class Tiles(object):
         self.selected      = None
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
         #self.highlights    = TileHighlights(100)
-        path = self.PathTo(Point(0,0),Point(19,19))
-        if path:
-            for point in path.path:
-                print point
-        else:
-            print 'No path!'
+        
 
     def ValidViewpos(self,viewpos):
         #viewpos = list(viewpos)
@@ -455,12 +451,21 @@ class Tiles(object):
             self.selected_quad.Disable()
             self.selected = None
         else:
+            
             if self.hovered_ui != None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
             if not self.gameover:
-                self.selected_quad.Enable()
-                self.selected = GridCoords(current_viewpos).to_int()
+                self.selected_quad.Enable() 
+                selected = GridCoords(current_viewpos).to_int()
+                if self.selected != selected:
+                    if self.path:
+                        self.path.Disable()
+                    self.path = self.PathTo(Point(0,0),selected)
+                    if self.path:
+                        self.path.Enable()
+                self.selected = selected
+                
                 self.selected.x = (self.selected.x+self.width) % self.width
                 if self.selected.y >= self.height: #There's one pixel row at the top that's off the table
                     self.selected.y = self.height
@@ -582,6 +587,8 @@ class Tiles(object):
         #raise SystemExit
 
     def InvalidateCache(self):
+        for path in self.pathcache.values():
+            path.Delete()
         self.pathcache = {}
 
     def PathTo(self,start,end):
@@ -593,6 +600,8 @@ class Tiles(object):
         except KeyError:
             #oh well, it was worth a try
             pass
+        if start == None or end == None:
+            return None
         cell = self.map[end.x][end.y]
         if cell.Impassable():
             #if we can't move into the last tile, there's no point
@@ -618,7 +627,7 @@ class Tiles(object):
             del Opend[current]
             if current == end:# or len(Open) > 100:
                 #yay, we're finished
-                path = utils.Path(current)
+                path = utils.Path(current,self.tex_coords)
                 self.pathcache[start,end] = path
                 return path
                 
@@ -650,6 +659,12 @@ class Tiles(object):
                         if target == end:
                             return None
                         continue
+
+                    if target != current.x and target.y != current.y:
+                        #it's diagonal. It still costs the same, but pretend
+                        #otherwise so that h/v movement is preferred as it looks
+                        #nicer
+                        cost *= 1.01
 
                     newg = current.g + cost
                     try:

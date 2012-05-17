@@ -209,20 +209,50 @@ class Point(object):
     def diaglength(self):
         return max(abs(self.x),abs(self.y))
 
+
 class Path(object):
-    def __init__(self,start):
+    direction_names = {Point( 1, 0):'right'    ,
+                       Point( 1, 1):'up_right' ,
+                       Point( 0, 1):'up'       ,
+                       Point(-1, 1):'up_left'  ,
+                       Point(-1, 0):'left'     ,
+                       Point(-1,-1):'down_left',
+                       Point( 0,-1):'down'     ,
+                       Point( 1,-1):'down_right'}
+    def __init__(self,start,tc):
         self.path = [start]
         node = start.parent
         while node:
             self.path.insert(0,node)
             node = node.parent
 
+        self.steps = [self.path[i+1]-self.path[i] for i in xrange(len(self.path)-1)]
         self.quads = []
-        for p in self.path:
-            q = utils.Quad(gamedata.quad_buffer)
-            #q.
-            
+        self.tc = tc
 
+    def Enable(self):
+        if self.quads:
+            for q in self.quads:
+                q.Enable()
+        else:
+            self.quads = []
+
+            for pos,direction in zip(self.path,self.steps):
+                q = Quad(gamedata.quad_buffer,tc = self.tc['path_'+self.direction_names[direction]])
+                bl = pos + (direction*0.5)
+                tr = bl + Point(1,1)
+                q.SetVertices(WorldCoords(bl),
+                              WorldCoords(tr),
+                              10)
+                self.quads.append(q)
+    def Disable(self):
+        for q in self.quads:
+            q.Disable()
+
+    def Delete(self):
+        for q in self.quads:
+            q.Delete()
+        self.quads = []
     def Segments(self):
         steps = [self.path[i+1]-self.path[i] for i in xrange(len(self.path)-1)]
         last = None

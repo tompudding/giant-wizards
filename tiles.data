@@ -36,3 +36,12 @@ red_wizard_water    : 1,4,1,1
 yellow_wizard_water : 1,5,1,1
 green_wizard_water  : 1,6,1,1
 blast               : 2,2,1,1
+
+path_right : 7,2,1,1
+path_up_right : 10,2,1,1
+path_up : 6,2,1,1
+path_up_left : 2,3,1,1
+path_left : 9,2,1,1
+path_down_left : 12,2,1,1
+path_down : 8,2,1,1
+path_down_right : 11,2,1,1
