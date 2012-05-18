@@ -33,7 +33,7 @@ class TileData(object):
         a = 0  
         
         if self.actor:
-            if not ignore is self.actor:
+            if self.actor not in ignore:
                 return TileData.IMPASSABLE
         return self.movement_cost
 
@@ -627,6 +627,7 @@ class Tiles(object):
         start.parent = None
         #get the object we're going from so we can ignore it in terms of being passable
         start_object = self.map[start.x][start.y].GetActor()
+        end_object   = self.map[end.x][end.y].GetActor()
         #print 'PATH:',start,',',end
         while True:
             if len(Open) == 0: #no path, boo
@@ -661,7 +662,7 @@ class Tiles(object):
                     cost = 0
                     for tile in (target,):
                         cell = self.map[tile.x][tile.y]
-                        this_cost = cell.MovementCost(ignore = start_object)
+                        this_cost = cell.MovementCost(ignore = (start_object,end_object))
                         if this_cost == TileData.IMPASSABLE:
                             cost = this_cost
                             break

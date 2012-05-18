@@ -494,6 +494,8 @@ class Actor(object):
                 if target_wizard != None:
                     target_wizard.Damage(2)
                     self.AdjustActionPoints(-1)
+                #need to update the pos anyway to cause various update mechanisms to get triggered
+                self.SetPos(self.pos)
             else:
                 self.tiles.GetTile(self.pos).SetActor(None)
                 self.AdjustActionPoints(-target_tile.movement_cost)
