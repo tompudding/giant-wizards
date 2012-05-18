@@ -456,7 +456,11 @@ class Tiles(object):
                 self.hovered_ui = None
             if not self.gameover:
                 self.selected_quad.Enable() 
-                self.selected = GridCoords(current_viewpos).to_int()
+                selected = GridCoords(current_viewpos).to_int()
+                if selected != self.selected:
+                    if self.player_action != None:
+                        self.player_action.MouseMotion(selected)
+                self.selected = selected
                 
                 self.selected.x = (self.selected.x+self.width) % self.width
                 if self.selected.y >= self.height: #There's one pixel row at the top that's off the table

@@ -9,7 +9,9 @@ wizard_types = ['purple_wizard',
                 'green_wizard']
 
 class Action(object):
-    pass
+    @staticmethod
+    def Unselected():
+        pass
 
 class MoveAction(Action):
     
@@ -59,6 +61,7 @@ class MoveActionCreator(object):
         self.last_ap = -1
         self._valid_vectors = None
         self.wizard = wizard
+        self.shown_path = None
 
     @property
     def valid_vectors(self):
@@ -85,9 +88,12 @@ class MoveActionCreator(object):
         for step in path.steps:
             yield MoveAction(step,t,wizard,speed)
 
-    @staticmethod
-    def ColourFunction(pos):
+    def ColourFunction(self,pos):
+        #try:
+        #    path = self.valid_vectors[pos]
+        #except KeyError:
         return (1-pos.length()/6.,1-pos.length()/6.,1-pos.length()/6.,0.6)
+        #return (1-path.cost/4.0,1-path.cost/4.0,1-path.cost/4.0,0.6)
         #return (1,1,1,1)
 
     def Valid(self,vector):
@@ -95,6 +101,23 @@ class MoveActionCreator(object):
         if vectors and vector in vectors:
             return True
         return False
+
+    def MouseMotion(self,pos,vector):
+        print 'mm',pos,vector
+        try:
+            newpath = self.valid_vectors[vector]
+        except KeyError:
+            return
+        if newpath != self.shown_path:
+            if self.shown_path:
+                self.shown_path.Delete()
+            newpath.Enable()
+            self.shown_path = newpath
+
+    def Unselected(self):
+        if self.shown_path != None:
+            self.shown_path.Delete()
+            self.shown_path = None
 
 
 class BlastAction(Action):
@@ -184,6 +207,11 @@ class WizardBlastAction(BlastAction):
     def Create(vector,t,wizard,speed=4):
         yield WizardBlastAction(vector,t,wizard,speed)
 
+    @staticmethod
+    def MouseMotion(pos,vector):
+        print 'wb',pos,vector
+
+
 
 
 # class SummonGorillaAction(BlastAction):
@@ -248,8 +276,9 @@ class ActionChoice(object):
         self.selected = False
         for q in self.quads:
             q.Disable()
+        self.action.Unselected()
 
-    def OnClick(self,pos,button):
+    def GetVector(self,pos):
         pos = pos.to_int()
         vector = (pos - self.wizard.pos).to_int()
         if vector.x < 0:
@@ -258,9 +287,30 @@ class ActionChoice(object):
             other = (vector.x - self.wizard.tiles.width )
         if abs(other) < abs(vector.x):
             vector.x = other
+        return vector
+
+    def MouseMotion(self,pos):
+        vector = self.GetVector(pos)
+        if not vector:
+            self.action.Unselected()
+            return None
         if vector.to_int() == Point(0,0):
             #do nothing
-            return
+            self.action.Unselected()
+            return 
+        if self.action.Valid(vector):
+            self.action.MouseMotion(pos,vector)
+        else:
+            self.action.Unselected()
+
+    def OnClick(self,pos,button):
+        self.action.Unselected()
+        vector = self.GetVector(pos)
+        if not vector:
+            return None
+        if vector.to_int() == Point(0,0):
+            #do nothing
+            return 
 
         #action = self.action(vector,0,self.wizard)
         if self.action.Valid(vector):
