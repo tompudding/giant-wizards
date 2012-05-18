@@ -167,12 +167,13 @@ class Point(object):
 
     def __cmp__(self,other):
         try:
+            #a = cmp(abs(self.x*self.y),abs(other.x*other.y))
+            #if a != 0:
+            #    return a
             a = cmp(self.x,other.x)
-            if a == 0:
-                return cmp(self.y,other.y)
-            else:
+            if a != 0:
                 return a
-
+            return cmp(self.y,other.y)
         except AttributeError:
             return -1#It's not equal if it's not a point
 
@@ -204,7 +205,10 @@ class Point(object):
         return min(a,b)
 
     def DistanceHeuristic(self,other):
-        return (other-self).diaglength()
+        #return (other-self).diaglength()
+        diff = other-self
+        return (abs(diff.x)+abs(diff.y))
+        #return diff.x**2 + diff.y**2
 
     def diaglength(self):
         return max(abs(self.x),abs(self.y))
@@ -219,16 +223,18 @@ class Path(object):
                        Point(-1,-1):'down_left',
                        Point( 0,-1):'down'     ,
                        Point( 1,-1):'down_right'}
-    def __init__(self,start,tc):
+    def __init__(self,start,tc,width):
         self.path = [start]
         node = start.parent
         while node:
             self.path.insert(0,node)
             node = node.parent
 
-        self.steps = [self.path[i+1]-self.path[i] for i in xrange(len(self.path)-1)]
+        self.steps = [WrapDistance(self.path[i+1],self.path[i],width) for i in xrange(len(self.path)-1)]
         self.quads = []
-        self.tc = tc
+        self.tc    = tc
+        self.width = width
+        self.cost  = start.g
 
     def Enable(self):
         if self.quads:

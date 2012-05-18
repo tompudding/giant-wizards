@@ -464,6 +464,7 @@ class Tiles(object):
                     self.path = self.PathTo(Point(0,0),selected)
                     if self.path:
                         self.path.Enable()
+                        print 'cost',self.path.cost
                 self.selected = selected
                 
                 self.selected.x = (self.selected.x+self.width) % self.width
@@ -627,14 +628,18 @@ class Tiles(object):
             del Opend[current]
             if current == end:# or len(Open) > 100:
                 #yay, we're finished
-                path = utils.Path(current,self.tex_coords)
+                path = utils.Path(current,self.tex_coords,len(self.map))
                 self.pathcache[start,end] = path
                 return path
                 
             Closed.add(current)
             for x in xrange(current.x-1,current.x+2):
-                if x < 0 or x >= len(self.map):
-                    continue
+                #if x < 0 or x >= len(self.map):
+                #    continue
+                if x < 0:
+                    x += len(self.map)
+                elif x >= len(self.map):
+                    x -= len(self.map)
                 for y in xrange(current.y-1,current.y+2):
                     if y < 0 or y >= len(self.map[x]):
                         continue
@@ -647,7 +652,7 @@ class Tiles(object):
                         continue
 
                     cost = 0
-                    for tile in current,target:
+                    for tile in (target,):
                         cell = self.map[tile.x][tile.y]
                         this_cost = cell.MovementCost(ignore = start_object)
                         if this_cost == TileData.IMPASSABLE:
@@ -660,11 +665,11 @@ class Tiles(object):
                             return None
                         continue
 
-                    if target != current.x and target.y != current.y:
+                    #if target != current.x and target.y != current.y:
                         #it's diagonal. It still costs the same, but pretend
                         #otherwise so that h/v movement is preferred as it looks
                         #nicer
-                        cost *= 1.01
+                    #    cost *= 1.41
 
                     newg = current.g + cost
                     try:
