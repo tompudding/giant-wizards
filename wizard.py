@@ -103,7 +103,6 @@ class MoveActionCreator(object):
         return False
 
     def MouseMotion(self,pos,vector):
-        print 'mm',pos,vector
         try:
             newpath = self.valid_vectors[vector]
         except KeyError:
@@ -209,7 +208,7 @@ class WizardBlastAction(BlastAction):
 
     @staticmethod
     def MouseMotion(pos,vector):
-        print 'wb',pos,vector
+        pass
 
 
 
@@ -290,6 +289,10 @@ class ActionChoice(object):
         return vector
 
     def MouseMotion(self,pos):
+        if len(self.wizard.action_list) > 0 or self.wizard.tiles.current_action:
+            #don't draw the paths when it's in the process of moving
+            self.action.Unselected()
+            return
         vector = self.GetVector(pos)
         if not vector:
             self.action.Unselected()
@@ -317,6 +320,7 @@ class ActionChoice(object):
             self.selected = False
             for q in self.quads:
                 q.Disable()
+            self.action.Unselected()
             for action in self.action.Create(vector,0,self.wizard):
                 self.wizard.action_list.append(action)
         

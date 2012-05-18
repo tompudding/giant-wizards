@@ -391,7 +391,6 @@ class Tiles(object):
 
             
     def MouseButtonDown(self,pos,button):
-        print GridCoords(self.viewpos.Get() + pos).to_int()
         if button == 3:
             self.dragging = self.viewpos.Get() + pos
         elif button == 4: #scroll_up
