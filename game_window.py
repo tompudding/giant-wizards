@@ -142,7 +142,6 @@ class Tiles(object):
         self.gameover = False
         self.last_time = 0
         self.pathcache = {}
-        self.path = None
 
         self.control_box = ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                       Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -457,15 +456,7 @@ class Tiles(object):
                 self.hovered_ui = None
             if not self.gameover:
                 self.selected_quad.Enable() 
-                selected = GridCoords(current_viewpos).to_int()
-                if self.selected != selected:
-                    if self.path:
-                        self.path.Disable()
-                    self.path = self.PathTo(Point(0,0),selected)
-                    if self.path:
-                        self.path.Enable()
-                        print 'cost',self.path.cost
-                self.selected = selected
+                self.selected = GridCoords(current_viewpos).to_int()
                 
                 self.selected.x = (self.selected.x+self.width) % self.width
                 if self.selected.y >= self.height: #There's one pixel row at the top that's off the table
@@ -592,6 +583,16 @@ class Tiles(object):
             path.Delete()
         self.pathcache = {}
 
+    def GetCell(self,pos):
+        if pos.x < 0:
+            pos.x += len(self.map)
+        elif pos.x >= len(self.map):
+            pos.x -= len(self.map)
+        try:
+            return self.map[pos.x][pos.y]
+        except IndexError:
+            return None
+
     def PathTo(self,start,end):
         #A noddy my-first implementation of A* in python
         #update the map items with current positions of the sprites
@@ -603,7 +604,10 @@ class Tiles(object):
             pass
         if start == None or end == None:
             return None
-        cell = self.map[end.x][end.y]
+        
+        cell = self.GetCell(end)
+        if cell == None:
+            return None
         if cell.Impassable():
             #if we can't move into the last tile, there's no point
             return None

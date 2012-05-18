@@ -9,10 +9,7 @@ wizard_types = ['purple_wizard',
                 'green_wizard']
 
 class Action(object):
-    def Valid(self):
-        if self.vector in self.valid_vectors:
-            return True
-        return False
+    pass
 
 class MoveAction(Action):
     
@@ -55,11 +52,6 @@ class MoveAction(Action):
                                              0.3)
         return False
 
-    def Valid(self):
-        if self.vector.length() < 1.5:
-            return True
-        return False
-
 class MoveActionCreator(object):
     name = 'Move'
     cost = 1
@@ -70,21 +62,39 @@ class MoveActionCreator(object):
 
     @property
     def valid_vectors(self):
-        if self.last_ap != self.wizard.action_points:
+        if not self._valid_vectors or self.last_ap != self.wizard.action_points:
             ap = self.wizard.action_points
-            self._valid_vectors = set(Point(x,y) for x in xrange(-ap,ap+1) 
-                                         for y in xrange(-ap,ap+1) \
-                                         if Point(x,y).diaglength() != 0  and Point(x,y).diaglength() <= ap)
+            self._valid_vectors = {}
+            for x in xrange(-ap,ap+1):
+                for y in xrange(-ap,ap+1):
+                    if x == 0 and y == 0:
+                        continue
+                    p = Point(x,y)
+                    path = self.wizard.tiles.PathTo(self.wizard.pos,self.wizard.pos+p)
+                    if path and path.cost <= ap:
+                        self._valid_vectors[p] = path
             self.last_ap = ap
         return self._valid_vectors
 
-    def __call__(self,vector,t,wizard,speed=4):
-        return MoveAction(vector,t,wizard,speed)
+    def Create(self,vector,t,wizard,speed=4):
+        try:
+            path = self.valid_vectors[vector]
+        except KeyError:
+            return
+        
+        for step in path.steps:
+            yield MoveAction(step,t,wizard,speed)
 
     @staticmethod
     def ColourFunction(pos):
-        return (1-pos.length()/5.,1-pos.length()/5.,1-pos.length()/5.,0.6)
+        return (1-pos.length()/6.,1-pos.length()/6.,1-pos.length()/6.,0.6)
         #return (1,1,1,1)
+
+    def Valid(self,vector):
+        vectors = self.valid_vectors
+        if vectors and vector in vectors:
+            return True
+        return False
 
 
 class BlastAction(Action):
@@ -141,10 +151,21 @@ class BlastAction(Action):
                                       utils.WorldCoords(pos+Point(1,1)).to_int(),
                                       0.5)
                 return False
+
+    @staticmethod
+    def Create(vector,t,wizard,speed=4):
+        yield BlastAction(vector,t,wizard,speed)
+
     @staticmethod
     def ColourFunction(pos):
         part = (pos.length()/WizardBlastAction.range)*math.pi
         return (math.sin(part),math.sin(part+math.pi*0.3),math.sin(part+math.pi*0.6),0.3)
+
+    @staticmethod
+    def Valid(vector):
+        if vector in BlastAction.valid_vectors:
+            return True
+        return False
 
 class WizardBlastAction(BlastAction):
     name = 'Wizard Blast'
@@ -158,6 +179,11 @@ class WizardBlastAction(BlastAction):
         if target:
             damage = random.randint(self.min_damage,self.max_damage)
             target.Damage(damage)
+
+    @staticmethod
+    def Create(vector,t,wizard,speed=4):
+        yield WizardBlastAction(vector,t,wizard,speed)
+
 
 
 # class SummonGorillaAction(BlastAction):
@@ -236,13 +262,13 @@ class ActionChoice(object):
             #do nothing
             return
 
-        action = self.action(vector,0,self.wizard)
-        if action.Valid():
+        #action = self.action(vector,0,self.wizard)
+        if self.action.Valid(vector):
             self.selected = False
             for q in self.quads:
                 q.Disable()
-            
-            self.wizard.action_list.append(action)
+            for action in self.action.Create(vector,0,self.wizard):
+                self.wizard.action_list.append(action)
         
 
 class Actor(object):
