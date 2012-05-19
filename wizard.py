@@ -398,6 +398,8 @@ class Actor(object):
         self.tiles.RemoveUIElement(self.options_box)
 
     def Update(self,t):
+        return self.controlled[self.controlled_index].UpdateSelf(t)
+    def UpdateSelf(self,t):
         if not self.selected:
             self.quad.Enable()
             self.flash_state = True
@@ -427,7 +429,6 @@ class Actor(object):
     def TakeAction(self,t):
         return self.controlled[self.controlled_index].TakeActionSelf(t)
     def TakeActionSelf(self,t):
-        print 'takeaction',self.name
         if self.action_list == None:
             #For a computer player, decide what to do
             #regular players populate this list themselves
@@ -596,6 +597,7 @@ class Wizard(Actor):
                 self.tiles.player_action = None
                 action_choice.Unselected()
                 break
+        self.controlled_index = 0
         self.tiles.NextPlayer()
 
 

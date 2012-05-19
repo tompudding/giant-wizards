@@ -297,7 +297,7 @@ class Tiles(object):
         #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
         #guys to select, as he only has one!
         if self.current_player.IsPlayer():
-            self.SelectNextPlayerControlled(1)
+            self.SelectNextPlayerControlled(0)
         else:
             self.CentreCurrent()
 
@@ -587,6 +587,8 @@ class Tiles(object):
         self.pathcache = {}
 
     def GetCell(self,pos):
+        if pos.y < 0: #you don't get an indexerror for negative values
+            return None
         if pos.x < 0:
             pos.x += len(self.map)
         elif pos.x >= len(self.map):
@@ -639,6 +641,12 @@ class Tiles(object):
                 path = utils.Path(current,self.tex_coords,len(self.map))
                 self.pathcache[start,end] = path
                 return path
+            elif current != start:
+                p = start,current
+                path = utils.Path(current,self.tex_coords,len(self.map))
+                if (p in self.pathcache and path.cost < self.pathcache[p]) or p not in self.pathcache:
+                    self.pathcache[p] = path
+                
                 
             Closed.add(current)
             for x in xrange(current.x-1,current.x+2):
@@ -717,7 +725,7 @@ class GameWindow(object):
                            map_size     )
         #this will get passed in eventually, but for now configure statically
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = []
+        positions = [Point(0,0)]
         total_tried = 0
         players = [(player_states[i],names[i],i) for i in xrange(len(names)) if player_states[i] != None]
         while len(positions) < len(players):

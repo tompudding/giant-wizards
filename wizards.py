@@ -25,6 +25,7 @@ class GameData(object):
     main_menu = None
     current_view = None
     player_config = ['Human','CPU','CPU','CPU']
+    time = 0
 
 def Init(gamedata):
     w,h = (1280,720)
@@ -74,6 +75,7 @@ def main():
         if t - last > 1000:
             #print 'FPS:',clock.get_fps()
             last = t
+        #gamedata.time = t
 
         glLoadIdentity()
         gamedata.current_view.Update(t)
