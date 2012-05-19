@@ -324,8 +324,8 @@ class ActionChoice(object):
             for action in self.action.Create(vector,0,self.wizard):
                 self.wizard.action_list.append(action)
         
-
 class Actor(object):
+    initial_action_points = 0
     def __init__(self,pos,type,tiles,isPlayer,name):
         self.pos = pos
         self.type = type
@@ -359,6 +359,7 @@ class Actor(object):
         self.tiles = tiles
         self.selected = False
         self.flash_state = True
+        self.SetPos(pos)
         
     def SetPos(self,pos):
         self.pos = pos
@@ -396,10 +397,10 @@ class Actor(object):
             self.tiles.RemoveUIElement(a.text)
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
+        self.flash_state = False
+        self.quad.Enable()
 
     def Update(self,t):
-        return self.controlled[self.controlled_index].UpdateSelf(t)
-    def UpdateSelf(self,t):
         if not self.selected:
             self.quad.Enable()
             self.flash_state = True
@@ -419,16 +420,19 @@ class Actor(object):
     def IsPlayer(self):
         return self.isPlayer
 
-    def NextControlled(self,amount):
-        self.controlled[self.controlled_index].Unselect()
-        self.controlled_index += len(self.controlled) + amount #add the length in case amount is negative
-        self.controlled_index %= len(self.controlled)
-        #self.controlled[self.controlled_index].Unselect()
-        return self.controlled[self.controlled_index]
+    def NewTurn(self):
+        print 'newturn',self.name,self.initial_action_points
+        self.action_points = self.initial_action_points
+        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        if not self.selected:
+            self.action_points_text.Disable()
+
+    def EndTurn(self,pos):
+        self.Unselect()
+        for action_choice in self.action_choices:
+            action_choice.Unselected()
 
     def TakeAction(self,t):
-        return self.controlled[self.controlled_index].TakeActionSelf(t)
-    def TakeActionSelf(self,t):
         if self.action_list == None:
             #For a computer player, decide what to do
             #regular players populate this list themselves
@@ -437,7 +441,7 @@ class Actor(object):
             #Find the nearest enemy
             match = [None,None,None]
             for wizard in self.tiles.wizards:
-                if wizard is self:
+                if wizard.player_character is self:
                     continue
                 offset = utils.WrapDistance(wizard.pos,self.pos,self.tiles.width)
 
@@ -545,7 +549,74 @@ class Actor(object):
             self.health_text.Delete()
             self.tiles.RemoveActor(self)
 
+class Player(object):
+    def __init__(self,pos,type,tiles,isPlayer,name):
+        self.name = name
+        self.isPlayer = isPlayer
+        self.tiles = tiles
+        self.player_character = Wizard(pos,type,tiles,isPlayer,name)
+        self.controlled = [self.player_character]
+        self.controlled_index = 0
+
+        if isPlayer:
+            self.controlled.append(Goblin(pos+Point(1,1),
+                                          self.player_character.type,
+                                          tiles,
+                                          isPlayer,
+                                          self.player_character.name + '\'s Goblin',
+                                          self))
+
+    @property
+    def current_controlled(self):
+        return self.controlled[self.controlled_index]
+
+    @property
+    def pos(self):
+        return self.player_character.pos
+    @pos.setter
+    def pos(self,value):
+        self.player_character.SetPos(value)
+
+    def GetPos(self):
+        return self.player_character.pos
+
+    def IsPlayer(self):
+        return self.isPlayer
+
+    def StartTurn(self):
+        for actor in self.controlled:
+            actor.NewTurn()
+        self.controlled_index = 0
+
+    def EndTurn(self,pos):
+        for actor in self.controlled:
+            actor.EndTurn(pos)
+        self.tiles.player_action = None
+        self.tiles.NextPlayer()
+
+    def NextControlled(self,amount):
+        self.current_controlled.Unselect()
+        self.controlled_index += len(self.controlled) + amount #add the length in case amount is negative
+        self.controlled_index %= len(self.controlled)
+        #self.controlled[self.controlled_index].Unselect()
+        return self.current_controlled
+
+    def TakeAction(self,t):
+        return self.current_controlled.TakeAction(t)
+
+    def RemoveSummoned(self,monster):
+        pos = self.controlled.index(monster)
+        del self.controlled[pos]
+        if self.controlled_index > pos:
+            self.controlled_index -= 1
+        self.controlled_index %= len(self.controlled)
+
+    def Update(self,t):
+        self.current_controlled.Update(t)
+
+
 class Wizard(Actor):
+    initial_action_points = 4
     def __init__(self,pos,type,tiles,isPlayer,name):
         full_type = wizard_types[type]
         super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name)
@@ -564,9 +635,6 @@ class Wizard(Actor):
         for a in self.action_choices:
             a.Disable()
 
-        if isPlayer:
-            self.controlled.append(Goblin(self.pos+Point(1,1),full_type,tiles,isPlayer,self.name + '\'s Goblin',self))
-
     def Damage(self,value):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
@@ -575,30 +643,6 @@ class Wizard(Actor):
             self.health_text.Delete()
             self.tiles.RemoveWizard(self)
 
-    def RemoveSummoned(self,monster):
-        pos = self.controlled.index(monster)
-        del self.controlled[pos]
-        if self.controlled_index > pos:
-            self.controlled_index -= 1
-
-    def StartTurn(self):
-        self.action_points = 4
-        self.action_points_text.SetText('Action Points : %d' % self.action_points)
-        if not self.selected:
-            self.action_points_text.Disable()
-        for actor in self.controlled:
-            if actor is not self:
-                actor.NewTurn()
-
-    def EndTurn(self,pos):
-        self.Unselect()
-        for action_choice in self.action_choices:
-            if self.tiles.player_action is action_choice:
-                self.tiles.player_action = None
-                action_choice.Unselected()
-                break
-        self.controlled_index = 0
-        self.tiles.NextPlayer()
 
 
 class Goblin(Actor):
@@ -623,8 +667,3 @@ class Goblin(Actor):
             self.tiles.RemoveActor(self)
             self.caster.RemoveSummoned(self)
 
-    def NewTurn(self):
-        self.action_points = self.initial_action_points
-        self.action_points_text.SetText('Action Points : %d' % self.action_points)
-        if not self.selected:
-            self.action_points_text.Disable()

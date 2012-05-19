@@ -497,8 +497,8 @@ class Tiles(object):
     def AddWizard(self,pos,type,isPlayer,name):
         target_tile = self.GetTile(pos)
         self.InvalidateCache()
-        new_wizard = wizard.Wizard(pos,type,self,isPlayer,name)
-        new_wizard.SetPos(pos)
+        new_wizard = wizard.Player(pos,type,self,isPlayer,name)
+        new_wizard.pos = pos
         self.wizards.append(new_wizard)
 
     def KeyDown(self,key):
@@ -544,7 +544,7 @@ class Tiles(object):
 
     def RemoveWizard(self,wizard):
         self.RemoveActor(wizard)
-        pos = self.wizards.index(wizard)
+        pos = [w.player_character for w in self.wizards].index(wizard)
         del self.wizards[pos]
         if len(self.wizards) == 1:
             winner = self.wizards[0]
