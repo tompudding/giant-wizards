@@ -213,21 +213,21 @@ class WizardBlastAction(BlastAction):
 
 
 
-# class SummonGorillaAction(BlastAction):
-#     name  = 'Summon Gorilla'
-#     cost  = 4
-#     range = 4
-#     valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
-#                                    for y in xrange(-3,4) \
-#                             if Point(x,y).length() != 0 and Point(x,y).length() < 4)
-
-#     def Impact(self):
-#         target_tile = self.wizard.tiles.GetTile(self.end_pos)
-#         target = target_tile.GetActor()
-#         if not target:
-#             gorilla = Gorilla(self.end_pos,)
+class SummonMonsterAction(BlastAction):
+    name  = 'Summon Gorilla'
+    cost  = 4
+    range = 4
+    valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
+                            for y in xrange(-3,4) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 4)
+    
+    def Impact(self):
+        target_tile = self.wizard.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if not target:
+            goblin = Goblin(self.end_pos,7)
             
-
+            
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
@@ -418,11 +418,16 @@ class Actor(object):
         return self.isPlayer
 
     def NextControlled(self,amount):
+        self.controlled[self.controlled_index].Unselect()
         self.controlled_index += len(self.controlled) + amount #add the length in case amount is negative
         self.controlled_index %= len(self.controlled)
+        #self.controlled[self.controlled_index].Unselect()
         return self.controlled[self.controlled_index]
 
     def TakeAction(self,t):
+        return self.controlled[self.controlled_index].TakeActionSelf(t)
+    def TakeActionSelf(self,t):
+        print 'takeaction',self.name
         if self.action_list == None:
             #For a computer player, decide what to do
             #regular players populate this list themselves
@@ -501,21 +506,6 @@ class Actor(object):
                 self.AdjustActionPoints(-target_tile.movement_cost)
                 self.SetPos(target)
             
-
-    def StartTurn(self):
-        self.action_points = 4
-        self.action_points_text.SetText('Action Points : %d' % self.action_points)
-        if not self.selected:
-            self.action_points_text.Disable()
-
-    def EndTurn(self,pos):
-        self.Unselect()
-        for action_choice in self.action_choices:
-            if self.tiles.player_action is action_choice:
-                self.tiles.player_action = None
-                action_choice.Unselected()
-                break
-        self.tiles.NextPlayer()
     
 
     def HandleAction(self,pos,action):
@@ -573,6 +563,9 @@ class Wizard(Actor):
         for a in self.action_choices:
             a.Disable()
 
+        if isPlayer:
+            self.controlled.append(Goblin(self.pos+Point(1,1),full_type,tiles,isPlayer,self.name + '\'s Goblin',self))
+
     def Damage(self,value):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
@@ -581,6 +574,55 @@ class Wizard(Actor):
             self.health_text.Delete()
             self.tiles.RemoveWizard(self)
 
-#class Gorilla(Actor):
-#    def __init__(self,pos,type,tiles,isPlayer,name):
-        
+    def RemoveSummoned(self,monster):
+        pos = self.controlled.index(monster)
+        del self.controlled[pos]
+        if self.controlled_index > pos:
+            self.controlled_index -= 1
+
+    def StartTurn(self):
+        self.action_points = 4
+        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        if not self.selected:
+            self.action_points_text.Disable()
+        for actor in self.controlled:
+            if actor is not self:
+                actor.NewTurn()
+
+    def EndTurn(self,pos):
+        self.Unselect()
+        for action_choice in self.action_choices:
+            if self.tiles.player_action is action_choice:
+                self.tiles.player_action = None
+                action_choice.Unselected()
+                break
+        self.tiles.NextPlayer()
+
+
+class Goblin(Actor):
+    initial_action_points = 3
+    def __init__(self,pos,type,tiles,isPlayer,name,caster):
+        super(Goblin,self).__init__(pos,type,tiles,isPlayer,name)
+        self.caster = caster
+        self.action_choices = [ActionChoice(MoveActionCreator(self),
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                            self,
+                                            callback = self.HandleMove)]
+        self.move = self.action_choices[0]
+        for a in self.action_choices:
+            a.Disable()
+
+    def Damage(self,value):
+        self.health -= value
+        self.health_text.SetText('%d' % self.health)
+        if self.health <= 0:
+            self.quad.Delete()
+            self.health_text.Delete()
+            self.tiles.RemoveActor(self)
+            self.caster.RemoveSummoned(self)
+
+    def NewTurn(self):
+        self.action_points = self.initial_action_points
+        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        if not self.selected:
+            self.action_points_text.Disable()

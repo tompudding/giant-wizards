@@ -98,7 +98,8 @@ import logging
 
 if __name__ == '__main__':
     try:
-        logging.basicConfig(level=logging.DEBUG, filename='errorlog.log')
+        #logging.basicConfig(level=logging.DEBUG, filename='errorlog.log')
+        logging.basicConfig(level=logging.DEBUG)
     except IOError:
         #pants, can't write to the current directory, try using a tempfile
         pass
