@@ -560,7 +560,7 @@ class Player(object):
 
         if isPlayer:
             self.controlled.append(Goblin(pos+Point(1,1),
-                                          self.player_character.type,
+                                          'goblin',
                                           tiles,
                                           isPlayer,
                                           self.player_character.name + '\'s Goblin',
