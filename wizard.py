@@ -209,25 +209,7 @@ class WizardBlastAction(BlastAction):
     @staticmethod
     def MouseMotion(pos,vector):
         pass
-
-
-
-
-class SummonMonsterAction(BlastAction):
-    name  = 'Summon Gorilla'
-    cost  = 4
-    range = 4
-    valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
-                            for y in xrange(-3,4) \
-                            if Point(x,y).length() != 0 and Point(x,y).length() < 4)
-    
-    def Impact(self):
-        target_tile = self.wizard.tiles.GetTile(self.end_pos)
-        target = target_tile.GetActor()
-        if not target:
-            goblin = Goblin(self.end_pos,7)
-            
-            
+           
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
@@ -535,6 +517,9 @@ class Actor(object):
     def HandleBlast(self,pos):
         self.HandleAction(pos,self.action_choices[1])
 
+    def HandleSummon(self,pos):
+        self.HandleAction(pos,self.action_choices[2])
+
     def AdjustActionPoints(self,value):
         self.action_points += value
         self.action_points_text.SetText('Action Points : %d' % self.action_points)
@@ -554,17 +539,17 @@ class Player(object):
         self.name = name
         self.isPlayer = isPlayer
         self.tiles = tiles
-        self.player_character = Wizard(pos,type,tiles,isPlayer,name)
+        self.player_character = Wizard(pos,type,tiles,isPlayer,name,self)
         self.controlled = [self.player_character]
         self.controlled_index = 0
 
-        if isPlayer:
-            self.controlled.append(Goblin(pos+Point(1,1),
-                                          'goblin',
-                                          tiles,
-                                          isPlayer,
-                                          self.player_character.name + '\'s Goblin',
-                                          self))
+        # if isPlayer:
+        #     self.controlled.append(Goblin(pos+Point(1,1),
+        #                                   'goblin',
+        #                                   tiles,
+        #                                   isPlayer,
+        #                                   self.player_character.name + '\'s Goblin',
+        #                                   self))
 
     @property
     def current_controlled(self):
@@ -604,6 +589,9 @@ class Player(object):
     def TakeAction(self,t):
         return self.current_controlled.TakeAction(t)
 
+    def AddSummoned(self,monster):
+        self.controlled.append(monster)
+
     def RemoveSummoned(self,monster):
         pos = self.controlled.index(monster)
         del self.controlled[pos]
@@ -617,11 +605,12 @@ class Player(object):
 
 class Wizard(Actor):
     initial_action_points = 4
-    def __init__(self,pos,type,tiles,isPlayer,name):
+    def __init__(self,pos,type,tiles,isPlayer,name,player):
         full_type = wizard_types[type]
         super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name)
         self.controlled = [self]
         self.controlled_index = 0
+        self.player = player
         self.action_choices = [ActionChoice(MoveActionCreator(self),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
@@ -629,7 +618,11 @@ class Wizard(Actor):
                                ActionChoice(WizardBlastAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
                                             self,
-                                            callback = self.HandleBlast)]
+                                            callback = self.HandleBlast),
+                               ActionChoice(SummonGoblinAction,
+                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.76),
+                                            self,
+                                            callback = self.HandleSummon)]
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
         for a in self.action_choices:
@@ -666,4 +659,32 @@ class Goblin(Actor):
             self.health_text.Delete()
             self.tiles.RemoveActor(self)
             self.caster.RemoveSummoned(self)
+
+
+class SummonMonsterAction(BlastAction):
+    cost  = 4
+    range = 4
+    valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
+                            for y in xrange(-3,4) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 4)
+    
+    def Impact(self):
+        target_tile = self.wizard.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if not target:
+            monster = self.Monster(self.end_pos,self.monster_type,self.wizard.tiles,self.wizard.IsPlayer(),'A',self.wizard)
+            self.wizard.player.AddSummoned(monster)
+
+    @staticmethod
+    def MouseMotion(pos,vector):
+        pass
+
+class SummonGoblinAction(SummonMonsterAction):
+    name  = 'Summon Goblin'
+    Monster = Goblin
+    monster_type = 'goblin'
+ 
+    @staticmethod
+    def Create(vector,t,wizard,speed=4):
+        yield SummonGoblinAction(vector,t,wizard,speed)
 
