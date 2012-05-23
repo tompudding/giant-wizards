@@ -409,12 +409,20 @@ class Tiles(object):
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
                 if self.selected_player == None:
-                    if self.hovered_player is self.current_player and self.current_player.IsPlayer():
+                    if self.hovered_player in self.current_player.controlled and self.current_player.IsPlayer():
                         #select them!
                         self.selected_player = self.current_player
-                        self.selected_player.Select()
+                        self.selected_player.Select(self.hovered_player)
                 else:
-                    if self.player_action != None:
+                    #Are we hovering over a friendly?
+                    if self.hovered_player in self.current_player.controlled and \
+                            self.current_player.IsPlayer() and \
+                            (self.player_action == None or not self.player_action.FriendlyTargetable()):
+                        #select them!
+                        self.selected_player = self.current_player
+                        self.selected_player.Select(self.hovered_player)
+                        
+                    elif self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked
                         current_viewpos = self.viewpos.Get() + pos
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
@@ -467,7 +475,7 @@ class Tiles(object):
                 tile = self.GetTile(self.selected)
                 if tile:
                     self.hovered_player = tile.GetActor()
-                    if self.hovered_player is self.current_player:
+                    if self.hovered_player in self.current_player.controlled:
                         self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
                     else:
                         self.selected_quad.tc[0:4] = self.tex_coords['selected']
@@ -725,7 +733,7 @@ class GameWindow(object):
                            map_size     )
         #this will get passed in eventually, but for now configure statically
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = [Point(0,0)]
+        positions = []
         total_tried = 0
         players = [(player_states[i],names[i],i) for i in xrange(len(names)) if player_states[i] != None]
         while len(positions) < len(players):

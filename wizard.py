@@ -305,6 +305,9 @@ class ActionChoice(object):
             self.action.Unselected()
             for action in self.action.Create(vector,0,self.wizard):
                 self.wizard.action_list.append(action)
+
+    def FriendlyTargetable(self):
+        return False
         
 class Actor(object):
     initial_action_points = 0
@@ -403,7 +406,6 @@ class Actor(object):
         return self.isPlayer
 
     def NewTurn(self):
-        print 'newturn',self.name,self.initial_action_points
         self.action_points = self.initial_action_points
         self.action_points_text.SetText('Action Points : %d' % self.action_points)
         if not self.selected:
@@ -572,6 +574,11 @@ class Player(object):
         for actor in self.controlled:
             actor.NewTurn()
         self.controlled_index = 0
+
+    def Select(self,monster):
+        self.current_controlled.Unselect()
+        monster.Select()
+        self.controlled_index = self.controlled.index(monster)
 
     def EndTurn(self,pos):
         for actor in self.controlled:
