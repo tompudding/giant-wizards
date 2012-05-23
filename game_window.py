@@ -409,13 +409,13 @@ class Tiles(object):
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
                 if self.selected_player == None:
-                    if self.hovered_player in self.current_player.controlled and self.current_player.IsPlayer():
+                    if self.current_player.Controls(self.hovered_player) and self.current_player.IsPlayer():
                         #select them!
                         self.selected_player = self.current_player
                         self.selected_player.Select(self.hovered_player)
                 else:
                     #Are we hovering over a friendly?
-                    if self.hovered_player in self.current_player.controlled and \
+                    if self.current_player.Controls(self.hovered_player) and \
                             self.current_player.IsPlayer() and \
                             (self.player_action == None or not self.player_action.FriendlyTargetable()):
                         #select them!

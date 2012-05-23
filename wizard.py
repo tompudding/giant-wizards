@@ -73,7 +73,15 @@ class MoveActionCreator(object):
                     if x == 0 and y == 0:
                         continue
                     p = Point(x,y)
-                    path = self.wizard.tiles.PathTo(self.wizard.pos,self.wizard.pos+p)
+                    target = self.wizard.pos + p
+                    tile = self.wizard.tiles.GetTile(target)
+                    if not tile:
+                        continue
+                    actor = tile.GetActor()
+                    #Don't move onto friendly chaps
+                    if actor and self.wizard.Friendly(actor):
+                        continue
+                    path = self.wizard.tiles.PathTo(self.wizard.pos,target)
                     if path and path.cost <= ap:
                         self._valid_vectors[p] = path
             self.last_ap = ap
@@ -311,8 +319,9 @@ class ActionChoice(object):
         
 class Actor(object):
     initial_action_points = 0
-    def __init__(self,pos,type,tiles,isPlayer,name):
+    def __init__(self,pos,type,tiles,isPlayer,name,player):
         self.pos = pos
+        self.player = player
         self.type = type
         self.health = 10
         self.quad = utils.Quad(gamedata.quad_buffer)
@@ -528,6 +537,9 @@ class Actor(object):
         if not self.selected:
             self.action_points_text.Disable()
 
+    def Friendly(self,other):
+        return self.player.Controls(other)
+
     def Damage(self,value):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
@@ -586,6 +598,10 @@ class Player(object):
         self.tiles.player_action = None
         self.tiles.NextPlayer()
 
+    def Controls(self,monster):
+        #maybe make this efficient at some point
+        return monster in self.controlled
+
     def NextControlled(self,amount):
         self.current_controlled.Unselect()
         self.controlled_index += len(self.controlled) + amount #add the length in case amount is negative
@@ -614,7 +630,7 @@ class Wizard(Actor):
     initial_action_points = 4
     def __init__(self,pos,type,tiles,isPlayer,name,player):
         full_type = wizard_types[type]
-        super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name)
+        super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name,player)
         self.controlled = [self]
         self.controlled_index = 0
         self.player = player
@@ -648,7 +664,7 @@ class Wizard(Actor):
 class Goblin(Actor):
     initial_action_points = 3
     def __init__(self,pos,type,tiles,isPlayer,name,caster):
-        super(Goblin,self).__init__(pos,type,tiles,isPlayer,name)
+        super(Goblin,self).__init__(pos,type,tiles,isPlayer,name,caster.player)
         self.caster = caster
         self.action_choices = [ActionChoice(MoveActionCreator(self),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
