@@ -1,4 +1,4 @@
-import utils,texture,random,math
+import utils,texture,random,math,ui
 from utils import Point
 
 gamedata = None
@@ -257,7 +257,7 @@ class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
         self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.text = ui.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
         self.actor_callback = callback
 
         self.wizard = wizard
@@ -367,9 +367,9 @@ class Actor(object):
         self.health = 10
         self.quad = utils.Quad(gamedata.quad_buffer)
         self.action_points = 0
-        self.options_box = texture.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
-                                         Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
-                                         (0,0,0,0.6))
+        self.options_box = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
+                                    Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
+                                    (0,0,0,0.6))
         self.title = texture.TextObject(name+':',gamedata.text_manager)
         self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)

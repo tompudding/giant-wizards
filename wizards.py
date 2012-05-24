@@ -5,7 +5,7 @@ import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window,wizard,texture,main_menu,random
+import game_window,wizard,texture,main_menu,random,ui
 #some sort of hack to get py2exe to work
 try:
     from OpenGL.platform import win32
@@ -53,7 +53,7 @@ def main():
     #first make a gamedata struct and set it up in the other modules so they can access it
     #not at all sure that this is best practice.
     gamedata = GameData()
-    for module in utils,game_window,wizard,texture,main_menu:
+    for module in utils,game_window,wizard,texture,main_menu,ui:
         setattr(module,'gamedata',gamedata)
     
     Init(gamedata)

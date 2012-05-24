@@ -3,7 +3,7 @@ import utils
 from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard,pygame,main_menu
+import texture,numpy,random,perlin,wizard,pygame,main_menu,ui
 
 gamedata = None
 
@@ -93,27 +93,27 @@ class TileHighlights(object):
         for q in self.highlight_quads:
             q.Disable()
 
-class ControlBox(texture.UIElement):
+class ControlBox(ui.UIElement):
     def __init__(self,bl,tr,colour):
         self.bl       = bl
         self.tr       = tr
         self.size     = tr-bl
         self.colour   = colour
-        self.ui_box   = texture.BoxUI(bl,
+        self.ui_box   = ui.BoxUI(bl,
                                       tr,
                                       colour)
         self.buttons  = {}
         self.elements = [self.ui_box]
 
     def AddButton(self,text,pos,callback):
-        button = texture.TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+        button = ui.TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
         button.level = 2
         self.buttons[text] = button
         self.elements.append(button)
 
     def Register(self,tiles,level):
         for element in self.elements:
-            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,texture.TextButtonUI) else level)
+            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,ui.TextButtonUI) else level)
         
     def MakeSelectable(self):
         for element in self.elements:
@@ -564,14 +564,14 @@ class Tiles(object):
             element.Delete()
         self.uielements = {}
 
-        self.backdrop = texture.BoxUI(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
-                                      Point(gamedata.screen.x*0.7,gamedata.screen.y*0.7),
-                                      (0,0,0,0.6))
+        self.backdrop = ui.BoxUI(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
+                                 Point(gamedata.screen.x*0.7,gamedata.screen.y*0.7),
+                                 (0,0,0,0.6))
         self.backdrop.Enable()
         self.RegisterUIElement(self.backdrop,0)
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = texture.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
+        self.return_button = ui.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.InvalidateCache()
         self.selected_quad.Delete()
