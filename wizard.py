@@ -14,7 +14,7 @@ class Action(object):
         pass
 
 class MoveAction(Action):
-    
+    name = 'Move'
     cost = 1
     def __init__(self,vector,t,wizard,speed=4):
         self.vector = vector
@@ -54,14 +54,48 @@ class MoveAction(Action):
                                              0.3)
         return False
 
-class MoveActionCreator(object):
-    name = 'Move'
-    cost = 1
-    def __init__(self,wizard):
+#Just wrap the static functions of the class
+#This class exists only so we can have a consistent interface
+class BasicActionCreator(object):
+    def __init__(self,wizard,action):
+        self.action = action
+
+    @property
+    def name(self):
+        return self.action.name
+
+    @property
+    def cost(self):
+        return self.action.cost
+
+    @property
+    def valid_vectors(self):
+        return self.action.valid_vectors
+
+    def ColourFunction(self,pos):
+        return self.action.ColourFunction(pos)
+
+    def Create(self,vector,t,wizard,speed=4):
+        yield self.action(vector,t,wizard,speed)
+
+    def Valid(self,vector):
+        return self.action.Valid(vector)
+
+    def MouseMotion(self,pos,vector):
+        return
+
+    def Unselected(self):
+        return
+
+
+
+class MoveActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
         self.last_ap = -1
         self._valid_vectors = None
         self.wizard = wizard
         self.shown_path = None
+        self.action = action
 
     @property
     def valid_vectors(self):
@@ -94,7 +128,7 @@ class MoveActionCreator(object):
             return
         
         for step in path.steps:
-            yield MoveAction(step,t,wizard,speed)
+            yield self.action(step,t,wizard,speed)
 
     def ColourFunction(self,pos):
         #try:
@@ -217,7 +251,8 @@ class WizardBlastAction(BlastAction):
     @staticmethod
     def MouseMotion(pos,vector):
         pass
-           
+
+
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
@@ -631,15 +666,15 @@ class Wizard(Actor):
         self.controlled = [self]
         self.controlled_index = 0
         self.player = player
-        self.action_choices = [ActionChoice(MoveActionCreator(self),
+        self.action_choices = [ActionChoice(MoveActionCreator(self,MoveAction),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
                                             callback = self.HandleAction),
-                               ActionChoice(WizardBlastAction,
+                               ActionChoice(BasicActionCreator(self,WizardBlastAction),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
                                             self,
                                             callback = self.HandleAction),
-                               ActionChoice(SummonGoblinAction,
+                               ActionChoice(BasicActionCreator(self,SummonGoblinAction),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.76),
                                             self,
                                             callback = self.HandleAction)]
@@ -663,7 +698,7 @@ class Goblin(Actor):
     def __init__(self,pos,type,tiles,isPlayer,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,isPlayer,name,caster.player)
         self.caster = caster
-        self.action_choices = [ActionChoice(MoveActionCreator(self),
+        self.action_choices = [ActionChoice(MoveActionCreator(self,MoveAction),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
                                             callback = self.HandleAction)]
@@ -678,7 +713,7 @@ class Goblin(Actor):
             self.quad.Delete()
             self.health_text.Delete()
             self.tiles.RemoveActor(self)
-            self.caster.RemoveSummoned(self)
+            self.caster.player.RemoveSummoned(self)
 
 
 class SummonMonsterAction(BlastAction):
