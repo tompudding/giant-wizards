@@ -426,7 +426,7 @@ class Tiles(object):
                         #we've selected and action like move, so tell it where they clicked
                         current_viewpos = self.viewpos.Get() + pos
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
-                        self.player_action.OnClick(utils.GridCoords(current_viewpos),button)
+                        self.player_action.OnGridClick(utils.GridCoords(current_viewpos),button)
                      
                     #Remove the ability of the player to deselect his wizard, since we didn't get round to implementing
                     #monsters we don't need it

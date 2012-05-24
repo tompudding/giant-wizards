@@ -65,7 +65,7 @@ class MoveActionCreator(object):
 
     @property
     def valid_vectors(self):
-        if not self._valid_vectors or self.last_ap != self.wizard.action_points:
+        if 1:#not self._valid_vectors or self.last_ap != self.wizard.action_points:
             ap = self.wizard.action_points
             self._valid_vectors = {}
             for x in xrange(-ap,ap+1):
@@ -157,8 +157,8 @@ class BlastAction(Action):
 
         if self.firing == None:
             #determine whether we can actually fire
-            if self.wizard.action_points >= WizardBlastAction.cost:
-                self.wizard.AdjustActionPoints(-WizardBlastAction.cost)
+            if self.wizard.action_points >= self.cost:
+                self.wizard.AdjustActionPoints(-self.cost)
                 self.firing = True
                 self.quad.Enable()
             else:
@@ -296,7 +296,7 @@ class ActionChoice(object):
         else:
             self.action.Unselected()
 
-    def OnClick(self,pos,button):
+    def OnGridClick(self,pos,button):
         self.action.Unselected()
         vector = self.GetVector(pos)
         if not vector:
