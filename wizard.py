@@ -222,7 +222,9 @@ class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action = action
         self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = callback)
+        self.text = texture.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.actor_callback = callback
+
         self.wizard = wizard
         self.quads = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
         self.selected = False
@@ -313,6 +315,10 @@ class ActionChoice(object):
             self.action.Unselected()
             for action in self.action.Create(vector,0,self.wizard):
                 self.wizard.action_list.append(action)
+
+    def OnButtonClick(self,pos):
+        return self.actor_callback(pos,self)
+    
 
     def FriendlyTargetable(self):
         return False
@@ -522,15 +528,6 @@ class Actor(object):
             self.tiles.player_action = action
         self.tiles.player_action.UpdateQuads()
 
-    def HandleMove(self,pos):
-        self.HandleAction(pos,self.move)
-        
-    def HandleBlast(self,pos):
-        self.HandleAction(pos,self.action_choices[1])
-
-    def HandleSummon(self,pos):
-        self.HandleAction(pos,self.action_choices[2])
-
     def AdjustActionPoints(self,value):
         self.action_points += value
         self.action_points_text.SetText('Action Points : %d' % self.action_points)
@@ -637,15 +634,15 @@ class Wizard(Actor):
         self.action_choices = [ActionChoice(MoveActionCreator(self),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
-                                            callback = self.HandleMove),
+                                            callback = self.HandleAction),
                                ActionChoice(WizardBlastAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
                                             self,
-                                            callback = self.HandleBlast),
+                                            callback = self.HandleAction),
                                ActionChoice(SummonGoblinAction,
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.76),
                                             self,
-                                            callback = self.HandleSummon)]
+                                            callback = self.HandleAction)]
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
         for a in self.action_choices:
@@ -669,7 +666,7 @@ class Goblin(Actor):
         self.action_choices = [ActionChoice(MoveActionCreator(self),
                                             Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                             self,
-                                            callback = self.HandleMove)]
+                                            callback = self.HandleAction)]
         self.move = self.action_choices[0]
         for a in self.action_choices:
             a.Disable()
