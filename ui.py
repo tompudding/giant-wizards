@@ -219,6 +219,36 @@ class ButtonList(object):
     def __getitem__(self,index):
         return self.buttons[index]
 
-    
+
+class ControlBox(UIElement):
+    def __init__(self,bl,tr,colour):
+        self.bl       = bl
+        self.tr       = tr
+        self.size     = tr-bl
+        self.colour   = colour
+        self.ui_box   = BoxUI(bl,
+                              tr,
+                              colour)
+        self.buttons  = {}
+        self.elements = [self.ui_box]
+
+    def AddButton(self,text,pos,callback):
+        button = TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+        button.level = 2
+        self.buttons[text] = button
+        self.elements.append(button)
+
+    def Register(self,tiles,level):
+        for element in self.elements:
+            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,TextButtonUI) else level)
+        
+    def MakeSelectable(self):
+        for element in self.elements:
+            element.MakeSelectable()
+
+    def MakeUnselectable(self):
+        for element in self.elements:
+            element.MakeUnselectable()
+
 
     

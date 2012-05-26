@@ -90,36 +90,6 @@ class TileHighlights(object):
         for q in self.highlight_quads:
             q.Disable()
 
-class ControlBox(ui.UIElement):
-    def __init__(self,bl,tr,colour):
-        self.bl       = bl
-        self.tr       = tr
-        self.size     = tr-bl
-        self.colour   = colour
-        self.ui_box   = ui.BoxUI(bl,
-                                      tr,
-                                      colour)
-        self.buttons  = {}
-        self.elements = [self.ui_box]
-
-    def AddButton(self,text,pos,callback):
-        button = ui.TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
-        button.level = 2
-        self.buttons[text] = button
-        self.elements.append(button)
-
-    def Register(self,tiles,level):
-        for element in self.elements:
-            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,ui.TextButtonUI) else level)
-        
-    def MakeSelectable(self):
-        for element in self.elements:
-            element.MakeSelectable()
-
-    def MakeUnselectable(self):
-        for element in self.elements:
-            element.MakeUnselectable()
-
 class Tiles(object):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
         self.atlas = atlas
@@ -140,9 +110,9 @@ class Tiles(object):
         self.last_time = 0
         self.pathcache = {}
 
-        self.control_box = ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
-                                      Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
-                                      (0,0,0,0.6))
+        self.control_box = ui.ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
+                                         Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
+                                         (0,0,0,0.6))
         self.control_box.AddButton('End Turn',Point(0.3,0.15),self.EndTurn)
         self.control_box.AddButton('Centre',Point(0.3,0.6),self.CentreSelected)
 
