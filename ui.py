@@ -232,8 +232,12 @@ class ControlBox(UIElement):
         self.buttons  = {}
         self.elements = [self.ui_box]
 
-    def AddButton(self,text,pos,callback):
-        button = TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+    def AddButton(self,text,pos,callback,size = None):
+        #FIXME: Sort out the arguments here, there's really no need to duplicate code I'm sure
+        if None == size:
+            button = TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+        else:
+            button = TextButtonUI(text,self.bl+(self.size*pos),size=size,callback=callback)
         button.level = 2
         self.buttons[text] = button
         self.elements.append(button)

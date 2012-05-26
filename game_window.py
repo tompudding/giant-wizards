@@ -114,7 +114,9 @@ class Tiles(object):
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
                                          (0,0,0,0.6))
         self.control_box.AddButton('End Turn',Point(0.3,0.15),self.EndTurn)
-        self.control_box.AddButton('Centre',Point(0.3,0.6),self.CentreSelected)
+        self.control_box.AddButton('>',Point(0.7,0.15),self.NextControlled,size=1.5)
+        self.control_box.AddButton('<',Point(0.1,0.15),self.PrevControlled,size=1.5)
+        self.control_box.AddButton(' Centre',Point(0.3,0.6),self.CentreSelected)
 
         self.control_box.Register(self,1)
         self.control_box.MakeSelectable()
@@ -285,6 +287,12 @@ class Tiles(object):
     def EndTurn(self,pos):
         if self.current_player.IsPlayer():
             self.current_player.EndTurn(pos)
+
+    def NextControlled(self,pos=None):
+        return self.SelectNextPlayerControlled(1)
+    
+    def PrevControlled(self,pos=None):
+        return self.SelectNextPlayerControlled(-1)
         
     def Draw(self):
         zcoord = 0
