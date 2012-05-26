@@ -100,7 +100,7 @@ class MoveActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         if 1:#not self._valid_vectors or self.last_ap != self.wizard.action_points:
-            ap = self.wizard.action_points
+            ap = self.wizard.move_points
             self._valid_vectors = {}
             for x in xrange(-ap,ap+1):
                 for y in xrange(-ap,ap+1):
@@ -358,6 +358,7 @@ class ActionChoice(object):
 
 class Actor(object):
     initial_action_points = 0
+    initial_move_points = 0
     def __init__(self,pos,type,tiles,isPlayer,name,player):
         self.pos                = pos
         self.player             = player
@@ -365,19 +366,22 @@ class Actor(object):
         self.health             = 10
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
+        self.move_points        = 0
         self.options_box        = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
                                     Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                     (0,0,0,0.6))
         self.title              = texture.TextObject(name+':',gamedata.text_manager)
         self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
-        self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
-        self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
+        self.movement_text = texture.TextObject('Movement : %d' % self.move_points,gamedata.text_manager)
+        self.movement_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
+        self.action_points_text = texture.TextObject('Mana : %d' % self.action_points,gamedata.text_manager)
+        self.action_points_text.Position(Point(gamedata.screen.x*0.85,gamedata.screen.y*0.87),0.33)
         self.action_header      = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
         
         
         
-        self.static_text = [self.title,self.action_points_text,self.action_header]
+        self.static_text = [self.title,self.action_points_text,self.action_header,self.movement_text]
         self.health_text = texture.TextObject('%d' % self.health,gamedata.text_manager,static = False)
         self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
                                                           self.pos.y + 0.8)),
@@ -388,7 +392,7 @@ class Actor(object):
                           
         self.isPlayer    = isPlayer
         self.name        = name
-        self.action_list = [] if self.IsPlayer() else None
+        self.action_list = []
         self.tiles       = tiles
         self.selected    = False
         self.flash_state = True
@@ -450,70 +454,52 @@ class Actor(object):
         return self.isPlayer
 
     def NewTurn(self):
-        self.action_points = self.initial_action_points
-        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        self.action_points += self.initial_action_points
+        self.move_points    = self.initial_move_points
+        self.action_points_text.SetText('Mana : %d' % self.action_points)
+        self.movement_text.SetText('Movement : %d' % self.move_points)
         if not self.selected:
             self.action_points_text.Disable()
+            self.movement_text.Disable()
 
     def EndTurn(self,pos):
         self.Unselect()
         self.action_choices.Unselected()
 
     def TakeAction(self,t):
-        if self.action_list == None:
+        if len(self.action_list) == 0 and self.IsPlayer():
+            return None
+
+        if not self.IsPlayer() and len(self.action_list) == 0:
             #For a computer player, decide what to do
             #regular players populate this list themselves
-            action_points = self.action_points
-            self.action_list = []
             #Find the nearest enemy
-            match = [None,None,None]
-            for wizard in self.tiles.wizards:
-                if wizard.player_character is self:
-                    continue
-                offset = utils.WrapDistance(wizard.pos,self.pos,self.tiles.width)
-
-                distance = offset.length()
-                if match[0] == None or distance < match[0]:
-                    match = [distance,wizard]
+            match = [None,None]
+            for player in self.tiles.wizards:
+                for enemy in player.controlled:
+                    if enemy is self:
+                        continue
+                    #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
+                    #distance = offset.length()
+                    path = self.tiles.PathTo(self.pos,enemy.pos)
+                    if match[0] == None or path.cost < match[0].cost:
+                        match = [path,enemy]
             if match[1] == None:
                 #wtf? There are no other wizards? the game should have ended
                 return False
-            distance,wizard = match
-            current_pos = self.pos
-            while action_points > 0:
-                offset = utils.WrapDistance(wizard.pos,current_pos,self.tiles.width)
-                if distance < WizardBlastAction.range:
-                    self.action_list.append( WizardBlastAction(offset,t,self) )
-                    action_points -= WizardBlastAction.cost
-                else:
-                    vector = Point(0,0)
-                    if offset.x != 0:
-                        vector.x = 1 if offset.x > 0 else -1
-                    if offset.y != 0:
-                        vector.y = 1 if offset.y > 0 else -1
-                    target = current_pos + vector
-                    target.x = ((target.x+self.tiles.width)%self.tiles.width)
-                    target_tile = self.tiles.GetTile(target)
-                    if target_tile.movement_cost <= action_points:
-                        current_pos = current_pos + vector
-                        self.action_list.append( MoveAction(vector,t,self) )
-                        action_points -= target_tile.movement_cost
-                    else:
-                        #can't do anything else
-                        break
+            path,enemy = match
+            #try to take the first step along the path
+            target = self.pos + path.steps[0]
+            target_tile = self.tiles.GetTile(target)
+            
+            if target_tile.movement_cost > self.move_points:
+                #We can't do it
+                return False
+            self.action_list.append( MoveAction(path.steps[0],t,self) )
                     
-        #do the actions according to the times in them
-        
-        if len(self.action_list) == 0:
-            self.action_list = [] if self.IsPlayer() else None
-            #returning none means no action to perform, returning False means
-            #that the turn should be ended
-            return None if self.IsPlayer() else False
-        else:
-            #if t >= self.action_list[0].end_time:
-            action = self.action_list.pop(0)
-            return action
-        
+        #do the next action
+        assert len(self.action_list) != 0
+        return self.action_list.pop(0)
 
     def MoveRelative(self,offset):
         target = self.pos + offset
@@ -524,18 +510,19 @@ class Actor(object):
             target.y = 0
         
         target_tile = self.tiles.GetTile(target)
-        if self.action_points >= target_tile.movement_cost:
+        if self.move_points >= target_tile.movement_cost:
+
             if not target_tile.Empty():
                 #maybe we're attacking a fella?
                 target_wizard = target_tile.GetActor()
                 if target_wizard != None:
                     target_wizard.Damage(2)
-                    self.AdjustActionPoints(-1)
+                    self.AdjustMovePoints(-1)
                 #need to update the pos anyway to cause various update mechanisms to get triggered
                 self.SetPos(self.pos)
             else:
                 self.tiles.GetTile(self.pos).SetActor(None)
-                self.AdjustActionPoints(-target_tile.movement_cost)
+                self.AdjustMovePoints(-target_tile.movement_cost)
                 self.SetPos(target)
             
     
@@ -558,9 +545,15 @@ class Actor(object):
 
     def AdjustActionPoints(self,value):
         self.action_points += value
-        self.action_points_text.SetText('Action Points : %d' % self.action_points)
+        self.action_points_text.SetText('Mana : %d' % self.action_points)
         if not self.selected:
             self.action_points_text.Disable()
+
+    def AdjustMovePoints(self,value):
+        self.move_points += value
+        self.movement_text.SetText('Movement : %d' % self.move_points)
+        if not self.selected:
+            self.movement_text.Disable()
 
     def Friendly(self,other):
         return self.player.Controls(other)
@@ -601,9 +594,6 @@ class Player(object):
     def pos(self,value):
         self.player_character.SetPos(value)
 
-    def GetPos(self):
-        return self.player_character.pos
-
     def IsPlayer(self):
         return self.isPlayer
 
@@ -635,7 +625,19 @@ class Player(object):
         return self.current_controlled
 
     def TakeAction(self,t):
-        return self.current_controlled.TakeAction(t)
+        if self.IsPlayer():
+            return self.current_controlled.TakeAction(t)
+        else:
+            action = self.current_controlled.TakeAction(t)
+            while action == False:
+                self.controlled_index += 1
+                if self.controlled_index == len(self.controlled):
+                    #We're done, all controlled units report that no action is possible
+                    self.controlled_index = 0
+                    return False
+                action = self.current_controlled.TaleAction(t)
+            #cool, an action!
+            return action
 
     def AddSummoned(self,monster):
         self.controlled.append(monster)
@@ -652,7 +654,8 @@ class Player(object):
 
 
 class Wizard(Actor):
-    initial_action_points = 4
+    initial_action_points = 2
+    initial_move_points   = 2
     def __init__(self,pos,type,tiles,isPlayer,name,player):
         full_type = wizard_types[type]
         super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name,player)
@@ -677,7 +680,8 @@ class Wizard(Actor):
             self.tiles.RemoveWizard(self)
 
 class Goblin(Actor):
-    initial_action_points = 3
+    initial_action_points = 0
+    initial_move_points   = 3
     def __init__(self,pos,type,tiles,isPlayer,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,isPlayer,name,caster.player)
         self.caster = caster

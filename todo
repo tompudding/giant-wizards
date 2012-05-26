@@ -1,6 +1,7 @@
 done - refactoring action choices
 done - next and prev buttons for selecting
      - split movement / mana
+     - make flash better(so not invisible)
      - add meditate (Turn movement into mana)
      - try pixelmix font
      - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if

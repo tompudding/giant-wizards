@@ -476,7 +476,6 @@ class Tiles(object):
     def AddWizard(self,pos,type,isPlayer,name):
         self.InvalidateCache()
         new_wizard = wizard.Player(pos,type,self,isPlayer,name)
-        new_wizard.pos = pos
         self.wizards.append(new_wizard)
 
     def KeyDown(self,key):
