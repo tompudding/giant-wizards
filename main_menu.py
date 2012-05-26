@@ -2,7 +2,7 @@ import utils
 from utils import Point
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,game_window,ui
+import texture,game_window,ui,wizard,random
 
 gamedata = None
 
@@ -146,10 +146,10 @@ class MainMenu(object):
         num_cpu   = 0
         for state in gamedata.player_config:
             if state == 'Human':
-                states.append(True)
+                states.append(wizard.PlayerTypes.HUMAN)
                 num_human += 1
             elif state == 'CPU':
-                states.append(False)
+                states.append(random.choice((wizard.PlayerTypes.TENTATIVE,wizard.PlayerTypes.GUNGHO)))
                 num_cpu += 1
             else:
                 states.append(None)

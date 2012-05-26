@@ -356,10 +356,18 @@ class ActionChoice(object):
     def FriendlyTargetable(self):
         return False        
 
+class PlayerTypes:
+    HUMAN     = 1
+    TENTATIVE = 2
+    GUNGHO    = 3
+
 class Actor(object):
+    """
+    Class to represent all characters than can appear on the game board
+    """
     initial_action_points = 0
     initial_move_points = 0
-    def __init__(self,pos,type,tiles,isPlayer,name,player):
+    def __init__(self,pos,type,tiles,playerType,name,player):
         self.pos                = pos
         self.player             = player
         self.type               = type
@@ -390,7 +398,7 @@ class Actor(object):
         for t in self.static_text:
             t.Disable()
                           
-        self.isPlayer    = isPlayer
+        self.player_type = playerType
         self.name        = name
         self.action_list = []
         self.tiles       = tiles
@@ -451,7 +459,7 @@ class Actor(object):
         
 
     def IsPlayer(self):
-        return self.isPlayer
+        return self.player_type == PlayerTypes.HUMAN
 
     def NewTurn(self):
         self.action_points += self.initial_action_points
@@ -473,32 +481,94 @@ class Actor(object):
         if not self.IsPlayer() and len(self.action_list) == 0:
             #For a computer player, decide what to do
             #regular players populate this list themselves
+
             #Find the nearest enemy
-            match = [None,None]
+            enemies = []
             for player in self.tiles.wizards:
                 for enemy in player.controlled:
-                    if enemy is self:
+                    if enemy.player is self.player:
                         continue
                     #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                     #distance = offset.length()
                     path = self.tiles.PathTo(self.pos,enemy.pos)
-                    if match[0] == None or path.cost < match[0].cost:
-                        match = [path,enemy]
-            if match[1] == None:
+                    if path == None:
+                        cost = (enemy.pos-self.pos).length()
+                    else:
+                        cost = path.cost
+                    enemies.append((path,cost,enemy))
+            enemies.sort(lambda x,y : cmp(x[1],y[1]))
+            if len(enemies) == 0:
                 #wtf? There are no other wizards? the game should have ended
                 return False
-            path,enemy = match
-            #try to take the first step along the path
-            target = self.pos + path.steps[0]
-            target_tile = self.tiles.GetTile(target)
-            
-            if target_tile.movement_cost > self.move_points:
-                #We can't do it
-                return False
-            self.action_list.append( MoveAction(path.steps[0],t,self) )
-                    
-        #do the next action
-        assert len(self.action_list) != 0
+            path,cost,enemy = enemies[0]
+
+            #Stand-in AI logic until the game rules are fixed. There are two types,
+            # tentative wizards do:
+            #  - Move away from the enemy if possible
+            #  - Shoot any enemy in range
+            #  - Otherwise try to summon a monster if you can, but stay above 6 mana
+            #
+            # gungho wizards do:
+            #  - Shoot any enemy in range
+            #  - Summon a Goblin if they can (but stay above 2 mana for shooting)
+            #  - 
+            if self.player_type == PlayerTypes.TENTATIVE:
+                if self.move_points > 0:
+                    #Go away from the nearest enemy
+                    opposite_point = enemy.pos + Point(self.tiles.width/2,0)
+                    if enemy.pos.y < self.tiles.height/2:
+                        opposite_point.y = self.tiles.height-1
+                    opposite_point.x %= self.tiles.width
+                    path = self.tiles.PathTo(self.pos,opposite_point)
+                    if path:
+                        target = self.pos + path.steps[0]
+                        target_tile = self.tiles.GetTile(target)
+                        if target_tile.movement_cost <= self.move_points:
+                            self.action_list.append( MoveAction(path.steps[0],t,self) )
+                #We've had a chance, at moving, but maybe we decided not to?
+                if len(self.action_list) == 0:
+                    offset = enemy.pos-self.pos
+                    if self.action_points > WizardBlastAction.cost and offset in WizardBlastAction.valid_vectors:
+                        self.action_list.append( WizardBlastAction(offset,t,self) )
+                    elif self.action_points - SummonGoblinAction.cost >= 6:
+                        #Want to summon a goblin, find the first spot that works
+                        choices = sorted([p for p in SummonGoblinAction.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
+                        for point in choices:
+                            target = point + self.pos
+                            target_tile = self.tiles.GetTile(target)
+                            if target_tile and target_tile.Empty() and not target_tile.Impassable():
+                                self.action_list.append( SummonGoblinAction(point,t,self) )
+                                break
+                        else:
+                            #coun't find a place to put it. pants
+                            pass
+            elif self.player_type == PlayerTypes.GUNGHO:
+                if self.move_points > 0:
+                    target = self.pos + path.steps[0]
+                    target_tile = self.tiles.GetTile(target)
+                    if target_tile.movement_cost <= self.move_points:
+                        self.action_list.append( MoveAction(path.steps[0],t,self) )
+                #We've had a chance, at moving, but maybe we decided not to?
+                if len(self.action_list) == 0:
+                    offset = enemy.pos-self.pos
+                    if self.action_points > WizardBlastAction.cost and offset in WizardBlastAction.valid_vectors:
+                        self.action_list.append( WizardBlastAction(offset,t,self) )
+                    elif self.action_points - SummonGoblinAction.cost >= 2:
+                        #Want to summon a goblin, find the first spot that works
+                        choices = sorted([p for p in SummonGoblinAction.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
+                        for point in choices:
+                            target = point + self.pos
+                            target_tile = self.tiles.GetTile(target)
+                            if target_tile.Empty() and not target_tile.Impassable():
+                                self.action_list.append( SummonGoblinAction(point,t,self) )
+                                break
+                        else:
+                            #coun't find a place to put it. pants
+                            pass
+                
+        if len(self.action_list) == 0:
+            #we failed to think of anything to do, so this guy is done
+            return False
         return self.action_list.pop(0)
 
     def MoveRelative(self,offset):
@@ -567,19 +637,19 @@ class Actor(object):
             self.tiles.RemoveActor(self)
 
 class Player(object):
-    def __init__(self,pos,type,tiles,isPlayer,name):
+    def __init__(self,pos,type,tiles,playerType,name):
         self.name             = name
-        self.isPlayer         = isPlayer
+        self.player_type      = playerType
         self.tiles            = tiles
-        self.player_character = Wizard(pos,type,tiles,isPlayer,name,self)
+        self.player_character = Wizard(pos,type,tiles,playerType,name,self)
         self.controlled       = [self.player_character]
         self.controlled_index = 0
 
-        # if isPlayer:
+        # if player_type:
         #     self.controlled.append(Goblin(pos+Point(1,1),
         #                                   'goblin',
         #                                   tiles,
-        #                                   isPlayer,
+        #                                   player_type,
         #                                   self.player_character.name + '\'s Goblin',
         #                                   self))
 
@@ -595,7 +665,7 @@ class Player(object):
         self.player_character.SetPos(value)
 
     def IsPlayer(self):
-        return self.isPlayer
+        return self.player_type == PlayerTypes.HUMAN
 
     def StartTurn(self):
         for actor in self.controlled:
@@ -635,7 +705,7 @@ class Player(object):
                     #We're done, all controlled units report that no action is possible
                     self.controlled_index = 0
                     return False
-                action = self.current_controlled.TaleAction(t)
+                action = self.current_controlled.TakeAction(t)
             #cool, an action!
             return action
 
@@ -656,9 +726,9 @@ class Player(object):
 class Wizard(Actor):
     initial_action_points = 2
     initial_move_points   = 2
-    def __init__(self,pos,type,tiles,isPlayer,name,player):
+    def __init__(self,pos,type,tiles,playerType,name,player):
         full_type = wizard_types[type]
-        super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name,player)
+        super(Wizard,self).__init__(pos,full_type,tiles,playerType,name,player)
         self.controlled       = [self]
         self.controlled_index = 0
         self.player           = player
@@ -682,8 +752,8 @@ class Wizard(Actor):
 class Goblin(Actor):
     initial_action_points = 0
     initial_move_points   = 3
-    def __init__(self,pos,type,tiles,isPlayer,name,caster):
-        super(Goblin,self).__init__(pos,type,tiles,isPlayer,name,caster.player)
+    def __init__(self,pos,type,tiles,playerType,name,caster):
+        super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
         self.caster = caster
         self.action_choices = ActionChoiceList(self,
                                                Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
@@ -700,6 +770,45 @@ class Goblin(Actor):
             self.health_text.Delete()
             self.tiles.RemoveActor(self)
             self.caster.player.RemoveSummoned(self)
+
+    def TakeAction(self,t):
+        if len(self.action_list) == 0 and self.IsPlayer():
+            return None
+
+        if not self.IsPlayer() and len(self.action_list) == 0:
+            #For a computer player, decide what to do
+            #regular players populate this list themselves
+
+            #Find the nearest enemy
+            enemies = []
+            for player in self.tiles.wizards:
+                for enemy in player.controlled:
+                    if enemy.player is self.player:
+                        continue
+                    #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
+                    #distance = offset.length()
+                    path = self.tiles.PathTo(self.pos,enemy.pos)
+                    if path == None:
+                        cost = (enemy.pos-self.pos).length()
+                    else:
+                        cost = path.cost
+                    enemies.append((path,cost,enemy))
+            enemies.sort(lambda x,y : cmp(x[1],y[1]))
+            if len(enemies) == 0:
+                #wtf? There are no other wizards? the game should have ended
+                return False
+            path,cost,enemy = enemies[0]
+            if self.move_points > 0:
+                target = self.pos + path.steps[0]
+                target_tile = self.tiles.GetTile(target)
+                if target_tile.movement_cost <= self.move_points:
+                    self.action_list.append( MoveAction(path.steps[0],t,self) )
+                       
+        if len(self.action_list) == 0:
+            #we failed to think of anything to do, so this guy is done
+            return False
+        return self.action_list.pop(0)
+
 
 
 class SummonMonsterAction(BlastAction):

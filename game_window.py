@@ -473,9 +473,9 @@ class Tiles(object):
                 if action != None:
                     self.current_action = action
 
-    def AddWizard(self,pos,type,isPlayer,name):
+    def AddWizard(self,pos,type,playerType,name):
         self.InvalidateCache()
-        new_wizard = wizard.Player(pos,type,self,isPlayer,name)
+        new_wizard = wizard.Player(pos,type,self,playerType,name)
         self.wizards.append(new_wizard)
 
     def KeyDown(self,key):
@@ -734,11 +734,11 @@ class GameWindow(object):
                 
             
         for i in xrange(len(players)):
-            isplayer,name,type = players[i]
+            player_type,name,type = players[i]
             if player_states[type] != None:
                 self.tiles.AddWizard(pos  = positions[i],
                                      type = type,
-                                     isPlayer = isplayer,
+                                     playerType = player_type,
                                      name = name)
         self.tiles.NextPlayer()
         

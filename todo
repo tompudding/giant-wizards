@@ -1,6 +1,9 @@
 done - refactoring action choices
 done - next and prev buttons for selecting
-     - split movement / mana
+done - split movement / mana
+done - Update AI to still be basic but move / shoot / summon
+     - make blasts line of sight blocked by trees / mountains
+     - differentiate goblins? Maybe just show name on hover
      - make flash better(so not invisible)
      - add meditate (Turn movement into mana)
      - try pixelmix font
