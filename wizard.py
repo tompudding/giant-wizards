@@ -16,11 +16,11 @@ class Action(object):
 class MoveAction(Action):
     name = 'Move'
     cost = 1
-    def __init__(self,vector,t,wizard,speed=4):
+    def __init__(self,vector,t,actor,speed=4):
         self.vector      = vector
         self.initialised = False
         self.speed       = speed
-        self.wizard      = wizard
+        self.actor       = actor
         
         
     def Update(self,t):
@@ -28,15 +28,15 @@ class MoveAction(Action):
             self.start_time  = t
             self.end_time    = t + (self.vector.length()*1000/self.speed)
             self.duration    = self.end_time - self.start_time
-            self.start_pos   = self.wizard.pos
+            self.start_pos   = self.actor.pos
             self.end_pos     = self.start_pos + self.vector
             self.initialised = True
-            target_tile      = self.wizard.tiles.GetTile(self.end_pos)
+            target_tile      = self.actor.tiles.GetTile(self.end_pos)
             self.attacking   = not target_tile.Empty() 
-            self.will_move   = self.wizard.action_points >= target_tile.movement_cost
+            self.will_move   = self.actor.move_points >= target_tile.movement_cost
         
         if t > self.end_time:
-            self.wizard.MoveRelative(self.vector)
+            self.actor.MoveRelative(self.vector)
             return True
         elif self.will_move:
             part = float(t-self.start_time)/self.duration
@@ -46,10 +46,10 @@ class MoveAction(Action):
                 #go halfway then come back
                 pos = self.start_pos + self.vector*(part if part < 0.5 else (1-part))
                 
-            self.wizard.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+            self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
                                          utils.WorldCoords(pos+Point(1,1)).to_int(),
                                          0.5)
-            self.wizard.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
+            self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
                                                                      pos.y + 0.8)),
                                              0.3)
         return False
