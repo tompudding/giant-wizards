@@ -1,9 +1,8 @@
-import os,sys
 import utils
-from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
+from utils import Point
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard,pygame,game_window,ui
+import texture,game_window,ui
 
 gamedata = None
 

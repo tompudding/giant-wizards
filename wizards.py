@@ -1,11 +1,10 @@
-import os,sys
 import pygame
 from pygame.locals import *
 import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window,wizard,texture,main_menu,random,ui
+import game_window,wizard,texture,main_menu,ui
 #some sort of hack to get py2exe to work
 try:
     from OpenGL.platform import win32

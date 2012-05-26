@@ -1,6 +1,5 @@
-import os,sys
 import utils
-from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
+from utils import Point,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
 import texture,numpy,random,perlin,wizard,pygame,main_menu,ui
@@ -30,8 +29,6 @@ class TileData(object):
         return self.movement_cost == self.IMPASSABLE
 
     def MovementCost(self,ignore = None):
-        a = 0  
-        
         if self.actor:
             if self.actor not in ignore:
                 return TileData.IMPASSABLE
@@ -437,11 +434,7 @@ class Tiles(object):
 
     def MouseMotion(self,pos,rel):
         if self.dragging:
-            new_setpos = self.dragging - pos
             self.viewpos.Set(self.ValidViewpos(self.dragging - pos))
-            difference = self.viewpos.Get() - (new_setpos)
-            #if difference is non-zero it means that we didn't get what we requested for some reason,
-            #so we should update dragging so it still points at the right place
             self.dragging = self.viewpos.Get() + pos
             
         current_viewpos = self.viewpos.Get() + pos
@@ -485,8 +478,8 @@ class Tiles(object):
         if self.gameover:
             return
         self.viewpos.Update(t)
-        for wizard in self.wizards:
-            wizard.Update(t)
+        for wiz in self.wizards:
+            wiz.Update(t)
         if self.current_action:
             finished = self.current_action.Update(t)
             if finished:
@@ -503,7 +496,6 @@ class Tiles(object):
                     self.current_action = action
 
     def AddWizard(self,pos,type,isPlayer,name):
-        target_tile = self.GetTile(pos)
         self.InvalidateCache()
         new_wizard = wizard.Player(pos,type,self,isPlayer,name)
         new_wizard.pos = pos

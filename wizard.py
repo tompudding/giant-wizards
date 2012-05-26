@@ -742,4 +742,3 @@ class SummonGoblinAction(SummonMonsterAction):
     @staticmethod
     def Create(vector,t,wizard,speed=4):
         yield SummonGoblinAction(vector,t,wizard,speed)
-

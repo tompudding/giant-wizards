@@ -1,5 +1,5 @@
 from OpenGL.GL import *
-import pygame,math,numpy,itertools
+import math,numpy
 
 gamedata = None
 

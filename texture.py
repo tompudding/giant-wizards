@@ -1,9 +1,9 @@
-import pygame,string
+import pygame
 from pygame.locals import *
 from OpenGL.GL.framebufferobjects import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import utils,numpy
+import utils
 from utils import Point
 
 gamedata = None

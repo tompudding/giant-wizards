@@ -38,6 +38,7 @@ class UIElement(object):
 
     def __hash__(self):
         return hash((self.bottom_left,self.top_right))
+    
 
 class BoxUI(UIElement):
     def __init__(self,pos,tr,colour):
