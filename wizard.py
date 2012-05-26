@@ -17,23 +17,23 @@ class MoveAction(Action):
     name = 'Move'
     cost = 1
     def __init__(self,vector,t,wizard,speed=4):
-        self.vector = vector
+        self.vector      = vector
         self.initialised = False
-        self.speed = speed
-        self.wizard = wizard
+        self.speed       = speed
+        self.wizard      = wizard
         
         
     def Update(self,t):
         if not self.initialised:
-            self.start_time = t
-            self.end_time = t + (self.vector.length()*1000/self.speed)
-            self.duration = self.end_time - self.start_time
-            self.start_pos = self.wizard.pos
-            self.end_pos  = self.start_pos + self.vector
+            self.start_time  = t
+            self.end_time    = t + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.wizard.pos
+            self.end_pos     = self.start_pos + self.vector
             self.initialised = True
-            target_tile = self.wizard.tiles.GetTile(self.end_pos)
+            target_tile      = self.wizard.tiles.GetTile(self.end_pos)
             self.attacking   = not target_tile.Empty() 
-            self.will_move = self.wizard.action_points >= target_tile.movement_cost
+            self.will_move   = self.wizard.action_points >= target_tile.movement_cost
         
         if t > self.end_time:
             self.wizard.MoveRelative(self.vector)
@@ -91,11 +91,11 @@ class BasicActionCreator(object):
 
 class MoveActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
-        self.last_ap = -1
+        self.last_ap        = -1
         self._valid_vectors = None
-        self.wizard = wizard
-        self.shown_path = None
-        self.action = action
+        self.wizard         = wizard
+        self.shown_path     = None
+        self.action         = action
 
     @property
     def valid_vectors(self):
@@ -162,31 +162,31 @@ class MoveActionCreator(BasicActionCreator):
 
 
 class BlastAction(Action):
-    name = 'Blast'
-    cost = 2
-    range = 5.0
+    name          = 'Blast'
+    cost          = 2
+    range         = 5.0
     valid_vectors = set(Point(x,y) for x in xrange(-5,6) \
                                    for y in xrange(-5,6) \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 5)
     def __init__(self,vector,t,wizard,speed=4):
-        self.vector = vector
-        self.wizard = wizard
-        self.quad = utils.Quad(gamedata.quad_buffer,tc = self.wizard.tiles.tex_coords['blast'])
+        self.vector      = vector
+        self.wizard      = wizard
+        self.quad        = utils.Quad(gamedata.quad_buffer,tc = self.wizard.tiles.tex_coords['blast'])
         self.quad.Disable()
-        self.speed = speed
+        self.speed       = speed
         self.initialised = False
-        self.firing = None
+        self.firing      = None
 
     def Impact(self):
         raise NotImplemented
         
     def Update(self,t):
         if not self.initialised:
-            self.start_time = t
-            self.end_time = self.start_time + (self.vector.length()*1000/self.speed)
-            self.duration = self.end_time - self.start_time
-            self.start_pos = self.wizard.pos
-            self.end_pos  = self.start_pos + self.vector
+            self.start_time  = t
+            self.end_time    = self.start_time + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.wizard.pos
+            self.end_pos     = self.start_pos + self.vector
             self.initialised = True
 
         if self.firing == None:
@@ -232,8 +232,8 @@ class BlastAction(Action):
         return False
 
 class WizardBlastAction(BlastAction):
-    name = 'Wizard Blast'
-    cost = 2
+    name       = 'Wizard Blast'
+    cost       = 2
     min_damage = 1
     max_damage = 3
 
@@ -255,14 +255,13 @@ class WizardBlastAction(BlastAction):
 
 class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
-        self.action = action
-        self.text = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text = ui.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.action         = action
+        self.text           = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
+        self.text           = ui.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
         self.actor_callback = callback
-
-        self.wizard = wizard
-        self.quads = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
-        self.selected = False
+        self.wizard         = wizard
+        self.quads          = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
+        self.selected       = False
         self.UpdateQuads()
 
     def UpdateQuads(self):
@@ -353,28 +352,27 @@ class ActionChoice(object):
 
     def OnButtonClick(self,pos):
         return self.actor_callback(pos,self)
-    
 
     def FriendlyTargetable(self):
-        return False
-        
+        return False        
+
 class Actor(object):
     initial_action_points = 0
     def __init__(self,pos,type,tiles,isPlayer,name,player):
-        self.pos = pos
-        self.player = player
-        self.type = type
-        self.health = 10
-        self.quad = utils.Quad(gamedata.quad_buffer)
-        self.action_points = 0
-        self.options_box = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
+        self.pos                = pos
+        self.player             = player
+        self.type               = type
+        self.health             = 10
+        self.quad               = utils.Quad(gamedata.quad_buffer)
+        self.action_points      = 0
+        self.options_box        = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
                                     Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                     (0,0,0,0.6))
-        self.title = texture.TextObject(name+':',gamedata.text_manager)
+        self.title              = texture.TextObject(name+':',gamedata.text_manager)
         self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.action_points_text = texture.TextObject('Action Points : %d' % self.action_points,gamedata.text_manager)
         self.action_points_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
-        self.action_header = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
+        self.action_header      = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
         self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
         
         
@@ -388,11 +386,11 @@ class Actor(object):
         for t in self.static_text:
             t.Disable()
                           
-        self.isPlayer = isPlayer
-        self.name = name
+        self.isPlayer    = isPlayer
+        self.name        = name
         self.action_list = [] if self.IsPlayer() else None
-        self.tiles = tiles
-        self.selected = False
+        self.tiles       = tiles
+        self.selected    = False
         self.flash_state = True
         self.SetPos(pos)
         
@@ -416,9 +414,7 @@ class Actor(object):
         self.selected = True
         for t in self.static_text:
             t.Enable()
-        for a in self.action_choices:
-            a.Enable()
-            self.tiles.RegisterUIElement(a.text,1)
+        self.action_choices.Enable(self.tiles)
         self.options_box.Enable()
         self.tiles.RegisterUIElement(self.options_box,0)
         self.HandleAction(Point(0,0),self.move)
@@ -427,9 +423,7 @@ class Actor(object):
         self.selected = False
         for t in self.static_text:
             t.Disable()
-        for a in self.action_choices:
-            a.Disable()
-            self.tiles.RemoveUIElement(a.text)
+        self.action_choices.Disable(self.tiles)
         self.options_box.Disable()
         self.tiles.RemoveUIElement(self.options_box)
         self.flash_state = False
@@ -463,8 +457,7 @@ class Actor(object):
 
     def EndTurn(self,pos):
         self.Unselect()
-        for action_choice in self.action_choices:
-            action_choice.Unselected()
+        self.action_choices.Unselected()
 
     def TakeAction(self,t):
         if self.action_list == None:
@@ -582,11 +575,11 @@ class Actor(object):
 
 class Player(object):
     def __init__(self,pos,type,tiles,isPlayer,name):
-        self.name = name
-        self.isPlayer = isPlayer
-        self.tiles = tiles
+        self.name             = name
+        self.isPlayer         = isPlayer
+        self.tiles            = tiles
         self.player_character = Wizard(pos,type,tiles,isPlayer,name,self)
-        self.controlled = [self.player_character]
+        self.controlled       = [self.player_character]
         self.controlled_index = 0
 
         # if isPlayer:
@@ -663,25 +656,17 @@ class Wizard(Actor):
     def __init__(self,pos,type,tiles,isPlayer,name,player):
         full_type = wizard_types[type]
         super(Wizard,self).__init__(pos,full_type,tiles,isPlayer,name,player)
-        self.controlled = [self]
+        self.controlled       = [self]
         self.controlled_index = 0
-        self.player = player
-        self.action_choices = [ActionChoice(MoveActionCreator(self,MoveAction),
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
-                                            self,
-                                            callback = self.HandleAction),
-                               ActionChoice(BasicActionCreator(self,WizardBlastAction),
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.785),
-                                            self,
-                                            callback = self.HandleAction),
-                               ActionChoice(BasicActionCreator(self,SummonGoblinAction),
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.76),
-                                            self,
-                                            callback = self.HandleAction)]
+        self.player           = player
+        self.action_choices   = ActionChoiceList(self,
+                                               Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                               ( MoveAction       ,
+                                                 WizardBlastAction,
+                                                 SummonGoblinAction ))
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
-        for a in self.action_choices:
-            a.Disable()
+        self.action_choices.Disable(self.tiles)
 
     def Damage(self,value):
         self.health -= value
@@ -691,17 +676,14 @@ class Wizard(Actor):
             self.health_text.Delete()
             self.tiles.RemoveWizard(self)
 
-
-
 class Goblin(Actor):
     initial_action_points = 3
     def __init__(self,pos,type,tiles,isPlayer,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,isPlayer,name,caster.player)
         self.caster = caster
-        self.action_choices = [ActionChoice(MoveActionCreator(self,MoveAction),
-                                            Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
-                                            self,
-                                            callback = self.HandleAction)]
+        self.action_choices = ActionChoiceList(self,
+                                               Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                               (MoveAction,))
         self.move = self.action_choices[0]
         for a in self.action_choices:
             a.Disable()
@@ -717,17 +699,22 @@ class Goblin(Actor):
 
 
 class SummonMonsterAction(BlastAction):
-    cost  = 4
-    range = 4
+    cost          = 4
+    range         = 4
     valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
-                            for y in xrange(-3,4) \
+                            for y in xrange(-3,4)        \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 4)
     
     def Impact(self):
         target_tile = self.wizard.tiles.GetTile(self.end_pos)
         target = target_tile.GetActor()
         if not target:
-            monster = self.Monster(self.end_pos,self.monster_type,self.wizard.tiles,self.wizard.IsPlayer(),'A',self.wizard)
+            monster = self.Monster(self.end_pos,
+                                   self.monster_type,
+                                   self.wizard.tiles,
+                                   self.wizard.IsPlayer(),
+                                   self.wizard.name + '\'s ' + self.monster_type,
+                                   self.wizard)
             self.wizard.player.AddSummoned(monster)
 
     @staticmethod
@@ -742,3 +729,19 @@ class SummonGoblinAction(SummonMonsterAction):
     @staticmethod
     def Create(vector,t,wizard,speed=4):
         yield SummonGoblinAction(vector,t,wizard,speed)
+
+class ActionChoiceList(ui.ButtonList):
+    ChoiceCreatorMap = {WizardBlastAction : BasicActionCreator,
+                        MoveAction        : MoveActionCreator ,
+                        SummonGoblinAction: BasicActionCreator}
+    def __init__(self,wizard,pos,choices):
+        super(ActionChoiceList,self).__init__(pos)
+        self.wizard = wizard
+        for choice in choices:
+            creator = self.ChoiceCreatorMap[choice](self.wizard,choice)
+            action_choice = ActionChoice(creator,Point(0,0),self.wizard,wizard.HandleAction)
+            self.AddButton(action_choice)
+
+    def Unselected(self):
+        for action_choice in self.buttons:
+            action_choice.Unselected()

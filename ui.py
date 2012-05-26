@@ -9,10 +9,13 @@ import texture
 
 class UIElement(object):
     def __init__(self,pos,tr):
+        self.SetBounds(pos,tr)
+        self.on = True
+
+    def SetBounds(self,pos,tr):
         self.bottom_left = pos
         self.top_right = tr
         self.size = tr - pos
-        self.on = True
 
     def __contains__(self,pos):
         if pos.x < self.bottom_left.x or pos.x > self.top_right.x:
@@ -76,6 +79,7 @@ class TextButtonUI(UIElement):
         self.text = texture.TextObject(text,gamedata.text_manager)
         self.text.Position(pos,size)
         self.pos = pos
+        self.textsize = size
         self.callback = callback
         super(TextButtonUI,self).__init__(pos,self.text.top_right)
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
@@ -114,6 +118,11 @@ class TextButtonUI(UIElement):
             quad.Delete()
         self.text.Delete()
         
+    def SetPos(self,pos):
+        self.pos = pos
+        self.text.Position(self.pos,self.textsize)
+        self.SetBounds(self.pos,self.text.top_right)
+        self.SetVertices()
 
     def SetText(self,newtext):
         self.text.SetText(newtext)
@@ -124,7 +133,6 @@ class TextButtonUI(UIElement):
         return self.text.text
 
     def Hover(self):
-        #print pygame.mouse.get_cursor()
         self.hovered = True
         for i in xrange(4):
             self.hover_quads[i].Enable()
@@ -179,4 +187,38 @@ class TexturedButton(TextButtonUI):
         for i in xrange(4):
             self.hover_quads[i].Disable()
 
-        
+class ButtonList(object):
+    """
+    UI Element for showing a list of buttons. Right now it's very basic, does not actually 
+    inherit from UIElement(as it doesn't accept clicks itself), and doesn't really do anything
+
+    Just a placeholder really in case we need scrollbars at some point
+    """
+    
+    def __init__(self,pos,l = []):
+        self.buttons  = []
+        self.top_left = pos
+        self.itemheight = 0.025*gamedata.screen.y
+        for item in l:
+            self.AddButton(l)
+
+    def AddButton(self,button):
+        button.text.SetPos(self.top_left - Point(0,self.itemheight*len(self.buttons)))
+        self.buttons.append(button)
+
+    def Enable(self,tiles):
+        for button in self.buttons:
+            button.Enable()
+            tiles.RegisterUIElement(button.text,1)
+
+    def Disable(self,tiles):
+        for button in self.buttons:
+            button.Disable()
+            tiles.RemoveUIElement(button.text)
+
+    def __getitem__(self,index):
+        return self.buttons[index]
+
+    
+
+    

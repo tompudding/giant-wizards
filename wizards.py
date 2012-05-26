@@ -15,16 +15,16 @@ except AttributeError:
 pygame.init()
 
 class GameData(object):
-    screen = None
-    quad_buffer = utils.QuadBuffer(131072)
-    ui_buffer   = utils.QuadBuffer(131072)
+    screen                = None
+    quad_buffer           = utils.QuadBuffer(131072)
+    ui_buffer             = utils.QuadBuffer(131072)
     nonstatic_text_buffer = utils.QuadBuffer(131072)
-    colour_tiles = utils.QuadBuffer(131072)
-    text_manager = None
-    main_menu = None
-    current_view = None
-    player_config = ['Human','CPU','CPU','CPU']
-    time = 0
+    colour_tiles          = utils.QuadBuffer(131072)
+    text_manager          = None
+    main_menu             = None
+    current_view          = None
+    player_config         = ['Human','CPU','CPU','CPU']
+    time                  = 0 
 
 def Init(gamedata):
     w,h = (1280,720)
@@ -110,3 +110,4 @@ if __name__ == '__main__':
     except Exception, e:
         print 'Caught exception, writing to error log...'
         logging.exception("Oops:")
+
