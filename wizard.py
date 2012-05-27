@@ -3,10 +3,6 @@ from utils import Point
 
 gamedata = None
 
-wizard_types = ['purple_wizard',
-                'red_wizard',
-                'yellow_wizard',
-                'green_wizard']
 
 class Action(object):
     @staticmethod
@@ -405,6 +401,17 @@ class PlayerTypes:
     TENTATIVE = 2
     GUNGHO    = 3
 
+#FIXME: Sort this shit out so that we don't need strings anywhere
+class PlayerColours:
+    PURPLE    = 1
+    RED       = 2
+    YELLOW    = 3
+    GREEN     = 4
+    NAMES     = {PURPLE : 'purple',
+                 RED    : 'red'   ,
+                 YELLOW : 'yellow',
+                 GREEN  : 'green' }
+
 class Actor(object):
     """
     Class to represent all characters than can appear on the game board
@@ -412,6 +419,8 @@ class Actor(object):
     initial_action_points = 0
     initial_move_points = 0
     def __init__(self,pos,type,tiles,playerType,name,player):
+        self.colour             = player.colour
+        self.colour_name        = PlayerColours.NAMES[self.colour]
         self.pos                = pos
         self.player             = player
         self.type               = type
@@ -453,13 +462,15 @@ class Actor(object):
         self.SetPos(pos)
         
     def SetPos(self,pos):
+        #FIXME : sort this shit out so that it doesn't use strings
         self.pos = pos
         tile_data = self.tiles.GetTile(pos)
         tile_type = tile_data.name
         self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos + Point(1,1)),0.5)
         if 'coast' in tile_type:
             tile_type = 'water'
-        full_type = self.type + '_' + tile_type
+        print (self.colour_name,self.type,tile_type)
+        full_type = '_'.join((self.colour_name,self.type,tile_type))
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)
         self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
@@ -686,7 +697,8 @@ class Actor(object):
         self.tiles.RemoveActor(self)
 
 class Player(object):
-    def __init__(self,pos,type,tiles,playerType,name):
+    def __init__(self,pos,type,tiles,playerType,name,colour):
+        self.colour           = colour
         self.name             = name
         self.player_type      = playerType
         self.tiles            = tiles
@@ -777,8 +789,7 @@ class Wizard(Actor):
     initial_action_points = 2
     initial_move_points   = 2
     def __init__(self,pos,type,tiles,playerType,name,player):
-        full_type = wizard_types[type]
-        super(Wizard,self).__init__(pos,full_type,tiles,playerType,name,player)
+        super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
         self.controlled       = [self]
         self.controlled_index = 0
         self.player           = player

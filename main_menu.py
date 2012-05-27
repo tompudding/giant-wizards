@@ -5,6 +5,8 @@ from OpenGL.GL import *
 import texture,game_window,ui,wizard,random
 
 gamedata = None
+#This is a terrible hack
+names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
 
 class MainMenu(object):
     def __init__(self):
@@ -23,7 +25,7 @@ class MainMenu(object):
                      self.PlayerChange1,
                      self.PlayerChange2,
                      self.PlayerChange3]
-        for i,name in enumerate(game_window.names):
+        for i,name in enumerate(names):
             item = texture.TextObject(name,gamedata.text_manager)
             item.Position(offset+Point(0.05*gamedata.screen.x,
                                 (0.55-i*0.1)*gamedata.screen.y),

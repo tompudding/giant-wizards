@@ -98,6 +98,7 @@ class Tiles(object):
         self.atlas                = atlas
         self.tiles_name           = tiles_name
         self.dragging             = None
+        self.mouse_pos            = Point(0,0)
         self.map_size             = map_size
         self.width                = map_size[0]
         self.height               = map_size[1]
@@ -113,6 +114,8 @@ class Tiles(object):
         self.gameover             = False
         self.last_time            = 0
         self.pathcache            = {}
+        self.mouse_text           = texture.TextObject(' ',gamedata.text_manager,texture.TextTypes.MOUSE_RELATIVE)
+        self.mouse_text.Position(Point(10,10),0.5)
 
         self.control_box = ui.ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -353,18 +356,23 @@ class Tiles(object):
         #glDisableClientState(GL_VERTEX_ARRAY)
         #glDisableClientState(GL_COLOR_ARRAY)
         self.DrawUI()
+        #Draw the mouse text
+        glLoadIdentity()
+        glTranslate(self.mouse_pos.x,self.mouse_pos.y,10)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glVertexPointerf(gamedata.mouse_relative_buffer.vertex_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.mouse_relative_buffer.colour_data)
+        glTexCoordPointerf(gamedata.mouse_relative_buffer.tc_data)
+        glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.atlas.texture.texture)
+        glDrawElements(GL_QUADS,gamedata.mouse_relative_buffer.current_size,GL_UNSIGNED_INT,gamedata.mouse_relative_buffer.indices)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
 
     def DrawUI(self):
         glLoadIdentity()
-
-        #glDisable(GL_TEXTURE_2D)
-        #glEnableClientState(GL_VERTEX_ARRAY)
-        #glEnableClientState(GL_COLOR_ARRAY)
         glVertexPointerf(gamedata.ui_buffer.vertex_data)
         glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
         glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
-        glDisableClientState(GL_VERTEX_ARRAY)
-        glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
 
 
@@ -415,6 +423,7 @@ class Tiles(object):
                         self.selected_player = None
 
     def MouseMotion(self,pos,rel):
+        self.mouse_pos = pos
         if self.dragging:
             self.viewpos.Set(self.ValidViewpos(self.dragging - pos))
             self.dragging = self.viewpos.Get() + pos
@@ -432,6 +441,7 @@ class Tiles(object):
             self.selected_quad.Disable()
             self.selected = None
         else:
+            old_hovered = self.hovered_player
             if self.hovered_ui != None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
@@ -448,13 +458,15 @@ class Tiles(object):
                     self.selected.y = self.height
                 tile = self.GetTile(self.selected)
                 if tile:
-                    old_hovered = self.hovered_player
                     self.hovered_player = tile.GetActor()
-                    if old_hovered != self.hovered_player:
-                        if self.hovered_player in self.current_player.controlled:
-                            self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
-                        else:
-                            self.selected_quad.tc[0:4] = self.tex_coords['selected']
+
+            if old_hovered != self.hovered_player:
+                self.mouse_text.SetText(self.hovered_player.name if self.hovered_player else ' ')
+                
+                if self.hovered_player in self.current_player.controlled:
+                    self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+                else:
+                    self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
     def Update(self,t):
         self.last_time = t
@@ -485,9 +497,9 @@ class Tiles(object):
                             self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
                     self.current_action = action
 
-    def AddWizard(self,pos,type,playerType,name):
+    def AddWizard(self,pos,type,playerType,name,colour):
         self.InvalidateCache()
-        new_wizard = wizard.Player(pos,type,self,playerType,name)
+        new_wizard = wizard.Player(pos,type,self,playerType,name,colour)
         self.wizards.append(new_wizard)
 
     def KeyDown(self,key):
@@ -702,21 +714,26 @@ class Tiles(object):
                             target.parent = current
 
         
-names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
-        
+colours = [wizard.PlayerColours.PURPLE,
+           wizard.PlayerColours.RED   ,
+           wizard.PlayerColours.YELLOW,
+           wizard.PlayerColours.GREEN ]
 
 class GameWindow(object):
+    cheat = 'gavinsmellslikecabbages'
+    keys = {getattr(pygame,'K_%s' % c):c for c in 'abcdefghijklmnopqrstuvwxyz'}
     def __init__(self,player_states):
         map_size = (48,24)
+        self.cheatmatched = 0
         self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
                            'tiles.png'  ,
                            'tiles.data' ,
                            map_size     )
         #this will get passed in eventually, but for now configure statically
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = [Point(1,10)]
+        positions = []
         total_tried = 0
-        players = [(player_states[i],names[i],i) for i in xrange(len(names)) if player_states[i] != None]
+        players = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
         while len(positions) < len(players):
             good_position = False
             tries = 0
@@ -746,12 +763,13 @@ class GameWindow(object):
                 
             
         for i in xrange(len(players)):
-            player_type,name,type = players[i]
+            player_type,colour,type = players[i]
             if player_states[type] != None:
                 self.tiles.AddWizard(pos  = positions[i],
                                      type = type,
                                      playerType = player_type,
-                                     name = name)
+                                     name = ' '.join((wizard.PlayerColours.NAMES[colour],'wizard')).title(),
+                                     colour = colour)
         self.tiles.NextPlayer()
         
 
@@ -762,6 +780,18 @@ class GameWindow(object):
     def KeyDown(self,key):
         hovered_element = self.tiles
         hovered_element.KeyDown(key)
+        if key not in self.keys:
+            return
+        if self.keys[key] == self.cheat[self.cheatmatched]:
+            self.cheatmatched += 1
+        else:
+            self.cheatmatched = 0
+        #print self.keys[key],self.cheatmatched,len(self.cheat)
+        if self.cheatmatched == len(self.cheat):
+            self.cheatmatched = 0
+            for player in self.tiles.wizards:
+                if player.IsPlayer():
+                    player.player_character.AdjustActionPoints(100)
 
     def MouseMotion(self,pos,rel):
         hovered_element = self.tiles
