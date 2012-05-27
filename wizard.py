@@ -108,6 +108,31 @@ class SummonActionCreator(BasicActionCreator):
     def Valid(self,vector):
         return vector in self.valid_vectors
 
+class BlastActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(BlastActionCreator,self).__init__(wizard,action)
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            #check line of sight. Note this isn't very efficient as we're checking
+            #some blocks multiple times, but oh well
+            path = utils.Brensenham(self.actor.pos,target)
+            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
+            if any( tile == None or tile.name in ('tree','mountain') for tile in path_tiles):
+                continue
+            vectors.append(p)
+        return vectors
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
+
 class MoveActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
         self.last_ap        = -1
@@ -874,7 +899,7 @@ class SummonGoblinAction(SummonMonsterAction):
         yield SummonGoblinAction(vector,t,wizard,speed)
 
 class ActionChoiceList(ui.ButtonList):
-    ChoiceCreatorMap = {WizardBlastAction : BasicActionCreator,
+    ChoiceCreatorMap = {WizardBlastAction : BlastActionCreator,
                         MoveAction        : MoveActionCreator ,
                         SummonGoblinAction: SummonActionCreator}
     def __init__(self,wizard,pos,choices):
