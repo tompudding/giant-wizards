@@ -120,7 +120,7 @@ class BlastActionCreator(BasicActionCreator):
             #some blocks multiple times, but oh well
             path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') for tile in path_tiles):
+            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles):
                 continue
             vectors.append(p)
         return vectors
