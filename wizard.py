@@ -632,9 +632,12 @@ class Actor(object):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
         if self.health <= 0:
-            self.quad.Delete()
-            self.health_text.Delete()
-            self.tiles.RemoveActor(self)
+            self.Kill()
+
+    def Kill(self):
+        self.quad.Delete()
+        self.health_text.Delete()
+        self.tiles.RemoveActor(self)
 
 class Player(object):
     def __init__(self,pos,type,tiles,playerType,name):
@@ -717,7 +720,8 @@ class Player(object):
         del self.controlled[pos]
         if self.controlled_index > pos:
             self.controlled_index -= 1
-        self.controlled_index %= len(self.controlled)
+        if len(self.controlled) > 0:
+            self.controlled_index %= len(self.controlled)
 
     def Update(self,t):
         self.current_controlled.Update(t)
@@ -745,9 +749,12 @@ class Wizard(Actor):
         self.health -= value
         self.health_text.SetText('%d' % self.health)
         if self.health <= 0:
-            self.quad.Delete()
-            self.health_text.Delete()
-            self.tiles.RemoveWizard(self)
+            self.Kill()
+
+    def Kill(self):
+        self.quad.Delete()
+        self.health_text.Delete()
+        self.tiles.RemoveWizard(self)
 
 class Goblin(Actor):
     initial_action_points = 0

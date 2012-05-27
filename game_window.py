@@ -521,6 +521,11 @@ class Tiles(object):
 
     def RemoveWizard(self,wizard):
         self.RemoveActor(wizard)
+        toremove = [actor for actor in wizard.player.controlled if actor is not wizard]
+        for actor in toremove:
+            actor.Kill()
+            wizard.player.RemoveSummoned(actor)
+        
         pos = [w.player_character for w in self.wizards].index(wizard)
         del self.wizards[pos]
         if len(self.wizards) == 1:

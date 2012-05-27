@@ -2,6 +2,8 @@ done - refactoring action choices
 done - next and prev buttons for selecting
 done - split movement / mana
 done - Update AI to still be basic but move / shoot / summon
+     - kill all wizards monsters on death
+     - centre on the current moving guy?
      - make blasts line of sight blocked by trees / mountains
      - differentiate goblins? Maybe just show name on hover
      - make flash better(so not invisible)
