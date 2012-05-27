@@ -428,6 +428,7 @@ class Actor(object):
         self.pos                = pos
         self.player             = player
         self.type               = type
+        self.full               = None
         self.health             = 10
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
@@ -477,8 +478,8 @@ class Actor(object):
         self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos + Point(1,1)),0.5)
         if 'coast' in tile_type:
             tile_type = 'water'
-        full_type = '_'.join((self.colour_name,self.type,tile_type))
-        self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
+        self.full_type = '_'.join((self.colour_name,self.type,tile_type))
+        self.quad.tc[0:4] = self.tiles.tex_coords[self.full_type]
         tile_data.SetActor(self)
         self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
                                                           self.pos.y + 0.8)),
@@ -504,21 +505,24 @@ class Actor(object):
         self.tiles.RemoveUIElement(self.options_box)
         self.flash_state = False
         self.quad.Enable()
+        self.quad.SetColour((1,1,1,1))
 
     def Update(self,t):
         if not self.selected:
             self.quad.Enable()
+            self.quad.SetColour((1,1,1,1))
             self.flash_state = True
             return
         if (t%800) > 400:
             #want to be on
             if not self.flash_state:
-                self.quad.Enable()
+                #self.quad.Enable()
+                self.quad.SetColour((1,1,1,1))
                 self.flash_state = True
         else:
             #want to be off
             if self.flash_state:
-                self.quad.Disable()
+                self.quad.SetColour((1,1,1,0.3))
                 self.flash_state = False
         
 
@@ -818,7 +822,7 @@ class Goblin(Actor):
     def __init__(self,pos,type,tiles,playerType,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
         self.caster = caster
-        self.ignore_monsters = 0.75 if self.player_type  == PlayerTypes.TENTATIVE else 0.25
+        self.ignore_monsters = 0.75 if self.player_type == PlayerTypes.TENTATIVE else 0.25
         self.ignore_monsters = True if random.random() < self.ignore_monsters else False
         self.action_choices = ActionChoiceList(self,
                                                Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),

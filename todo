@@ -6,7 +6,7 @@ done - kill all wizards monsters on death
 done - centre on the current moving guy?
 done - make blasts line of sight blocked by trees / mountains
 done - differentiate goblins? Maybe just show name on hover
-     - make flash better(so not invisible)
+done - make flash better(so not invisible)
      - add meditate (Turn movement into mana)
      - try pixelmix font
      - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if
