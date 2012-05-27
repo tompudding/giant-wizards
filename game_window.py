@@ -53,6 +53,9 @@ class Viewpos(object):
         self.NoTarget()
 
     def SetTarget(self,point,t,rate=2):
+        #Don't fuck with the view if the player is trying to control it
+        if self.tiles.dragging:
+            return
         self.target = point
         self.target_change = utils.WrapDistance(self.target,self.pos,self.tiles.width*gamedata.tile_dimensions.x)
         self.start_point   = self.pos
