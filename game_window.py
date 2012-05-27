@@ -95,23 +95,24 @@ class TileHighlights(object):
 
 class Tiles(object):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
-        self.atlas = atlas
-        self.tiles_name = tiles_name
-        self.dragging = None
-        self.map_size = map_size
-        self.width = map_size[0]
-        self.height = map_size[1]
-        self.wizards = []
-        self.current_player = None
+        self.atlas                = atlas
+        self.tiles_name           = tiles_name
+        self.dragging             = None
+        self.map_size             = map_size
+        self.width                = map_size[0]
+        self.height               = map_size[1]
+        self.wizards              = []
+        self.current_player       = None
         self.current_player_index = 0
-        self.selected_player = None
-        self.uielements = {}
-        self.hovered_ui = None
-        self.current_action = None
-        self.player_action = None
-        self.gameover = False
-        self.last_time = 0
-        self.pathcache = {}
+        self.selected_player      = None
+        self.uielements           = {}
+        self.hovered_ui           = None
+        self.hovered_player       = None
+        self.current_action       = None
+        self.player_action        = None
+        self.gameover             = False
+        self.last_time            = 0
+        self.pathcache            = {}
 
         self.control_box = ui.ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -431,7 +432,6 @@ class Tiles(object):
             self.selected_quad.Disable()
             self.selected = None
         else:
-            
             if self.hovered_ui != None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
@@ -448,11 +448,13 @@ class Tiles(object):
                     self.selected.y = self.height
                 tile = self.GetTile(self.selected)
                 if tile:
+                    old_hovered = self.hovered_player
                     self.hovered_player = tile.GetActor()
-                    if self.hovered_player in self.current_player.controlled:
-                        self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
-                    else:
-                        self.selected_quad.tc[0:4] = self.tex_coords['selected']
+                    if old_hovered != self.hovered_player:
+                        if self.hovered_player in self.current_player.controlled:
+                            self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
+                        else:
+                            self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
     def Update(self,t):
         self.last_time = t
@@ -642,12 +644,7 @@ class Tiles(object):
                 
             Closed.add(current)
             for x in xrange(current.x-1,current.x+2):
-                #if x < 0 or x >= len(self.map):
-                #    continue
-                if x < 0:
-                    x += len(self.map)
-                elif x >= len(self.map):
-                    x -= len(self.map)
+                x %= len(self.map)
                 for y in xrange(current.y-1,current.y+2):
                     if y < 0 or y >= len(self.map[x]):
                         continue
@@ -717,7 +714,7 @@ class GameWindow(object):
                            map_size     )
         #this will get passed in eventually, but for now configure statically
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = []
+        positions = [Point(1,10)]
         total_tried = 0
         players = [(player_states[i],names[i],i) for i in xrange(len(names)) if player_states[i] != None]
         while len(positions) < len(players):

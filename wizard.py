@@ -122,7 +122,7 @@ class BlastActionCreator(BasicActionCreator):
                 continue
             #check line of sight. Note this isn't very efficient as we're checking
             #some blocks multiple times, but oh well
-            path = utils.Brensenham(self.actor.pos,target)
+            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
             if any( tile == None or tile.name in ('tree','mountain') for tile in path_tiles):
                 continue

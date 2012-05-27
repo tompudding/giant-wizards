@@ -20,6 +20,7 @@ class GameData(object):
     ui_buffer             = utils.QuadBuffer(131072)
     nonstatic_text_buffer = utils.QuadBuffer(131072)
     colour_tiles          = utils.QuadBuffer(131072)
+    mouse_relative_buffer = utils.QuadBuffer(1024)
     text_manager          = None
     main_menu             = None
     current_view          = None
