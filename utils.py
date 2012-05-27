@@ -3,6 +3,7 @@ import math,numpy
 
 gamedata = None
 
+grid_level = 0
 ui_level   = 2
 text_level = 10
 

@@ -77,12 +77,20 @@ class TextureAtlas(object):
         self.TransformCoords(subimage,full_tc)
         return full_tc
 
+class TextTypes:
+    SCREEN_RELATIVE = 1
+    GRID_RELATIVE   = 2
+    MOUSE_RELATIVE  = 3
+    LEVELS          = {SCREEN_RELATIVE : utils.text_level,
+                       GRID_RELATIVE   : utils.grid_level + 0.1,
+                       MOUSE_RELATIVE  : utils.text_level}                       
+
 class TextObject(object):
-    def __init__(self,text,textmanager,static = True):
+    def __init__(self,text,textmanager,textType = TextTypes.SCREEN_RELATIVE):
         self.text = text
-        self.quads = [textmanager.Letter(char,static) for char in self.text]
+        self.text_type = textType
+        self.quads = [textmanager.Letter(char,self.text_type) for char in self.text]
         self.textmanager = textmanager
-        self.static = static
         #that sets the texture coords for us
 
     def Position(self,pos,scale):
@@ -95,7 +103,7 @@ class TextObject(object):
             quad.SetVertices(pos+Point(cursor[0]*self.scale*global_scale,0),
                              pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
                                        quad.height*self.scale*global_scale),
-                             utils.text_level if self.static else 0.1)
+                             TextTypes.LEVELS[self.text_type])
             cursor[0] += quad.width
         height = max([q.height for q in self.quads])
         
@@ -109,7 +117,7 @@ class TextObject(object):
     def SetText(self,text):
         self.Delete()
         self.text = text
-        self.quads = [self.textmanager.Letter(char,self.static) for char in self.text]
+        self.quads = [self.textmanager.Letter(char,self.text_type) for char in self.text]
         self.Position(self.pos,self.scale)
 
     def Disable(self):
@@ -125,9 +133,13 @@ class TextManager(object):
     def __init__(self):
         self.atlas = TextureAtlas('droidsans.png','droidsans.txt')
         self.quads = utils.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
+        TextTypes.BUFFER = {TextTypes.SCREEN_RELATIVE : self.quads,
+                            TextTypes.GRID_RELATIVE   : gamedata.nonstatic_text_buffer,
+                            TextTypes.MOUSE_RELATIVE  : gamedata.mouse_relative_buffer}
 
-    def Letter(self,char,static):
-        quad = utils.Quad(self.quads if static else gamedata.nonstatic_text_buffer)    
+
+    def Letter(self,char,textType):
+        quad = utils.Quad(TextTypes.BUFFER[textType])    
         quad.tc[0:4]  = self.atlas.TextureCoords(char)
         #this is a bit dodge, should get its own class if I want to store extra things in it
         quad.width,quad.height = self.atlas.Subimage(char).size
