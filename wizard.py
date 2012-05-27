@@ -838,7 +838,7 @@ class Goblin(Actor):
                 for enemy in player.controlled:
                     if enemy.player is self.player:
                         continue
-                    if self.ignore_monsters and isinstance(enemy,Wizard):
+                    if self.ignore_monsters and not isinstance(enemy,Wizard):
                         continue
                     #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                     #distance = offset.length()

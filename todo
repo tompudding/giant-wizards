@@ -12,6 +12,7 @@ done - make blasts line of sight blocked by trees / mountains
      - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if
        it's a creature summoning
      - nav bar along the bottom for selecting creatures
+     - multi-turn commands?
      - MOAR spells /creatures
      - AI
      - help screen
