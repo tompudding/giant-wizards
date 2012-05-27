@@ -781,6 +781,8 @@ class Goblin(Actor):
     def __init__(self,pos,type,tiles,playerType,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
         self.caster = caster
+        self.ignore_monsters = 0.75 if self.player_type  == PlayerTypes.TENTATIVE else 0.25
+        self.ignore_monsters = True if random.random() < self.ignore_monsters else False
         self.action_choices = ActionChoiceList(self,
                                                Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                                (MoveAction,))
@@ -810,6 +812,8 @@ class Goblin(Actor):
             for player in self.tiles.wizards:
                 for enemy in player.controlled:
                     if enemy.player is self.player:
+                        continue
+                    if self.ignore_monsters and isinstance(enemy,Wizard):
                         continue
                     #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                     #distance = offset.length()
