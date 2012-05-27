@@ -57,8 +57,9 @@ class MoveAction(Action):
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
 class BasicActionCreator(object):
-    def __init__(self,wizard,action):
+    def __init__(self,actor,action):
         self.action = action
+        self.actor  = actor
 
     @property
     def name(self):
@@ -87,7 +88,25 @@ class BasicActionCreator(object):
     def Unselected(self):
         return
 
+class SummonActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(SummonActionCreator,self).__init__(wizard,action)
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            if not tile.Empty() or tile.Impassable():
+                continue
+            vectors.append(p)
+        return vectors
 
+    def Valid(self,vector):
+        return vector in self.valid_vectors
 
 class MoveActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
@@ -853,7 +872,7 @@ class SummonGoblinAction(SummonMonsterAction):
 class ActionChoiceList(ui.ButtonList):
     ChoiceCreatorMap = {WizardBlastAction : BasicActionCreator,
                         MoveAction        : MoveActionCreator ,
-                        SummonGoblinAction: BasicActionCreator}
+                        SummonGoblinAction: SummonActionCreator}
     def __init__(self,wizard,pos,choices):
         super(ActionChoiceList,self).__init__(pos)
         self.wizard = wizard

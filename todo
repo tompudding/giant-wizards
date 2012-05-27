@@ -2,7 +2,7 @@ done - refactoring action choices
 done - next and prev buttons for selecting
 done - split movement / mana
 done - Update AI to still be basic but move / shoot / summon
-     - kill all wizards monsters on death
+done - kill all wizards monsters on death
      - centre on the current moving guy?
      - make blasts line of sight blocked by trees / mountains
      - differentiate goblins? Maybe just show name on hover
@@ -15,3 +15,7 @@ done - Update AI to still be basic but move / shoot / summon
      - MOAR spells /creatures
      - AI
      - help screen
+
+BUGS
+----
+     - casting a goblin onto a mountain causes a crash
