@@ -91,6 +91,8 @@ class SummonActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
             tile = self.actor.tiles.GetTile(target)
@@ -111,6 +113,8 @@ class BlastActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
             tile = self.actor.tiles.GetTile(target)
@@ -120,7 +124,7 @@ class BlastActionCreator(BasicActionCreator):
             #some blocks multiple times, but oh well
             path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles):
+            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
                 continue
             vectors.append(p)
         return vectors
@@ -460,6 +464,10 @@ class Actor(object):
         self.selected    = False
         self.flash_state = True
         self.SetPos(pos)
+        #This is just for AI players, I need to split them into different classes really
+        self.blast_action_creator = BlastActionCreator(self,WizardBlastAction)
+        self.summon_goblin_creator = SummonActionCreator(self,SummonGoblinAction)
+        self.move_action_creator = MoveActionCreator(self,MoveAction)
         
     def SetPos(self,pos):
         #FIXME : sort this shit out so that it doesn't use strings
@@ -469,7 +477,6 @@ class Actor(object):
         self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos + Point(1,1)),0.5)
         if 'coast' in tile_type:
             tile_type = 'water'
-        print (self.colour_name,self.type,tile_type)
         full_type = '_'.join((self.colour_name,self.type,tile_type))
         self.quad.tc[0:4] = self.tiles.tex_coords[full_type]
         tile_data.SetActor(self)
@@ -578,46 +585,38 @@ class Actor(object):
                     opposite_point.x %= self.tiles.width
                     path = self.tiles.PathTo(self.pos,opposite_point)
                     if path:
-                        target = self.pos + path.steps[0]
-                        target_tile = self.tiles.GetTile(target)
-                        if target_tile.movement_cost <= self.move_points:
-                            self.action_list.append( MoveAction(path.steps[0],t,self) )
+                        if self.move_action_creator.Valid(path.steps[0]):
+                            self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
                 #We've had a chance, at moving, but maybe we decided not to?
                 if len(self.action_list) == 0:
                     offset = enemy.pos-self.pos
-                    if self.action_points > WizardBlastAction.cost and offset in WizardBlastAction.valid_vectors:
-                        self.action_list.append( WizardBlastAction(offset,t,self) )
+                    if self.blast_action_creator.Valid(offset):
+                        self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
                     elif self.action_points - SummonGoblinAction.cost >= 6:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in SummonGoblinAction.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
-                            target = point + self.pos
-                            target_tile = self.tiles.GetTile(target)
-                            if target_tile and target_tile.Empty() and not target_tile.Impassable():
-                                self.action_list.append( SummonGoblinAction(point,t,self) )
+                            if self.summon_goblin_creator.Valid(point):
+                                self.action_list.extend( self.summon_goblin_creator.Create(point,t,self) )
                                 break
                         else:
                             #coun't find a place to put it. pants
                             pass
             elif self.player_type == PlayerTypes.GUNGHO:
-                if self.move_points > 0:
-                    target = self.pos + path.steps[0]
-                    target_tile = self.tiles.GetTile(target)
-                    if target_tile.movement_cost <= self.move_points:
-                        self.action_list.append( MoveAction(path.steps[0],t,self) )
+                if self.move_points > 0 and path:
+                    if self.move_action_creator.Valid(path.steps[0]):
+                            self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
                 #We've had a chance, at moving, but maybe we decided not to?
                 if len(self.action_list) == 0:
                     offset = enemy.pos-self.pos
-                    if self.action_points > WizardBlastAction.cost and offset in WizardBlastAction.valid_vectors:
-                        self.action_list.append( WizardBlastAction(offset,t,self) )
+                    if self.blast_action_creator.Valid(offset):
+                        self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
                     elif self.action_points - SummonGoblinAction.cost >= 2:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in SummonGoblinAction.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
-                            target = point + self.pos
-                            target_tile = self.tiles.GetTile(target)
-                            if target_tile.Empty() and not target_tile.Impassable():
-                                self.action_list.append( SummonGoblinAction(point,t,self) )
+                            if self.summon_goblin_creator.Valid(point):
+                                self.action_list.extend( self.summon_goblin_creator.Create(point,t,self) )
                                 break
                         else:
                             #coun't find a place to put it. pants
