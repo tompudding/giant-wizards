@@ -470,10 +470,17 @@ class Tiles(object):
         else:
             #Don't allow the AI to take a move until the screen has finished centering on them
             if not self.viewpos.HasTarget():
+                current_controlled = self.current_player.current_controlled
                 action = self.current_player.TakeAction(t)
                 if action == False:
                     self.NextPlayer()
                 if action != None:
+                    if self.current_player.current_controlled not in (current_controlled,None):
+                        #One of the AI's minions finished it's turn and we're onto the next one...
+                        target = WorldCoords(self.current_player.current_controlled.pos)-(gamedata.screen/2)
+                        diff = utils.WrapDistance(target,self.viewpos.Get(),self.width)
+                        if diff.length() > 200:
+                            self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
                     self.current_action = action
 
     def AddWizard(self,pos,type,playerType,name):
