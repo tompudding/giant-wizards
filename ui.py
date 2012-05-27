@@ -78,10 +78,12 @@ class TextButtonUI(UIElement):
     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
         self.text = texture.TextObject(text,gamedata.text_manager)
         self.text.Position(pos,size)
-        self.pos = pos
+        self.size = self.text.top_right - pos
+        self.boxextra = 0.2
+        self.pos = pos - (Point(self.size.y,self.size.y)*self.boxextra)
         self.textsize = size
         self.callback = callback
-        super(TextButtonUI,self).__init__(pos,self.text.top_right)
+        super(TextButtonUI,self).__init__(pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         self.line_width = line_width
         self.SetVertices()
@@ -119,9 +121,10 @@ class TextButtonUI(UIElement):
         self.text.Delete()
         
     def SetPos(self,pos):
-        self.pos = pos
-        self.text.Position(self.pos,self.textsize)
-        self.SetBounds(self.pos,self.text.top_right)
+        self.text.Position(pos,self.textsize)
+        self.size = self.text.top_right - pos
+        self.pos = pos - (Point(self.size.y,self.size.y)*self.boxextra)
+        self.SetBounds(self.pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
         self.SetVertices()
 
     def SetText(self,newtext):
@@ -198,7 +201,7 @@ class ButtonList(object):
     def __init__(self,pos,l = []):
         self.buttons  = []
         self.top_left = pos
-        self.itemheight = 0.025*gamedata.screen.y
+        self.itemheight = 0.04*gamedata.screen.y
         for item in l:
             self.AddButton(l)
 

@@ -58,6 +58,7 @@ class TextureAtlas(object):
                 h = int(h)
                 if subimage_name.startswith('font_'):
                     subimage_name = chr(int(subimage_name[5:7],16))
+                    h -= 4
                 self.subimages[subimage_name] = SubImage(Point(float(x)/self.texture.width,float(y)/self.texture.height),(Point(w,h)))
 
     def Subimage(self,name):
@@ -131,7 +132,8 @@ class TextObject(object):
 
 class TextManager(object):
     def __init__(self):
-        self.atlas = TextureAtlas('droidsans.png','droidsans.txt')
+        #self.atlas = TextureAtlas('droidsans.png','droidsans.txt')
+        self.atlas = TextureAtlas('pixelmix.png','pixelmix.txt')
         self.quads = utils.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
         TextTypes.BUFFER = {TextTypes.SCREEN_RELATIVE : self.quads,
                             TextTypes.GRID_RELATIVE   : gamedata.nonstatic_text_buffer,

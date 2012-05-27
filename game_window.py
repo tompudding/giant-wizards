@@ -120,10 +120,10 @@ class Tiles(object):
         self.control_box = ui.ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
                                          (0,0,0,0.6))
-        self.control_box.AddButton('End Turn',Point(0.3,0.15),self.EndTurn)
-        self.control_box.AddButton('>',Point(0.7,0.15),self.NextControlled,size=1.5)
-        self.control_box.AddButton('<',Point(0.1,0.15),self.PrevControlled,size=1.5)
-        self.control_box.AddButton(' Centre',Point(0.3,0.6),self.CentreSelected)
+        self.control_box.AddButton('End Turn',Point(0.3,0.2),self.EndTurn,size=0.4)
+        self.control_box.AddButton('>',Point(0.8,0.2),self.NextControlled,size=1.5)
+        self.control_box.AddButton('<',Point(0.1,0.2),self.PrevControlled,size=1.5)
+        self.control_box.AddButton('Centre',Point(0.3,0.65),self.CentreSelected,size=0.4)
 
         self.control_box.Register(self,1)
         self.control_box.MakeSelectable()

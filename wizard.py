@@ -443,7 +443,7 @@ class Actor(object):
         self.action_points_text = texture.TextObject('Mana : %d' % self.action_points,gamedata.text_manager)
         self.action_points_text.Position(Point(gamedata.screen.x*0.85,gamedata.screen.y*0.87),0.33)
         self.action_header      = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
-        self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.846),0.33)
+        self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.83),0.33)
         
         
         
@@ -797,7 +797,7 @@ class Wizard(Actor):
         self.controlled_index = 0
         self.player           = player
         self.action_choices   = ActionChoiceList(self,
-                                               Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+                                               Point(gamedata.screen.x*0.7,gamedata.screen.y*0.79),
                                                ( MoveAction       ,
                                                  WizardBlastAction,
                                                  SummonGoblinAction ))
