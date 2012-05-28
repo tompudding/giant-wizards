@@ -573,6 +573,7 @@ class Tiles(object):
         self.RegisterUIElement(self.return_button,0)
         self.InvalidateCache()
         self.selected_quad.Delete()
+        self.mouse_text.Delete()
 
     def Quit(self,pos):
         for element in self.uielements:
