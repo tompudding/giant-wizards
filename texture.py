@@ -94,7 +94,7 @@ class TextObject(object):
         self.textmanager = textmanager
         #that sets the texture coords for us
 
-    def Position(self,pos,scale):
+    def Position(self,pos,scale,colour = None):
         #set up the position for the characters
         self.pos = pos
         self.scale = scale
@@ -105,6 +105,8 @@ class TextObject(object):
                              pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
                                        quad.height*self.scale*global_scale),
                              TextTypes.LEVELS[self.text_type])
+            if colour:
+                quad.SetColour(colour)
             cursor[0] += quad.width
         height = max([q.height for q in self.quads])
         
@@ -115,11 +117,11 @@ class TextObject(object):
         for quad in self.quads:
             quad.Delete()
 
-    def SetText(self,text):
+    def SetText(self,text,colour = None):
         self.Delete()
         self.text = text
         self.quads = [self.textmanager.Letter(char,self.text_type) for char in self.text]
-        self.Position(self.pos,self.scale)
+        self.Position(self.pos,self.scale,colour)
 
     def Disable(self):
         for q in self.quads:

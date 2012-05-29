@@ -115,7 +115,8 @@ class Tiles(object):
         self.last_time            = 0
         self.pathcache            = {}
         self.mouse_text           = texture.TextObject(' ',gamedata.text_manager,texture.TextTypes.MOUSE_RELATIVE)
-        self.mouse_text.Position(Point(10,10),0.5)
+        self.mouse_text.Position(Point(10,10),0.5,(1,0,0,1))
+        self.mouse_text_colour    = (1,1,1,1)
 
         self.control_box = ui.ControlBox(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.05),
                                          Point(gamedata.screen.x*0.95,gamedata.screen.y*0.27),
@@ -461,7 +462,7 @@ class Tiles(object):
                     self.hovered_player = tile.GetActor()
 
             if old_hovered != self.hovered_player:
-                self.mouse_text.SetText(self.hovered_player.name if self.hovered_player else ' ')
+                self.mouse_text.SetText(self.hovered_player.name if self.hovered_player else ' ',self.mouse_text_colour)
                 
                 if self.hovered_player in self.current_player.controlled:
                     self.selected_quad.tc[0:4] = self.tex_coords['selected_hover']
