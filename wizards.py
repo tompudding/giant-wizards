@@ -4,28 +4,31 @@ import utils
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
-import game_window,wizard,texture,main_menu,ui
+
 #some sort of hack to get py2exe to work
 try:
     from OpenGL.platform import win32
 except AttributeError:
     pass
 
+import gamedata
 #random.seed(7)
 pygame.init()
 
-class GameData(object):
-    screen                = None
-    quad_buffer           = utils.QuadBuffer(131072)
-    ui_buffer             = utils.QuadBuffer(131072)
-    nonstatic_text_buffer = utils.QuadBuffer(131072)
-    colour_tiles          = utils.QuadBuffer(131072)
-    mouse_relative_buffer = utils.QuadBuffer(1024)
-    text_manager          = None
-    main_menu             = None
-    current_view          = None
-    player_config         = ['Human','CPU','CPU','CPU']
-    time                  = 0 
+#Initialise the gamedata globals
+gamedata.screen                = None
+gamedata.quad_buffer           = utils.QuadBuffer(131072)
+gamedata.ui_buffer             = utils.QuadBuffer(131072)
+gamedata.nonstatic_text_buffer = utils.QuadBuffer(131072)
+gamedata.colour_tiles          = utils.QuadBuffer(131072)
+gamedata.mouse_relative_buffer = utils.QuadBuffer(1024)
+gamedata.text_manager          = None
+gamedata.main_menu             = None
+gamedata.current_view          = None
+gamedata.player_config         = ['Human','CPU','CPU','CPU']
+gamedata.time                  = 0 
+
+import texture,main_menu
 
 def Init(gamedata):
     w,h = (1280,720)
@@ -50,11 +53,6 @@ def Init(gamedata):
     glShadeModel(GL_SMOOTH)
 
 def main():
-    #first make a gamedata struct and set it up in the other modules so they can access it
-    #not at all sure that this is best practice.
-    gamedata = GameData()
-    for module in utils,game_window,wizard,texture,main_menu,ui:
-        setattr(module,'gamedata',gamedata)
     
     Init(gamedata)
     gamedata.text_manager = texture.TextManager()

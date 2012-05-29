@@ -1,9 +1,7 @@
-import pygame,string
-from pygame.locals import *
 from OpenGL.GL.framebufferobjects import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import utils,numpy
+import utils,gamedata
 from utils import Point
 import texture
 

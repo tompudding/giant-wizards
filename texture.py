@@ -3,10 +3,9 @@ from pygame.locals import *
 from OpenGL.GL.framebufferobjects import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import utils
+import utils,gamedata
 from utils import Point
 
-gamedata = None
 cache = {}
 global_scale = 0.5
 

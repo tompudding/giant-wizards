@@ -2,9 +2,7 @@ import utils
 from utils import Point,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard,pygame,main_menu,ui
-
-gamedata = None
+import texture,numpy,random,perlin,pygame,main_menu,ui,gamedata,players
 
 class TileData(object):
     IMPASSABLE = 1000
@@ -502,7 +500,7 @@ class Tiles(object):
 
     def AddWizard(self,pos,type,playerType,name,colour):
         self.InvalidateCache()
-        new_wizard = wizard.Player(pos,type,self,playerType,name,colour)
+        new_wizard = players.Player(pos,type,self,playerType,name,colour)
         self.wizards.append(new_wizard)
 
     def KeyDown(self,key):
@@ -718,10 +716,10 @@ class Tiles(object):
                             target.parent = current
 
         
-colours = [wizard.PlayerColours.PURPLE,
-           wizard.PlayerColours.RED   ,
-           wizard.PlayerColours.YELLOW,
-           wizard.PlayerColours.GREEN ]
+colours = [players.PlayerColours.PURPLE,
+           players.PlayerColours.RED   ,
+           players.PlayerColours.YELLOW,
+           players.PlayerColours.GREEN ]
 
 class GameWindow(object):
     cheat = 'gavinsmellslikecabbages'
@@ -737,8 +735,8 @@ class GameWindow(object):
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
         positions = []
         total_tried = 0
-        players = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
-        while len(positions) < len(players):
+        player_list = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
+        while len(positions) < len(player_list):
             good_position = False
             tries = 0
             total_tried += 1
@@ -766,13 +764,13 @@ class GameWindow(object):
                 break
                 
             
-        for i in xrange(len(players)):
-            player_type,colour,type = players[i]
+        for i in xrange(len(player_list)):
+            player_type,colour,type = player_list[i]
             if player_states[type] != None:
                 self.tiles.AddWizard(pos  = positions[i],
                                      type = type,
                                      playerType = player_type,
-                                     name = ' '.join((wizard.PlayerColours.NAMES[colour],'wizard')).title(),
+                                     name = ' '.join((players.PlayerColours.NAMES[colour],'wizard')).title(),
                                      colour = colour)
         self.tiles.NextPlayer()
         

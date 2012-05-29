@@ -1,7 +1,5 @@
 from OpenGL.GL import *
-import math,numpy
-
-gamedata = None
+import math,numpy,gamedata
 
 grid_level = 0
 ui_level   = 2

@@ -2,9 +2,8 @@ import utils
 from utils import Point
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,game_window,ui,wizard,random
+import texture,game_window,ui,random,gamedata,players
 
-gamedata = None
 #This is a terrible hack
 names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
 
@@ -148,10 +147,10 @@ class MainMenu(object):
         num_cpu   = 0
         for state in gamedata.player_config:
             if state == 'Human':
-                states.append(wizard.PlayerTypes.HUMAN)
+                states.append(players.PlayerTypes.HUMAN)
                 num_human += 1
             elif state == 'CPU':
-                states.append(random.choice((wizard.PlayerTypes.TENTATIVE,wizard.PlayerTypes.GUNGHO)))
+                states.append(random.choice((players.PlayerTypes.TENTATIVE,players.PlayerTypes.GUNGHO)))
                 num_cpu += 1
             else:
                 states.append(None)
