@@ -9,6 +9,10 @@ class Action(object):
     def Unselected():
         pass
 
+    @staticmethod
+    def Update(t):
+        pass
+
 class MoveAction(Action):
     name = 'Move'
     cost = 1
@@ -84,6 +88,9 @@ class BasicActionCreator(object):
     def Unselected(self):
         return
 
+    def Update(self,t):
+        pass
+
 class SummonActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
         super(SummonActionCreator,self).__init__(wizard,action)
@@ -109,6 +116,7 @@ class SummonActionCreator(BasicActionCreator):
 class BlastActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
         super(BlastActionCreator,self).__init__(wizard,action)
+        self.cycle = 0
         
     @property
     def valid_vectors(self):
@@ -131,6 +139,16 @@ class BlastActionCreator(BasicActionCreator):
 
     def Valid(self,vector):
         return vector in self.valid_vectors
+
+    def ColourFunction(self,pos):
+        part = (pos.length()/WizardBlastAction.range)*math.pi
+        return (math.sin(-part*self.cycle),math.sin(part-math.pi*self.cycle),math.sin(part-math.pi*(self.cycle+0.3)),0.3)
+
+    def Update(self,t):
+        return
+        #cycle = (float(t)/800)
+        #if abs(cycle - self.cycle) > 0.2:
+        #    self.cycle = cycle
 
 
 class MoveActionCreator(BasicActionCreator):
@@ -306,6 +324,7 @@ class ActionChoice(object):
         self.wizard         = wizard
         self.quads          = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
         self.selected       = False
+        self.vectors_cache  = []
         self.UpdateQuads()
 
     def UpdateQuads(self):
@@ -316,7 +335,8 @@ class ActionChoice(object):
             for quad in self.quads[:diff]:
                 quad.Delete()
             self.quads = self.quads[diff:]
-        for quad,p in zip(self.quads,self.action.valid_vectors):
+        self.vectors_cache = [v for v in self.action.valid_vectors]
+        for quad,p in zip(self.quads,self.vectors_cache):
             pos = self.wizard.pos + p
             quad.SetVertices(utils.WorldCoords(pos).to_int(),
                              utils.WorldCoords(pos+Point(1,1)).to_int(),
@@ -339,6 +359,11 @@ class ActionChoice(object):
         self.selected = True
         for q in self.quads:
             q.Enable()
+
+    def Update(self,t):
+        self.action.Update(t)
+        for quad,p in zip(self.quads,self.vectors_cache):
+            quad.SetColour(self.action.ColourFunction(p))
 
     def Unselected(self):
         self.text.Unselected()
@@ -786,7 +811,6 @@ class Player(object):
 
     def Update(self,t):
         self.current_controlled.Update(t)
-
 
 class Wizard(Actor):
     initial_action_points = 2
