@@ -721,9 +721,29 @@ colours = [players.PlayerColours.PURPLE,
            players.PlayerColours.YELLOW,
            players.PlayerColours.GREEN ]
 
-class GameWindow(object):
-    cheat = 'gavinsmellslikecabbages'
+class Cheat(object):
     keys = {getattr(pygame,'K_%s' % c):c for c in 'abcdefghijklmnopqrstuvwxyz'}
+    def __init__(self,word,tiles,action):
+        self.word    = word
+        self.matched = 0
+        self.action  = action
+        self.tiles   = tiles
+
+    def KeyDown(self,key):
+        if key not in self.keys:
+            return
+        if self.keys[key] == self.word[self.matched]:
+            self.matched += 1
+        else:
+            self.matched = 0
+        #print self.keys[key],self.matched,len(self.cheat)
+        if self.matched == len(self.word):
+            self.matched = 0
+            for player in self.tiles.wizards:
+                if player.IsPlayer():
+                    self.action(player.player_character)
+
+class GameWindow(object):
     def __init__(self,player_states):
         map_size = (48,24)
         self.cheatmatched = 0
@@ -773,6 +793,9 @@ class GameWindow(object):
                                      name = ' '.join((players.PlayerColours.NAMES[colour],'wizard')).title(),
                                      colour = colour)
         self.tiles.NextPlayer()
+        self.cheats = (Cheat('gavinsmellslikecabbages',self.tiles,lambda x:x.AdjustActionPoints(100)),
+                       Cheat('sp',self.tiles,lambda x:x.AdjustMovePoints(2)))
+
         
 
     def Update(self,t):
@@ -782,18 +805,8 @@ class GameWindow(object):
     def KeyDown(self,key):
         hovered_element = self.tiles
         hovered_element.KeyDown(key)
-        if key not in self.keys:
-            return
-        if self.keys[key] == self.cheat[self.cheatmatched]:
-            self.cheatmatched += 1
-        else:
-            self.cheatmatched = 0
-        #print self.keys[key],self.cheatmatched,len(self.cheat)
-        if self.cheatmatched == len(self.cheat):
-            self.cheatmatched = 0
-            for player in self.tiles.wizards:
-                if player.IsPlayer():
-                    player.player_character.AdjustActionPoints(100)
+        for cheat in self.cheats:
+            cheat.KeyDown(key)
 
     def MouseMotion(self,pos,rel):
         hovered_element = self.tiles
