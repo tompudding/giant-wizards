@@ -11,9 +11,10 @@ class Wizard(actor.Actor):
         self.player           = player
         self.action_choices   = action.ActionChoiceList(self,
                                                         Point(gamedata.screen.x*0.7,gamedata.screen.y*0.79),
-                                                        ( action.MoveActionCreator   (self,action.MoveAction       ),
-                                                          action.BlastActionCreator  (self,action.WizardBlastAction),
-                                                          action.SummonActionCreator(self,SummonGoblinAction)     ))
+                                                        ( action.MoveActionCreator    (self,action.MoveAction       ),
+                                                          action.BlastActionCreator   (self,action.WizardBlastAction),
+                                                          action.SummonActionCreator  (self,SummonGoblinAction      ),
+                                                          action.TeleportActionCreator(self,action.TeleportAction   )))
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
         self.action_choices.Disable(self.tiles)

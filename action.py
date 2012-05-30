@@ -28,11 +28,12 @@ class MoveAction(Action):
             self.start_pos   = self.actor.pos
             self.end_pos     = self.start_pos + self.vector
             self.initialised = True
-            target_tile      = self.actor.tiles.GetTile(self.end_pos)
-            self.attacking   = not target_tile.Empty() 
-            self.will_move   = self.actor.move_points >= target_tile.movement_cost
+            self.target_tile = self.actor.tiles.GetTile(self.end_pos)
+            self.attacking   = not self.target_tile.Empty() 
+            self.will_move   = self.actor.move_points >= self.target_tile.movement_cost
         
         if t > self.end_time:
+            self.actor.AdjustMovePoints(-self.target_tile.movement_cost)
             self.actor.MoveRelative(self.vector)
             return True
         elif self.will_move:
@@ -50,6 +51,41 @@ class MoveAction(Action):
                                                                      pos.y + 0.8)),
                                              0.3)
         return False
+
+class TeleportAction(Action):
+    name = 'Teleport'
+    cost = 5
+    range         = 15
+    valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
+                                   for y in xrange(-15,16) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 15)
+        
+    def Update(self,t):
+        if not self.initialised:
+            self.start_time  = t
+            self.end_time    = t + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.actor.pos
+            self.end_pos     = self.start_pos + self.vector
+            self.initialised = True
+            target_tile      = self.actor.tiles.GetTile(self.end_pos)
+        
+        if t > self.end_time:
+            self.actor.AdjustActionPoints(-self.cost)
+            self.actor.MoveRelative(self.vector)
+            return True
+        
+        part = float(t-self.start_time)/self.duration
+        pos = self.start_pos + self.vector*part
+
+        self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                                    utils.WorldCoords(pos+Point(1,1)).to_int(),
+                                    0.5)
+        self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
+                                                                pos.y + 0.8)),
+                                        0.3)
+        return False
+
 
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
@@ -140,6 +176,43 @@ class BlastActionCreator(BasicActionCreator):
     def ColourFunction(self,pos):
         part = (pos.length()/WizardBlastAction.range)*math.pi
         return (math.sin(-part*self.cycle),math.sin(part-math.pi*self.cycle),math.sin(part-math.pi*(self.cycle+0.3)),0.3)
+
+    def Update(self,t):
+        return
+        #cycle = (float(t)/800)
+        #if abs(cycle - self.cycle) > 0.2:
+        #    self.cycle = cycle
+
+class TeleportActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(TeleportActionCreator,self).__init__(wizard,action)
+        self.cycle = 0
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            #check line of sight. Note this isn't very efficient as we're checking
+            #some blocks multiple times, but oh well
+            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
+            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
+            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
+                continue
+            vectors.append(p)
+        return vectors
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
+    def ColourFunction(self,pos):
+        part = (pos.length()/TeleportAction.range)*math.pi*0.5
+        return (math.sin(part),0,math.cos(part),0.3)
 
     def Update(self,t):
         return
