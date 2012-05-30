@@ -18,7 +18,7 @@ class Actor(object):
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
         self.move_points        = 0
-        self.options_box        = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.3),
+        self.options_box        = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.5),
                                     Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                     (0,0,0,0.6))
         self.title              = texture.TextObject(name+':',gamedata.text_manager)
@@ -133,13 +133,12 @@ class Actor(object):
         
         target_tile = self.tiles.GetTile(target)
         if self.move_points >= target_tile.movement_cost:
-
             if not target_tile.Empty():
                 #maybe we're attacking a fella?
                 target_wizard = target_tile.GetActor()
                 if target_wizard != None:
                     target_wizard.Damage(2)
-                    self.AdjustMovePoints(-1)
+                    self.AdjustMovePoints(-target_tile.movement_cost)
                 #need to update the pos anyway to cause various update mechanisms to get triggered
                 self.SetPos(self.pos)
             else:
