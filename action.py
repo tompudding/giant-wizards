@@ -16,76 +16,6 @@ class Action(object):
     def Update(t):
         pass
 
-class MoveAction(Action):
-    name = 'Move'
-    cost = 1
-        
-    def Update(self,t):
-        if not self.initialised:
-            self.start_time  = t
-            self.end_time    = t + (self.vector.length()*1000/self.speed)
-            self.duration    = self.end_time - self.start_time
-            self.start_pos   = self.actor.pos
-            self.end_pos     = self.start_pos + self.vector
-            self.initialised = True
-            self.target_tile = self.actor.tiles.GetTile(self.end_pos)
-            self.attacking   = not self.target_tile.Empty() 
-            self.will_move   = self.actor.move_points >= self.target_tile.movement_cost
-        
-        if t > self.end_time:
-            self.actor.AdjustMovePoints(-self.target_tile.movement_cost)
-            self.actor.MoveRelative(self.vector)
-            return True
-        elif self.will_move:
-            part = float(t-self.start_time)/self.duration
-            if not self.attacking:
-                pos = self.start_pos + self.vector*part
-            else:
-                #go halfway then come back
-                pos = self.start_pos + self.vector*(part if part < 0.5 else (1-part))
-                
-            self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
-                                         utils.WorldCoords(pos+Point(1,1)).to_int(),
-                                         0.5)
-            self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
-                                                                     pos.y + 0.8)),
-                                             0.3)
-        return False
-
-class TeleportAction(Action):
-    name = 'Teleport'
-    cost = 5
-    range         = 15
-    valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
-                                   for y in xrange(-15,16) \
-                            if Point(x,y).length() != 0 and Point(x,y).length() < 15)
-        
-    def Update(self,t):
-        if not self.initialised:
-            self.start_time  = t
-            self.end_time    = t + (self.vector.length()*1000/self.speed)
-            self.duration    = self.end_time - self.start_time
-            self.start_pos   = self.actor.pos
-            self.end_pos     = self.start_pos + self.vector
-            self.initialised = True
-            target_tile      = self.actor.tiles.GetTile(self.end_pos)
-        
-        if t > self.end_time:
-            self.actor.AdjustActionPoints(-self.cost)
-            self.actor.MoveRelative(self.vector)
-            return True
-        
-        part = float(t-self.start_time)/self.duration
-        pos = self.start_pos + self.vector*part
-
-        self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
-                                    utils.WorldCoords(pos+Point(1,1)).to_int(),
-                                    0.5)
-        self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
-                                                                pos.y + 0.8)),
-                                        0.3)
-        return False
-
 
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
@@ -124,101 +54,42 @@ class BasicActionCreator(object):
     def Update(self,t):
         pass
 
-class SummonActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
-        super(SummonActionCreator,self).__init__(wizard,action)
+
+class MoveAction(Action):
+    name = 'Move'
+    cost = 1
         
-    @property
-    def valid_vectors(self):
-        vectors = []
-        if self.action.cost > self.actor.action_points:
-            return vectors
-        for p in self.action.valid_vectors:
-            target = self.actor.pos + p
-            tile = self.actor.tiles.GetTile(target)
-            if not tile:
-                continue
-            if not tile.Empty() or tile.Impassable():
-                continue
-            vectors.append(p)
-        return vectors
-
-    def Valid(self,vector):
-        return vector in self.valid_vectors
-
-class BlastActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
-        super(BlastActionCreator,self).__init__(wizard,action)
-        self.cycle = 0
-        
-    @property
-    def valid_vectors(self):
-        vectors = []
-        if self.action.cost > self.actor.action_points:
-            return vectors
-        for p in self.action.valid_vectors:
-            target = self.actor.pos + p
-            tile = self.actor.tiles.GetTile(target)
-            if not tile:
-                continue
-            #check line of sight. Note this isn't very efficient as we're checking
-            #some blocks multiple times, but oh well
-            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
-            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
-                continue
-            vectors.append(p)
-        return vectors
-
-    def Valid(self,vector):
-        return vector in self.valid_vectors
-
-    def ColourFunction(self,pos):
-        part = (pos.length()/WizardBlastAction.range)*math.pi
-        return (math.sin(-part*self.cycle),math.sin(part-math.pi*self.cycle),math.sin(part-math.pi*(self.cycle+0.3)),0.3)
-
     def Update(self,t):
-        return
-        #cycle = (float(t)/800)
-        #if abs(cycle - self.cycle) > 0.2:
-        #    self.cycle = cycle
-
-class TeleportActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
-        super(TeleportActionCreator,self).__init__(wizard,action)
-        self.cycle = 0
+        if not self.initialised:
+            self.start_time  = t
+            self.end_time    = t + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.actor.pos
+            self.end_pos     = self.start_pos + self.vector
+            self.initialised = True
+            self.target_tile = self.actor.tiles.GetTile(self.end_pos)
+            self.attacking   = not self.target_tile.Empty() 
+            self.will_move   = self.actor.move_points >= self.target_tile.movement_cost
         
-    @property
-    def valid_vectors(self):
-        vectors = []
-        if self.action.cost > self.actor.action_points:
-            return vectors
-        for p in self.action.valid_vectors:
-            target = self.actor.pos + p
-            tile = self.actor.tiles.GetTile(target)
-            if not tile:
-                continue
-            #check line of sight. Note this isn't very efficient as we're checking
-            #some blocks multiple times, but oh well
-            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
-            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
-                continue
-            vectors.append(p)
-        return vectors
-
-    def Valid(self,vector):
-        return vector in self.valid_vectors
-
-    def ColourFunction(self,pos):
-        part = (pos.length()/TeleportAction.range)*math.pi*0.5
-        return (math.sin(part),0,math.cos(part),0.3)
-
-    def Update(self,t):
-        return
-        #cycle = (float(t)/800)
-        #if abs(cycle - self.cycle) > 0.2:
-        #    self.cycle = cycle
+        if t > self.end_time:
+            self.actor.AdjustMovePoints(-self.target_tile.movement_cost)
+            self.actor.MoveRelative(self.vector)
+            return True
+        elif self.will_move:
+            part = float(t-self.start_time)/self.duration
+            if not self.attacking:
+                pos = self.start_pos + self.vector*part
+            else:
+                #go halfway then come back
+                pos = self.start_pos + self.vector*(part if part < 0.5 else (1-part))
+                
+            self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                                         utils.WorldCoords(pos+Point(1,1)).to_int(),
+                                         0.5)
+            self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
+                                                                     pos.y + 0.8)),
+                                             0.3)
+        return False
 
 
 class MoveActionCreator(BasicActionCreator):
@@ -292,6 +163,129 @@ class MoveActionCreator(BasicActionCreator):
             self.shown_path.Delete()
             self.shown_path = None
 
+class TeleportAction(Action):
+    name = 'Teleport'
+    cost = 5
+    range         = 15
+    valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
+                            for y in xrange(-15,16) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 15)
+    close_vectors  = set(v for v in valid_vectors if v.length() < 5)
+    medium_vectors = set(v for v in valid_vectors if v.length() >=5 and v.length() < 10)
+    far_vectors    = set(v for v in valid_vectors if v.length() >= 10)
+
+    def __init__(self,vector,t,actor,speed):
+        self.initialised = False
+        self.speed       = speed
+        self.actor       = actor
+        if vector in self.close_vectors:
+            disturbance_range = 1
+            #weight the choice towards the chosen target
+            possible_targets = [vector]*20
+        elif vector in self.medium_vectors:
+            disturbance_range = 4
+            #weight it less
+            possible_targets = [vector]*4
+        elif vector in self.far_vectors:
+            disturbance_range = 20
+            #weight it much less
+            possible_targets = [vector]
+        #make a list of the possible targets within the disturbance range
+        for x in xrange(-disturbance_range,disturbance_range+1):
+            for y in xrange(-disturbance_range,disturbance_range+1):
+                p = vector + Point(x,y)
+                if p.y < 0 or p.y > self.actor.tiles.height:
+                    continue
+                tile = self.actor.tiles.GetTile(self.actor.pos + p)
+                if not tile or not tile.Empty() or tile.Impassable():
+                    continue
+                possible_targets.append(p)
+        vector = random.choice(possible_targets)
+        self.vector      = vector
+        
+    def Update(self,t):
+        if not self.initialised:
+            self.start_time  = t
+            self.end_time    = t + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.actor.pos
+            self.end_pos     = self.start_pos + self.vector
+            self.initialised = True
+            target_tile      = self.actor.tiles.GetTile(self.end_pos)
+        
+        if t > self.end_time:
+            self.actor.AdjustActionPoints(-self.cost)
+            self.actor.MoveRelative(self.vector)
+            return True
+        
+        part = float(t-self.start_time)/self.duration
+        pos = self.start_pos + self.vector*part
+
+        self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                                    utils.WorldCoords(pos+Point(1,1)).to_int(),
+                                    0.5)
+        self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
+                                                                pos.y + 0.8)),
+                                        0.3)
+        return False
+
+
+class TeleportActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(TeleportActionCreator,self).__init__(wizard,action)
+        self.cycle = 0
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            #check line of sight. Note this isn't very efficient as we're checking
+            #some blocks multiple times, but oh well
+            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
+            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
+            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
+                continue
+            vectors.append(p)
+        return vectors
+
+    def Create(self,vector,t,wizard,speed=12):
+        yield self.action(vector,t,wizard,speed)
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
+    def ColourFunctionClose(self,pos):
+        part = (pos.length()/5)*math.pi*0.3
+        return (0,0,math.cos(part),0.4)
+
+    def ColourFunctionMedium(self,pos):
+        part = ((pos.length()-5)/5)*math.pi*0.3
+        return (0,math.cos(part),0,0.4)
+
+    def ColourFunctionFar(self,pos):
+        part = ((pos.length()-10)/5)*math.pi*0.3
+        return (math.cos(part),0,0,0.4)
+
+    def ColourFunction(self,pos):
+        distance = pos.length()
+        if distance < 5:
+            return self.ColourFunctionClose(pos)
+        elif distance < 10:
+            return self.ColourFunctionMedium(pos)
+        else:
+            return self.ColourFunctionFar(pos)
+
+    def Update(self,t):
+        return
+        #cycle = (float(t)/800)
+        #if abs(cycle - self.cycle) > 0.2:
+        #    self.cycle = cycle
 
 class BlastAction(Action):
     name          = 'Blast'
@@ -360,6 +354,45 @@ class BlastAction(Action):
             return True
         return False
 
+
+class BlastActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(BlastActionCreator,self).__init__(wizard,action)
+        self.cycle = 0
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            #check line of sight. Note this isn't very efficient as we're checking
+            #some blocks multiple times, but oh well
+            path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
+            path_tiles = [self.actor.tiles.GetTile(point) for point in path]
+            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
+                continue
+            vectors.append(p)
+        return vectors
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
+    def ColourFunction(self,pos):
+        part = (pos.length()/WizardBlastAction.range)*math.pi
+        return (math.sin(-part*self.cycle),math.sin(part-math.pi*self.cycle),math.sin(part-math.pi*(self.cycle+0.3)),0.3)
+
+    def Update(self,t):
+        return
+        #cycle = (float(t)/800)
+        #if abs(cycle - self.cycle) > 0.2:
+        #    self.cycle = cycle
+
+
 class WizardBlastAction(BlastAction):
     name       = 'Wizard Blast'
     cost       = 2
@@ -380,6 +413,55 @@ class WizardBlastAction(BlastAction):
     @staticmethod
     def MouseMotion(pos,vector):
         pass
+
+
+class SummonMonsterAction(BlastAction):
+    cost          = 4
+    range         = 4
+    valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
+                            for y in xrange(-3,4)        \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 4)
+
+    def Impact(self):
+        target_tile = self.actor.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if not target:
+            monster = self.Monster(self.end_pos,
+                                   self.monster_type,
+                                   self.actor.tiles,
+                                   self.actor.IsPlayer(),
+                                   self.actor.name + '\'s ' + self.monster_type,
+                                   self.actor)
+            self.actor.player.AddSummoned(monster)
+
+    @staticmethod
+    def MouseMotion(pos,vector):
+        pass
+
+
+
+class SummonActionCreator(BasicActionCreator):
+    def __init__(self,wizard,action):
+        super(SummonActionCreator,self).__init__(wizard,action)
+        
+    @property
+    def valid_vectors(self):
+        vectors = []
+        if self.action.cost > self.actor.action_points:
+            return vectors
+        for p in self.action.valid_vectors:
+            target = self.actor.pos + p
+            tile = self.actor.tiles.GetTile(target)
+            if not tile:
+                continue
+            if not tile.Empty() or tile.Impassable():
+                continue
+            vectors.append(p)
+        return vectors
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
 
 
 class ActionChoice(object):
@@ -492,28 +574,6 @@ class ActionChoice(object):
     def FriendlyTargetable(self):
         return False        
 
-class SummonMonsterAction(BlastAction):
-    cost          = 4
-    range         = 4
-    valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
-                            for y in xrange(-3,4)        \
-                            if Point(x,y).length() != 0 and Point(x,y).length() < 4)
-
-    def Impact(self):
-        target_tile = self.actor.tiles.GetTile(self.end_pos)
-        target = target_tile.GetActor()
-        if not target:
-            monster = self.Monster(self.end_pos,
-                                   self.monster_type,
-                                   self.actor.tiles,
-                                   self.actor.IsPlayer(),
-                                   self.actor.name + '\'s ' + self.monster_type,
-                                   self.actor)
-            self.actor.player.AddSummoned(monster)
-
-    @staticmethod
-    def MouseMotion(pos,vector):
-        pass
 
 class ActionChoiceList(ui.ButtonList):
     def __init__(self,wizard,pos,creators):
