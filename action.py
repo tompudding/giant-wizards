@@ -243,7 +243,7 @@ class TeleportActionCreator(BasicActionCreator):
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
             tile = self.actor.tiles.GetTile(target)
-            if not tile:
+            if not tile or tile.Impassable():
                 continue
             #check line of sight. Note this isn't very efficient as we're checking
             #some blocks multiple times, but oh well
