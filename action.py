@@ -21,8 +21,9 @@ class Action(object):
 #This class exists only so we can have a consistent interface
 class BasicActionCreator(object):
     def __init__(self,actor,action):
-        self.action     = action
-        self.actor      = actor
+        self.action      = action
+        self.actor       = actor
+        #self.detail_text = ui.TextBox()
 
     @property
     def name(self):
@@ -468,7 +469,7 @@ class ActionChoice(object):
     def __init__(self,action,position,wizard,callback = None):
         self.action         = action
         self.text           = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text           = ui.TextButtonUI(self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.text           = ui.TextButton(self.text,position,size=0.33,callback = self.OnButtonClick)
         self.actor_callback = callback
         self.wizard         = wizard
         self.quads          = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]

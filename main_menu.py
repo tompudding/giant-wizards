@@ -30,20 +30,20 @@ class MainMenu(object):
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
-            button = ui.TextButtonUI(gamedata.player_config[i],offset+Point(0.50*gamedata.screen.x,
+            button = ui.TextButton(gamedata.player_config[i],offset+Point(0.50*gamedata.screen.x,
                                                                             (0.55-i*0.1)*gamedata.screen.y),
                                      size=0.7,
                                      callback = callbacks[i],
                                      line_width=4)
             self.RegisterUIElement(button,1)
             self.buttons.append(button)
-        self.play_button = ui.TextButtonUI('Play',offset+Point(0.22*gamedata.screen.x,
+        self.play_button = ui.TextButton('Play',offset+Point(0.22*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Play,
                                                 line_width=4)
         self.RegisterUIElement(self.play_button,1)
-        self.exit_button = ui.TextButtonUI('Exit',offset+Point(0.35*gamedata.screen.x,
+        self.exit_button = ui.TextButton('Exit',offset+Point(0.35*gamedata.screen.x,
                                                              (0.15)*gamedata.screen.y),
                                                 size=0.7,
                                                 callback = self.Quit,

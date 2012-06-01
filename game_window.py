@@ -563,14 +563,14 @@ class Tiles(object):
             element.Delete()
         self.uielements = {}
 
-        self.backdrop = ui.BoxUI(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
+        self.backdrop = ui.Box(Point(gamedata.screen.x*0.3,gamedata.screen.y*0.3),
                                  Point(gamedata.screen.x*0.7,gamedata.screen.y*0.7),
                                  (0,0,0,0.6))
         self.backdrop.Enable()
         self.RegisterUIElement(self.backdrop,0)
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = ui.TextButtonUI('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
+        self.return_button = ui.TextButton('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
         self.RegisterUIElement(self.return_button,0)
         self.InvalidateCache()
         self.selected_quad.Delete()

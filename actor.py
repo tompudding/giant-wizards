@@ -18,7 +18,7 @@ class Actor(object):
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
         self.move_points        = 0
-        self.options_box        = ui.BoxUI(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.5),
+        self.options_box        = ui.Box(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.5),
                                     Point(gamedata.screen.x*0.95,gamedata.screen.y*0.95),
                                     (0,0,0,0.6))
         self.title              = texture.TextObject(name+':',gamedata.text_manager)

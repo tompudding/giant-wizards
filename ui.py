@@ -5,20 +5,55 @@ import utils,gamedata
 from utils import Point
 import texture
 
+class AbsoluteBounds(object):
+    """
+    Store the bottom left, top right and size data for a rectangle in screen coordinates. We could 
+    ask the parent and compute this each time, but it will be more efficient if we store it and 
+    use it directly, and rely on the parent to update its children when things change
+    """
+    def __init__(self):
+        self.bottom_left = None
+        self.top_right   = None
+        self.size        = None
+
 class UIElement(object):
-    def __init__(self,pos,tr):
-        self.SetBounds(pos,tr)
-        self.on = True
+    def __init__(self,parent,pos,tr):
+        self.parent   = parent
+        self.absolute = AbsoluteBounds()
+        self.on       = True
+        self.SetBounds(parent,pos,tr)
+        self.children = UIElementList()
+        if self.parent != None:
+            self.parent.AddChild(self)
 
     def SetBounds(self,pos,tr):
-        self.bottom_left = pos
-        self.top_right = tr
-        self.size = tr - pos
+        if self.parent == None:
+            self.absolute.bottom_left = pos
+            self.absolute.top_right   = tr
+            self.absolute.size        = tr - pos
+        else:
+            self.absolute.bottom_left = parent.GetAbsolute(pos)
+            self.absolute.top_right   = parent.GetAbsolute(tr)
+            self.absolute.size        = self.absolute.top_right - self.absolute.bottom_left
+        self.bottom_left          = pos
+        self.top_right            = tr
+        self.size                 = tr - pos
+
+    def UpdatePosition(self):
+        self.SetBounds(self,self.bottom_left,self.top_right)
+        for child_element in self.children:
+            child_element.UpdatePosition()
+
+    def GetAbsolute(self,p):
+        return self.absolute.bottom_left + (self.absolute.size*p)
+
+    def AddChild(self,element):
+        self.children.Append(element)
 
     def __contains__(self,pos):
-        if pos.x < self.bottom_left.x or pos.x > self.top_right.x:
+        if pos.x < self.absolute.bottom_left.x or pos.x > self.absolute.top_right.x:
             return False
-        if pos.y >= self.bottom_left.y and pos.y <= self.top_right.y:
+        if pos.y >= self.absolute.bottom_left.y and pos.y <= self.absolute.top_right.y:
             return True
         return False
 
@@ -33,17 +68,21 @@ class UIElement(object):
 
     def MakeSelectable(self):
         self.on = True
+        for child in self.children:
+            child.MakeSelectable()
 
     def MakeUnselectable(self):
         self.on = False
+        for child in self.children:
+            child.MakeUnselectable()
 
     def __hash__(self):
-        return hash((self.bottom_left,self.top_right))
+        return hash((self.absolute.bottom_left,self.absolute.top_right))
     
 
-class BoxUI(UIElement):
-    def __init__(self,pos,tr,colour):
-        super(BoxUI,self).__init__(pos,tr)
+class Box(UIElement):
+    def __init__(self,parent,pos,tr,colour):
+        super(Box,self).__init__(parent,pos,tr)
         self.quad = utils.Quad(gamedata.ui_buffer)
         self.colour = colour
         self.unselectable_colour = tuple(component*0.6 for component in self.colour)
@@ -54,34 +93,107 @@ class BoxUI(UIElement):
 
     def Delete(self):
         self.quad.Delete()
+        for child in self.children:
+            child.Delete()
         
     def Disable(self):
         self.quad.Disable()
+        for child in self.children:
+            child.Disable()
 
     def Enable(self):
         self.quad.Enable()
+        for child in self.children:
+            child.Enable()
 
     def MakeSelectable(self):
-        super(BoxUI,self).MakeSelectable()
+        super(Box,self).MakeSelectable()
         self.quad.SetColour(self.colour)
 
     def MakeUnselectable(self):
-        super(BoxUI,self).MakeUnselectable()
+        super(Box,self).MakeUnselectable()
         self.quad.SetColour(self.unselectable_colour)
 
     def OnClick(self,pos,button):
         pass
 
-class TextButtonUI(UIElement):
-    def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
-        self.text = texture.TextObject(text,gamedata.text_manager)
+
+class TextBox(UIElement):
+    """ A Screen-relative text box wraps text to a given size """
+    def __init__(self,parent,bl,tr,text,textmanager):
+        self.parent      = parent
+        super(TextBox,self).__init__(parent,bl,tr)
+        self.text        = text
+        self.text_type   = texture.TextTypes.SCREEN_RELATIVE
+        self.quads       = [textmanager.Letter(char,self.text_type) for char in self.text]
+        self.textmanager = textmanager
+        #that sets the texture coords for us
+
+    def Position(self,pos,scale,colour = None):
+        #set up the position for the characters
+        self.pos = pos
+        self.absolute.bottom_left = parent.GetAbsolute(pos)
+        self.scale = scale
+        row_height = (float(texture.screen_font_height*self.scale*global_scale)/self.absolute.size.y)
+        #Do this without any kerning or padding for now, and see what it looks like
+        cursor = Point(0,1 - row_height)
+        for (i,quad) in enumerate(self.quads):
+            letter_size = Point(quad.width *self.scale*global_scale/self.size.x,
+                                quad.height*self.scale*global_scale/self.size.y)
+            if self.pos + cursor.x + letter_size.x > 1:
+                cursor.x = 0
+                cursor.y -= row_height
+            target_bl = self.pos+cursor
+            target_tr = target_bl + letter_size
+                
+            if target_bl.y < 0:
+                #We've gone too far, now more text to write!
+                break
+            absolute_bl = parent.GetAbsolute(target_bl)
+            absolute_tr = parent.GetAbsolute(target_tr)
+            quad.SetVertices(absolute_bl,
+                             absolute_tr,
+                             TextTypes.LEVELS[self.text_type])
+            if colour:
+                quad.SetColour(colour)
+            cursor.x += letter.x
+        height = max([q.height for q in self.quads])
+        
+    def Delete(self):
+        for quad in self.quads:
+            quad.Delete()
+
+    def SetText(self,text,colour = None):
+        self.Delete()
+        self.text = text
+        self.quads = [self.textmanager.Letter(char,self.text_type) for char in self.text]
+        self.Position(self.pos,self.scale,colour)
+
+    def Disable(self):
+        for q in self.quads:
+            q.Disable()
+        
+
+    def Enable(self):
+        for q in self.quads:
+            q.Enable()
+            
+
+
+class TextBox(UIElement):
+    def __init__(self,bl,tr,text,fontsize):
+        super(TextBox,self).__init__(bl,tr)
+
+class TextBoxButton(UIElement):
+    def __init__(self,parent,text,pos,tr,size=0.5,callback = None,line_width=2):
+        super(TextBoxButton,self).__init__(parent,pos,tr,size)
         self.text.Position(pos,size)
         self.size = self.text.top_right - pos
         self.boxextra = 0.2
         self.pos = pos - (Point(self.size.y,self.size.y)*self.boxextra)
         self.textsize = size
         self.callback = callback
-        super(TextButtonUI,self).__init__(pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
+        super(TextButton,self).__init__(parent,pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         self.line_width = line_width
         self.SetVertices()
@@ -173,13 +285,13 @@ class TextButtonUI(UIElement):
             self.callback(pos)
             
         
-class TexturedButton(TextButtonUI):
+class TexturedButton(TextButton):
     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
         self.text = texture.TextObject(text,gamedata.text_manager)
         self.text.Position(pos,size)
         self.pos = pos
         self.callback = callback
-        super(TextButtonUI,self).__init__(pos,self.text.top_right)
+        super(TextButton,self).__init__(pos,self.text.top_right)
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         self.line_width = line_width
         self.SetVertices()
@@ -227,7 +339,7 @@ class ControlBox(UIElement):
         self.tr       = tr
         self.size     = tr-bl
         self.colour   = colour
-        self.ui_box   = BoxUI(bl,
+        self.ui_box   = Box(bl,
                               tr,
                               colour)
         self.buttons  = {}
@@ -236,16 +348,16 @@ class ControlBox(UIElement):
     def AddButton(self,text,pos,callback,size = None):
         #FIXME: Sort out the arguments here, there's really no need to duplicate code I'm sure
         if None == size:
-            button = TextButtonUI(text,self.bl+(self.size*pos),callback=callback)
+            button = TextButton(text,self.bl+(self.size*pos),callback=callback)
         else:
-            button = TextButtonUI(text,self.bl+(self.size*pos),size=size,callback=callback)
+            button = TextButton(text,self.bl+(self.size*pos),size=size,callback=callback)
         button.level = 2
         self.buttons[text] = button
         self.elements.append(button)
 
     def Register(self,tiles,level):
         for element in self.elements:
-            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,TextButtonUI) else level)
+            tiles.RegisterUIElement(element,level+0.1 if isinstance(element,TextButton) else level)
         
     def MakeSelectable(self):
         for element in self.elements:
@@ -254,6 +366,3 @@ class ControlBox(UIElement):
     def MakeUnselectable(self):
         for element in self.elements:
             element.MakeUnselectable()
-
-
-    
