@@ -66,6 +66,14 @@ class UIElement(object):
     def Selectable(self):
         return self.on
 
+    def Disable(self):
+        for child in self.children:
+            child.Disable()
+
+    def Enable(self):
+        for q in self.children:
+            child.Enable()
+
     def MakeSelectable(self):
         self.on = True
         for child in self.children:
@@ -120,14 +128,17 @@ class Box(UIElement):
 
 class TextBox(UIElement):
     """ A Screen-relative text box wraps text to a given size """
-    def __init__(self,parent,bl,tr,text,textmanager):
+    def __init__(self,parent,bl,tr,text,scale,colour = None):
         self.parent      = parent
         super(TextBox,self).__init__(parent,bl,tr)
         self.text        = text
+        self.scale       = scale
+        self.colour      = colour
         self.text_type   = texture.TextTypes.SCREEN_RELATIVE
         self.quads       = [textmanager.Letter(char,self.text_type) for char in self.text]
-        self.textmanager = textmanager
+        self.textmanager = gamedata.textmanager
         #that sets the texture coords for us
+        self.Position(self.bottom_left,self.scale,self.colour)
 
     def Position(self,pos,scale,colour = None):
         #set up the position for the characters
@@ -158,7 +169,12 @@ class TextBox(UIElement):
                 quad.SetColour(colour)
             cursor.x += letter.x
         height = max([q.height for q in self.quads])
-        
+        self.UpdatePosition()
+
+    def SetPos(self,pos):
+        self.SetBounds(pos,pos + self.size)
+        self.Position(pos,self.scale,self.colour)
+
     def Delete(self):
         for quad in self.quads:
             quad.Delete()
@@ -170,80 +186,62 @@ class TextBox(UIElement):
         self.Position(self.pos,self.scale,colour)
 
     def Disable(self):
+        super(Disable,self).Disable()
         for q in self.quads:
             q.Disable()
-        
 
     def Enable(self):
+        super(Disable,self).Enable()
         for q in self.quads:
             q.Enable()
-            
 
-
-class TextBox(UIElement):
-    def __init__(self,bl,tr,text,fontsize):
-        super(TextBox,self).__init__(bl,tr)
-
-class TextBoxButton(UIElement):
+class TextBoxButton(TextBox):
     def __init__(self,parent,text,pos,tr,size=0.5,callback = None,line_width=2):
-        super(TextBoxButton,self).__init__(parent,pos,tr,size)
-        self.text.Position(pos,size)
-        self.size = self.text.top_right - pos
-        self.boxextra = 0.2
-        self.pos = pos - (Point(self.size.y,self.size.y)*self.boxextra)
-        self.textsize = size
-        self.callback = callback
-        super(TextButton,self).__init__(parent,pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
+        self.boxextra    = 0.2
+        self.callback    = callback
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
-        self.line_width = line_width
-        self.SetVertices()
-        self.hovered = False
-        self.selected = False
+        self.line_width  = line_width
+        self.hovered     = False
+        self.selected    = False
+        super(TextBoxButton,self).__init__(parent,pos,tr,text,size)
         for i in xrange(4):
             self.hover_quads[i].Disable()
+        
+    def Position(self,pos,scale,colour = None):
+        super(TextBoxButton,self).Position(pos,scale,colour)
+        self.SetVertices()
 
     def SetVertices(self):
         for i in xrange(4):
             self.hover_quads[i].SetColour((1,0,0,1))
         
         #top bar
-        self.hover_quads[0].SetVertices(Point(self.pos.x,self.top_right.y-self.line_width),
-                                        self.top_right,
+        self.hover_quads[0].SetVertices(Point(self.absolute.bottom_left.x,self.absolute.top_right.y-self.line_width),
+                                        self.absolute.top_right,
                                         utils.ui_level+1)
         #right bar
-        self.hover_quads[1].SetVertices(Point(self.top_right.x-self.line_width,self.pos.y),
-                                        self.top_right,
+        self.hover_quads[1].SetVertices(Point(self.absolute.top_right.x-self.line_width,self.absolute.bottom_left.y),
+                                        self.absolute.top_right,
                                         utils.ui_level+1)
         
         #bottom bar
-        self.hover_quads[2].SetVertices(self.pos,
-                                        Point(self.top_right.x,self.pos.y+self.line_width),
+        self.hover_quads[2].SetVertices(self.absolute.bottom_left,
+                                        Point(self.absolute.top_right.x,self.absolute.bottom_left.y+self.line_width),
                                         utils.ui_level+1)
 
         #left bar
-        self.hover_quads[3].SetVertices(self.pos,
-                                        Point(self.pos.x+self.line_width,self.top_right.y),
+        self.hover_quads[3].SetVertices(self.absolute.bottom_left,
+                                        Point(self.absolute.bottom_left.x+self.line_width,self.absolute.top_right.y),
                                         utils.ui_level+1)
-                          
+                                  
+    def SetPos(self,pos):
+        super(TextBoxButton,self).SetPos(pos)
+        self.SetVertices()
+
     def Delete(self):
+        super(TextButtonBox,self).Delete()
         for quad in self.hover_quads:
             quad.Delete()
-        self.text.Delete()
-        
-    def SetPos(self,pos):
-        self.text.Position(pos,self.textsize)
-        self.size = self.text.top_right - pos
-        self.pos = pos - (Point(self.size.y,self.size.y)*self.boxextra)
-        self.SetBounds(self.pos,self.text.top_right + (Point(self.size.y,self.size.y)*self.boxextra))
-        self.SetVertices()
-
-    def SetText(self,newtext):
-        self.text.SetText(newtext)
-        self.top_right = self.text.top_right
-        self.SetVertices()
-
-    def GetText(self):
-        return self.text.text
 
     def Hover(self):
         self.hovered = True
@@ -271,19 +269,19 @@ class TextBoxButton(UIElement):
                 self.hover_quads[i].Disable()
 
     def Enable(self):
+        super(TextBoxButton,self).Enable()
         if self.hovered:
             self.Hover()
-        self.text.Enable()
-
+        
     def Disable(self):
         self.text.Disable()
+        super(TextBoxButton,self).Disable()
         for i in xrange(4):
             self.hover_quads[i].Disable()
 
     def OnClick(self,pos,button):
         if self.callback != None and button == 1:
             self.callback(pos)
-            
         
 class TexturedButton(TextButton):
     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
