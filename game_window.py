@@ -519,8 +519,6 @@ class Tiles(object):
         return out
 
     def RegisterUIElement(self,element,height):
-        a = {}
-        a[element] = True
         self.uielements[element] = height
 
     def RemoveUIElement(self,element):

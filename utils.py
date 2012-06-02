@@ -289,6 +289,15 @@ def WorldCoords(point):
     return point*gamedata.tile_dimensions
 
 def WrapDistance(a,b,width):
+    """
+    Distance from b to a, including the possibility of going down from a low number
+    and wrapping to a high number. For example:
+    A = (31,2)
+    B = ( 1,1)
+    
+    WrapDistance will return (-2,1), for a width of 32
+    """
+
     offset = a - b
     if offset.x < 0:
         other = (offset.x + width )

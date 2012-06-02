@@ -8,6 +8,26 @@ import texture
 #ToDo, update Box,ControlBox,ButtonList to use the new UIElement interface, then
 #update all the rest of the code that uses them <sigh>
 
+class UIElementList:
+    """
+    Very basic implementation of a list of UIElements that can be looked up by position.
+    It's using an O(n) algorithm, and I'm sure I can do better once everything's working
+    """
+    def __init__(self):
+        self.items = {}
+        
+    def Append(self,item):
+        self.items[item] = item.level
+
+    def Get(self,pos):
+       #not very efficient
+        match = [-1,None]
+        for ui,height in self.uielements.iteritems():
+            if pos in ui and ui.Selectable():
+                if height > match[0]:
+                    match = [height,ui]
+        return match[1]
+    
 class AbsoluteBounds(object):
     """
     Store the bottom left, top right and size data for a rectangle in screen coordinates. We could 
@@ -24,13 +44,13 @@ class UIElement(object):
         self.parent   = parent
         self.absolute = AbsoluteBounds()
         self.on       = True
-        self.SetBounds(parent,pos,tr)
-        self.children = UIElementList()
+        self.SetBounds(pos,tr)
+        self.children = []
         if self.parent != None:
             self.parent.AddChild(self)
             self.GetAbsoluteInParent = parent.GetAbsolute
-        else:
-            self.GetAbsoluteInParent = lambda x:x
+            self.root                = parent.root
+            self.level               = parent.level + 1
 
     def SetBounds(self,pos,tr):
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
@@ -91,6 +111,51 @@ class UIElement(object):
 
     def __hash__(self):
         return hash((self.absolute.bottom_left,self.absolute.top_right))
+
+class RootElement(UIElement):
+    """
+    A Root Element has no parent. It represents the top level UI element, and thus its coords are
+    screen coords. It handles dispatching mouse movements and events. All of its children and
+    grand-children (and so on) can register with it (and only it) for handling mouse actions,
+    and those actions get dispatched
+    """
+    def __init__(self,bl,tr):
+        self.SetBounds(pos,tr)
+        self.absolute            = AbsoluteBounds()
+        self.on                  = True
+        self.GetAbsoluteInParent = lambda x:x
+        self.root                = self
+        self.level               = 0
+        self.hovered             = None
+        self.children            = []
+        self.active_children     = UIElementList()
+        
+    def RegisterUIElement(self,element):
+        self.active_children[element] = element.level
+
+    def RemoveUIElement(self,element):
+        try:
+            del self.uielements[element]
+        except KeyError:
+            pass
+
+    def MouseMotion(self,pos,rel):
+        hovered = self.active_children.Get(pos)
+        if hovered is not self.hovered:
+            if self.hovered != None:
+                self.hovered.EndHover()
+            self.hovered = hovered
+            self.hovered.Hover()
+        else:
+            old_hovered = self.hovered_player
+            if self.hovered != None:
+                self.hovered.EndHover()
+                self.hovered = None
+        return hovered
+
+    def MouseButtonUp(self,pos,button):
+        if self.hovered:
+            self.hovered.OnClick(pos,button)
     
 
 class Box(UIElement):
@@ -221,9 +286,11 @@ class TextBoxButton(TextBox):
         self.line_width  = line_width
         self.hovered     = False
         self.selected    = False
+        self.enabled     = False
         super(TextBoxButton,self).__init__(parent,pos,tr,text,size)
         for i in xrange(4):
             self.hover_quads[i].Disable()
+        self.registered = False
         
     def Position(self,pos,scale,colour = None):
         super(TextBoxButton,self).Position(pos,scale,colour)
@@ -255,6 +322,10 @@ class TextBoxButton(TextBox):
         self.hover_quads[3].SetVertices(self.absolute.bottom_left,
                                         Point(self.absolute.bottom_left.x+self.line_width,self.absolute.top_right.y),
                                         utils.ui_level+1)
+        if not self.enabled:
+            for i in xrange(4):
+                self.hover_quads[i].Disable()
+
                                   
     def SetPos(self,pos):
         super(TextBoxButton,self).SetPos(pos)
@@ -292,14 +363,19 @@ class TextBoxButton(TextBox):
 
     def Enable(self):
         super(TextBoxButton,self).Enable()
-        if self.hovered:
-            self.Hover()
+        if not self.enabled:
+            self.enabled = True
+            self.root.RegisterUIElement(self)
+            if self.hovered:
+                self.Hover()
         
     def Disable(self):
-        self.text.Disable()
         super(TextBoxButton,self).Disable()
-        for i in xrange(4):
-            self.hover_quads[i].Disable()
+        if self.enabled:
+            self.enabled = False
+            self.root.RemoveUIElement(self,element)
+            for i in xrange(4):
+                self.hover_quads[i].Disable()
 
     def OnClick(self,pos,button):
         if self.callback != None and button == 1:
@@ -328,19 +404,13 @@ class ButtonList(UIElement):
     Just a placeholder really in case we need scrollbars at some point
     """
 
+    def __init__(self,parent,bl,tr):
+        super(ButtonList,self).__init__(parent,bl,tr)
+        self.itemheight = 0.04*gamedata.screen.y
+
     def AddElement(self,element):
         element.SetPos(self.top_left - Point(0,self.itemheight*len(self.buttons)))
-        self.children.append(button)
-
-    def Enable(self,tiles):
-        for button in self.buttons:
-            button.Enable()
-            tiles.RegisterUIElement(button.text,1)
-
-    def Disable(self,tiles):
-        for button in self.buttons:
-            button.Disable()
-            tiles.RemoveUIElement(button.text)
+        self.children.append(element)
 
     def __getitem__(self,index):
-        return self.buttons[index]
+        return self.children[index]
