@@ -5,6 +5,9 @@ import utils,gamedata
 from utils import Point
 import texture
 
+#ToDo, update Box,ControlBox,ButtonList to use the new UIElement interface, then
+#update all the rest of the code that uses them <sigh>
+
 class AbsoluteBounds(object):
     """
     Store the bottom left, top right and size data for a rectangle in screen coordinates. We could 
@@ -25,16 +28,14 @@ class UIElement(object):
         self.children = UIElementList()
         if self.parent != None:
             self.parent.AddChild(self)
+            self.GetAbsoluteInParent = parent.GetAbsolute
+        else:
+            self.GetAbsoluteInParent = lambda x:x
 
     def SetBounds(self,pos,tr):
-        if self.parent == None:
-            self.absolute.bottom_left = pos
-            self.absolute.top_right   = tr
-            self.absolute.size        = tr - pos
-        else:
-            self.absolute.bottom_left = parent.GetAbsolute(pos)
-            self.absolute.top_right   = parent.GetAbsolute(tr)
-            self.absolute.size        = self.absolute.top_right - self.absolute.bottom_left
+        self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
+        self.absolute.top_right   = self.GetAbsoluteInParent(tr)
+        self.absolute.size        = self.absolute.top_right - self.absolute.bottom_left
         self.bottom_left          = pos
         self.top_right            = tr
         self.size                 = tr - pos
@@ -143,7 +144,7 @@ class TextBox(UIElement):
     def Position(self,pos,scale,colour = None):
         #set up the position for the characters
         self.pos = pos
-        self.absolute.bottom_left = parent.GetAbsolute(pos)
+        self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
         self.scale = scale
         row_height = (float(texture.screen_font_height*self.scale*global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
@@ -160,8 +161,8 @@ class TextBox(UIElement):
             if target_bl.y < 0:
                 #We've gone too far, now more text to write!
                 break
-            absolute_bl = parent.GetAbsolute(target_bl)
-            absolute_tr = parent.GetAbsolute(target_tr)
+            absolute_bl = self.GetAbsoluteInParent(target_bl)
+            absolute_tr = self.GetAbsoluteInParent(target_tr)
             quad.SetVertices(absolute_bl,
                              absolute_tr,
                              TextTypes.LEVELS[self.text_type])
