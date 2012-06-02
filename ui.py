@@ -5,8 +5,8 @@ import utils,gamedata
 from utils import Point
 import texture
 
-#ToDo, update Box,ControlBox,ButtonList to use the new UIElement interface, then
-#update all the rest of the code that uses them <sigh>
+#todo, allow the textbox and textbox button to be specified without a top-right, and have 
+#the coords generated from the text.
 
 class UIElementList:
     """
@@ -20,7 +20,7 @@ class UIElementList:
         self.items[item] = item.level
 
     def Get(self,pos):
-       #not very efficient
+        #not very efficient
         match = [-1,None]
         for ui,height in self.uielements.iteritems():
             if pos in ui and ui.Selectable():
@@ -120,7 +120,6 @@ class RootElement(UIElement):
     and those actions get dispatched
     """
     def __init__(self,bl,tr):
-        self.SetBounds(pos,tr)
         self.absolute            = AbsoluteBounds()
         self.on                  = True
         self.GetAbsoluteInParent = lambda x:x
@@ -129,6 +128,7 @@ class RootElement(UIElement):
         self.hovered             = None
         self.children            = []
         self.active_children     = UIElementList()
+        self.SetBounds(bl,tr)
         
     def RegisterUIElement(self,element):
         self.active_children[element] = element.level
@@ -217,7 +217,7 @@ class TextBox(UIElement):
         self.pos = pos
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
         self.scale = scale
-        row_height = (float(texture.screen_font_height*self.scale*global_scale)/self.absolute.size.y)
+        row_height = (float(gamedata.textmanager.font_height*self.scale*global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
         cursor = Point(0,1 - row_height)
         for (i,quad) in enumerate(self.quads):
@@ -279,7 +279,7 @@ class TextBox(UIElement):
             q.Enable()
 
 class TextBoxButton(TextBox):
-    def __init__(self,parent,text,pos,tr,size=0.5,callback = None,line_width=2):
+    def __init__(self,parent,text,pos,tr=None,size=0.5,callback = None,line_width=2):
         self.boxextra    = 0.2
         self.callback    = callback
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
@@ -381,20 +381,20 @@ class TextBoxButton(TextBox):
         if self.callback != None and button == 1:
             self.callback(pos)
         
-class TexturedButton(TextButton):
-    def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
-        self.text = texture.TextObject(text,gamedata.text_manager)
-        self.text.Position(pos,size)
-        self.pos = pos
-        self.callback = callback
-        super(TextButton,self).__init__(pos,self.text.top_right)
-        self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
-        self.line_width = line_width
-        self.SetVertices()
-        self.hovered = False
-        self.selected = False
-        for i in xrange(4):
-            self.hover_quads[i].Disable()
+# class TexturedButton(TextButton):
+#     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
+#         self.text = texture.TextObject(text,gamedata.text_manager)
+#         self.text.Position(pos,size)
+#         self.pos = pos
+#         self.callback = callback
+#         super(TextButton,self).__init__(pos,self.text.top_right)
+#         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
+#         self.line_width = line_width
+#         self.SetVertices()
+#         self.hovered = False
+#         self.selected = False
+#         for i in xrange(4):
+#             self.hover_quads[i].Disable()
 
 class ButtonList(UIElement):
     """

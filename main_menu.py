@@ -30,27 +30,29 @@ class MainMenu(object):
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
-            button = ui.TextButton(gamedata.player_config[i],offset+Point(0.50*gamedata.screen.x,
-                                                                            (0.55-i*0.1)*gamedata.screen.y),
-                                     size=0.7,
-                                     callback = callbacks[i],
-                                     line_width=4)
-            self.RegisterUIElement(button,1)
+            button = ui.TextBoxButton(gamedata.screen_root     ,
+                                      gamedata.player_config[i],
+                                      offset+Point(0.50*gamedata.screen.x         ,
+                                                   (0.55-i*0.1)*gamedata.screen.y),
+                                      size=0.7,
+                                      callback = callbacks[i],
+                                      line_width=4)
             self.buttons.append(button)
-        self.play_button = ui.TextButton('Play',offset+Point(0.22*gamedata.screen.x,
-                                                             (0.15)*gamedata.screen.y),
-                                                size=0.7,
-                                                callback = self.Play,
-                                                line_width=4)
-        self.RegisterUIElement(self.play_button,1)
-        self.exit_button = ui.TextButton('Exit',offset+Point(0.35*gamedata.screen.x,
-                                                             (0.15)*gamedata.screen.y),
-                                                size=0.7,
-                                                callback = self.Quit,
-                                                line_width=4)
-        self.RegisterUIElement(self.exit_button,1)
-        self.hovered_ui = None
-        
+        self.play_button = ui.TextBoxButton(gamedata.screen_root ,
+                                            'Play'               ,
+                                            offset+Point(0.22*gamedata.screen.x   ,
+                                                         (0.15)*gamedata.screen.y),
+                                            size=0.7,
+                                            callback = self.Play,
+                                            line_width=4)
+        self.exit_button = ui.TextBoxButton(gamedata.screen_root,
+                                            'Exit'              ,
+                                            offset+Point(0.35*gamedata.screen.x   ,
+                                                         (0.15)*gamedata.screen.y),
+                                            size=0.7,
+                                            callback = self.Quit,
+                                            line_width=4)
+
     def Draw(self):
         glEnable(GL_TEXTURE_2D)
         glBindTexture(GL_TEXTURE_2D, self.texture.texture)
@@ -74,51 +76,12 @@ class MainMenu(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
-        
 
-    def MouseButtonDown(self,pos,button):
-        pass
-
-    def MouseButtonUp(self,pos,button):
-        if self.hovered_ui:
-            self.hovered_ui.OnClick(pos,button)
-    
     def MouseMotion(self,pos,rel):
-        hovered_ui = self.HoveredUiElement(pos)
-        if hovered_ui:
-            #if we're over the ui then obviously nothing is selected
-            if hovered_ui is not self.hovered_ui:
-                if self.hovered_ui != None:
-                    self.hovered_ui.EndHover()
-                self.hovered_ui = hovered_ui
-                self.hovered_ui.Hover()
-        else:
-            if self.hovered_ui != None:
-                self.hovered_ui.EndHover()
-                self.hovered_ui = None
+        pass
 
     def KeyDown(self,key):
         return
-
-    def RegisterUIElement(self,element,height):
-        a = {}
-        a[element] = True
-        self.uielements[element] = height
-
-    def RemoveUIElement(self,element):
-        try:
-            del self.uielements[element]
-        except KeyError:
-            pass
-
-    def HoveredUiElement(self,pos):
-        #not very efficient, but I only have 2 days, come on.
-        match = [-1,None]
-        for ui,height in self.uielements.iteritems():
-            if pos in ui:
-                if height > match[0]:
-                    match = [height,ui]
-        return match[1]
 
     def Update(self,t):
         self.Draw()

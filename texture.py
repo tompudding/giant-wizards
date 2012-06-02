@@ -99,7 +99,6 @@ class TextObject(object):
         self.scale = scale
         cursor = [0,0]
         for (i,quad) in enumerate(self.quads):
-            quad.width
             quad.SetVertices(pos+Point(cursor[0]*self.scale*global_scale,0),
                              pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
                                        quad.height*self.scale*global_scale),
@@ -135,6 +134,7 @@ class TextManager(object):
     def __init__(self):
         #self.atlas = TextureAtlas('droidsans.png','droidsans.txt')
         self.atlas = TextureAtlas('pixelmix.png','pixelmix.txt')
+        self.font_height = max(subimage.size.y for subimage in self.atlas.subimages.values())
         self.quads = utils.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
         TextTypes.BUFFER = {TextTypes.SCREEN_RELATIVE : self.quads,
                             TextTypes.GRID_RELATIVE   : gamedata.nonstatic_text_buffer,

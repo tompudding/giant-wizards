@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-import utils
+import utils,ui
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from utils import Point
@@ -33,6 +33,7 @@ import texture,main_menu
 def Init(gamedata):
     w,h = (1280,720)
     gamedata.screen = Point(w,h)
+    gamedata.screen_root = ui.RootElement(Point(0,0),gamedata.screen)
     screen = pygame.display.set_mode((w,h),pygame.OPENGL | pygame.DOUBLEBUF)
     glClearColor(0.0, 0.0, 0.0, 1.0)
     pygame.display.set_caption('Giant Wizards from the Outer Rim!')
@@ -86,7 +87,11 @@ def main():
                 done = True
                 break
             elif event.type == pygame.MOUSEMOTION:
-                gamedata.current_view.MouseMotion(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),Point(event.rel[0],-event.rel[1]))
+                pos = Point(event.pos[0],gamedata.screen[1]-event.pos[1])
+                rel = Point(event.rel[0],-event.rel[1])
+                hovered = gamedata.screen_root.MouseMotion(pos,rel)
+                if not hovered:
+                    gamedata.current_view.MouseMotion(pos,rel)
             elif (event.type == KEYDOWN):
                 gamedata.current_view.KeyDown(event.key)
             elif (event.type == MOUSEBUTTONDOWN):
