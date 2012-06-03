@@ -67,6 +67,9 @@ class UIElement(object):
     def GetAbsolute(self,p):
         return self.absolute.bottom_left + (self.absolute.size*p)
 
+    def GetRelative(self,p):
+        return (p - self.absolute.bottom_left)/self.absolute.size
+
     def AddChild(self,element):
         self.children.append(element)
 
@@ -199,6 +202,11 @@ class Box(UIElement):
 class TextBox(UIElement):
     """ A Screen-relative text box wraps text to a given size """
     def __init__(self,parent,bl,tr,text,scale,colour = None):
+        if tr == None:
+            #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
+            #the parent
+            relative_size = parent.GetRelative(Point(0,gamedata.text_manager.font_height*scale*texture.global_scale))
+            tr = Point(1,bl.y + relative_size.y)
         super(TextBox,self).__init__(parent,bl,tr)
         self.text        = text
         self.scale       = scale
@@ -219,19 +227,21 @@ class TextBox(UIElement):
         #Do this without any kerning or padding for now, and see what it looks like
         cursor = Point(0,1 - row_height)
         for (i,quad) in enumerate(self.quads):
-            letter_size = Point(quad.width *self.scale*texture.global_scale/self.size.x,
-                                quad.height*self.scale*texture.global_scale/self.size.y)
-            if cursor.x + letter_size.x > self.size.x:
+            letter_size = Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
+                                float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y)
+            print 'letter_size',letter_size
+            if cursor.x + letter_size.x > 1:
                 cursor.x = 0
                 cursor.y -= row_height
             target_bl = self.pos+cursor
             target_tr = target_bl + letter_size
-                
+            print cursor,target_bl,target_tr
             if target_bl.y < 0:
                 #We've gone too far, now more text to write!
                 break
-            absolute_bl = self.GetAbsoluteInParent(target_bl)
-            absolute_tr = self.GetAbsoluteInParent(target_tr)
+            absolute_bl = self.GetAbsolute(target_bl)
+            absolute_tr = self.GetAbsolute(target_tr)
+            print 'gibs'
             quad.SetVertices(absolute_bl,
                              absolute_tr,
                              texture.TextTypes.LEVELS[self.text_type])
@@ -285,8 +295,6 @@ class TextBoxButton(TextBox):
         self.hovered     = False
         self.selected    = False
         self.enabled     = False
-        if tr == None:
-            tr = Point(1,pos.y + gamedata.text_manager.font_height)
         super(TextBoxButton,self).__init__(parent,pos,tr,text,size)
         for i in xrange(4):
             self.hover_quads[i].Disable()

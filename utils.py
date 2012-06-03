@@ -147,7 +147,10 @@ class Point(object):
             return Point(self.x*other_point,self.y*other_point)
 
     def __div__(self,factor):
-        return Point(self.x/factor,self.y/factor)
+        try:
+            return Point(self.x/factor.x,self.y/factor.y)
+        except AttributeError:
+            return Point(self.x/factor,self.y/factor)
 
     def __getitem__(self,index):
         return (self.x,self.y)[index]
@@ -162,7 +165,7 @@ class Point(object):
         return str(self)
 
     def __str__(self):
-        return '(%2.f,%.2f)' % (self.x,self.y)
+        return '(%.2f,%.2f)' % (self.x,self.y)
 
     def __cmp__(self,other):
         try:

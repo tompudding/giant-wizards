@@ -17,7 +17,7 @@ class MainMenu(object):
                                   0)
         self.static_text = []
         self.buttons = []
-        offset = Point(-0.005*gamedata.screen.x,-0.045*gamedata.screen.y)
+        offset = Point(-0.005,-0.045)
         
         #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
         callbacks = [self.PlayerChange0,
@@ -30,28 +30,25 @@ class MainMenu(object):
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
-            button_bl = offset+Point(0.50*gamedata.screen.x         ,
-                                     (0.55-i*0.1)*gamedata.screen.y)
-            button_tr = Point(1,button_bl.y + gamedata.text_manager.font_height)
+            button_bl = offset+Point(0.50,(0.55-i*0.1))
             button = ui.TextBoxButton(gamedata.screen_root     ,
                                       gamedata.player_config[i],
                                       button_bl,
-                                      button_tr,
                                       size=0.7,
                                       callback = callbacks[i],
                                       line_width=4)
             self.buttons.append(button)
         self.play_button = ui.TextBoxButton(gamedata.screen_root ,
                                             'Play'               ,
-                                            offset+Point(0.22*gamedata.screen.x   ,
-                                                         (0.15)*gamedata.screen.y),
+                                            offset+Point(0.22,
+                                                         (0.15)),
                                             size=0.7,
                                             callback = self.Play,
                                             line_width=4)
         self.exit_button = ui.TextBoxButton(gamedata.screen_root,
                                             'Exit'              ,
-                                            offset+Point(0.35*gamedata.screen.x   ,
-                                                         (0.15)*gamedata.screen.y),
+                                            offset+Point(0.35,
+                                                         (0.15)),
                                             size=0.7,
                                             callback = self.Quit,
                                             line_width=4)
