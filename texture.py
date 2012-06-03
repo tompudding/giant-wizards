@@ -147,6 +147,14 @@ class TextManager(object):
         #this is a bit dodge, should get its own class if I want to store extra things in it
         quad.width,quad.height = self.atlas.Subimage(char).size
         return quad
+
+    def GetSize(self,text,scale):
+        """
+        How big would the text be if drawn on a single row in the given size?
+        """
+        sizes = [self.atlas.Subimage(char).size*scale*global_scale for char in text]
+        out = Point(sum(item.x for item in sizes),max(item.y for item in sizes))
+        return out
     
 
     def Draw(self):

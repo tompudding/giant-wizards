@@ -213,8 +213,9 @@ class TextBox(UIElement):
         if tr == None:
             #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
             #the parent
-            relative_size = parent.GetRelative(Point(0,gamedata.text_manager.font_height*scale*texture.global_scale))
-            tr = Point(1,bl.y + relative_size.y*1.05)
+            tr = bl + (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)*1.05
+            print text,tr
+            #tr = Point(1,bl.y + relative_size.y*1.05)
         super(TextBox,self).__init__(parent,bl,tr)
         self.text        = text
         self.scale       = scale
