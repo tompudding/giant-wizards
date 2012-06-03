@@ -22,7 +22,7 @@ class UIElementList:
     def Get(self,pos):
         #not very efficient
         match = [-1,None]
-        for ui,height in self.uielements.iteritems():
+        for ui,height in self.items.iteritems():
             if pos in ui and ui.Selectable():
                 if height > match[0]:
                     match = [height,ui]
@@ -44,13 +44,12 @@ class UIElement(object):
         self.parent   = parent
         self.absolute = AbsoluteBounds()
         self.on       = True
-        self.SetBounds(pos,tr)
         self.children = []
-        if self.parent != None:
-            self.parent.AddChild(self)
-            self.GetAbsoluteInParent = parent.GetAbsolute
-            self.root                = parent.root
-            self.level               = parent.level + 1
+        self.parent.AddChild(self)
+        self.GetAbsoluteInParent = parent.GetAbsolute
+        self.root                = parent.root
+        self.level               = parent.level + 1
+        self.SetBounds(pos,tr)
 
     def SetBounds(self,pos,tr):
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
@@ -61,7 +60,7 @@ class UIElement(object):
         self.size                 = tr - pos
 
     def UpdatePosition(self):
-        self.SetBounds(self,self.bottom_left,self.top_right)
+        self.SetBounds(self.bottom_left,self.top_right)
         for child_element in self.children:
             child_element.UpdatePosition()
 
@@ -69,7 +68,7 @@ class UIElement(object):
         return self.absolute.bottom_left + (self.absolute.size*p)
 
     def AddChild(self,element):
-        self.children.Append(element)
+        self.children.append(element)
 
     def __contains__(self,pos):
         if pos.x < self.absolute.bottom_left.x or pos.x > self.absolute.top_right.x:
@@ -147,7 +146,6 @@ class RootElement(UIElement):
             self.hovered = hovered
             self.hovered.Hover()
         else:
-            old_hovered = self.hovered_player
             if self.hovered != None:
                 self.hovered.EndHover()
                 self.hovered = None
@@ -206,8 +204,8 @@ class TextBox(UIElement):
         self.scale       = scale
         self.colour      = colour
         self.text_type   = texture.TextTypes.SCREEN_RELATIVE
-        self.quads       = [textmanager.Letter(char,self.text_type) for char in self.text]
-        self.textmanager = gamedata.textmanager
+        self.text_manager = gamedata.text_manager
+        self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
 
@@ -217,13 +215,13 @@ class TextBox(UIElement):
         self.pos = pos
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
         self.scale = scale
-        row_height = (float(gamedata.textmanager.font_height*self.scale*global_scale)/self.absolute.size.y)
+        row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
         cursor = Point(0,1 - row_height)
         for (i,quad) in enumerate(self.quads):
-            letter_size = Point(quad.width *self.scale*global_scale/self.size.x,
-                                quad.height*self.scale*global_scale/self.size.y)
-            if self.pos + cursor.x + letter_size.x > 1:
+            letter_size = Point(quad.width *self.scale*texture.global_scale/self.size.x,
+                                quad.height*self.scale*texture.global_scale/self.size.y)
+            if cursor.x + letter_size.x > self.size.x:
                 cursor.x = 0
                 cursor.y -= row_height
             target_bl = self.pos+cursor
@@ -236,17 +234,17 @@ class TextBox(UIElement):
             absolute_tr = self.GetAbsoluteInParent(target_tr)
             quad.SetVertices(absolute_bl,
                              absolute_tr,
-                             TextTypes.LEVELS[self.text_type])
+                             texture.TextTypes.LEVELS[self.text_type])
             if colour:
                 quad.SetColour(colour)
-            cursor.x += letter.x
+            cursor.x += letter_size.x
         height = max([q.height for q in self.quads])
-        self.UpdatePosition()
+        super(TextBox,self).UpdatePosition()
 
     def UpdatePosition(self):
         """Called by the parent to tell us we need to recalculate our absolute position"""
-        super(Box,self).UpdatePosition()
-        self.Position(pos,self.scale,self.colour)
+        super(TextBox,self).UpdatePosition()
+        self.Position(self.pos,self.scale,self.colour)
 
     def SetPos(self,pos):
         """Called by the user to update our position directly"""
@@ -263,7 +261,7 @@ class TextBox(UIElement):
         """Update the text"""
         self.Delete()
         self.text = text
-        self.quads = [self.textmanager.Letter(char,self.text_type) for char in self.text]
+        self.quads = [self.text_manager.Letter(char,self.text_type) for char in self.text]
         self.Position(self.pos,self.scale,colour)
 
     def Disable(self):
@@ -287,6 +285,8 @@ class TextBoxButton(TextBox):
         self.hovered     = False
         self.selected    = False
         self.enabled     = False
+        if tr == None:
+            tr = Point(1,pos.y + gamedata.text_manager.font_height)
         super(TextBoxButton,self).__init__(parent,pos,tr,text,size)
         for i in xrange(4):
             self.hover_quads[i].Disable()

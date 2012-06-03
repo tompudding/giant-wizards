@@ -30,10 +30,13 @@ class MainMenu(object):
                                 (0.55-i*0.1)*gamedata.screen.y),
                           0.7)
             self.static_text.append(item)
+            button_bl = offset+Point(0.50*gamedata.screen.x         ,
+                                     (0.55-i*0.1)*gamedata.screen.y)
+            button_tr = Point(1,button_bl.y + gamedata.text_manager.font_height)
             button = ui.TextBoxButton(gamedata.screen_root     ,
                                       gamedata.player_config[i],
-                                      offset+Point(0.50*gamedata.screen.x         ,
-                                                   (0.55-i*0.1)*gamedata.screen.y),
+                                      button_bl,
+                                      button_tr,
                                       size=0.7,
                                       callback = callbacks[i],
                                       line_width=4)
@@ -78,6 +81,12 @@ class MainMenu(object):
         glEnable(GL_TEXTURE_2D)
 
     def MouseMotion(self,pos,rel):
+        pass
+    
+    def MouseButtonDown(self,pos,button):
+        pass
+
+    def MouseButtonUp(self,pos,button):
         pass
 
     def KeyDown(self,key):
