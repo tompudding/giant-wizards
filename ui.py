@@ -15,10 +15,10 @@ class UIElementList:
     """
     def __init__(self):
         self.items = {}
-        
-    def Append(self,item):
-        self.items[item] = item.level
 
+    def __setitem__(self,item,value):
+        self.items[item] = value
+        
     def Get(self,pos):
         #not very efficient
         match = [-1,None]
@@ -74,9 +74,9 @@ class UIElement(object):
         self.children.append(element)
 
     def __contains__(self,pos):
-        if pos.x < self.absolute.bottom_left.x or pos.x > self.absolute.top_right.x:
+        if pos.x < self.absolute.bottom_left.x or pos.x >= self.absolute.top_right.x:
             return False
-        if pos.y >= self.absolute.bottom_left.y and pos.y <= self.absolute.top_right.y:
+        if pos.y >= self.absolute.bottom_left.y and pos.y < self.absolute.top_right.y:
             return True
         return False
 
@@ -142,21 +142,29 @@ class RootElement(UIElement):
             pass
 
     def MouseMotion(self,pos,rel):
+        """
+        Try to handle mouse motion. If it's over one of our elements, return True to indicate that
+        the lower levels should not handle it. Else return false to indicate that they should
+        """
         hovered = self.active_children.Get(pos)
         if hovered is not self.hovered:
             if self.hovered != None:
                 self.hovered.EndHover()
             self.hovered = hovered
-            self.hovered.Hover()
-        else:
-            if self.hovered != None:
-                self.hovered.EndHover()
-                self.hovered = None
-        return hovered
+            if self.hovered:
+                self.hovered.Hover()
+        return True if hovered else False
+
+    def MouseButtonDown(self,pos,button):
+        return False
 
     def MouseButtonUp(self,pos,button):
         if self.hovered:
+            print self.hovered,button
             self.hovered.OnClick(pos,button)
+            return True
+        return False
+            
     
 
 class Box(UIElement):
@@ -206,7 +214,7 @@ class TextBox(UIElement):
             #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
             #the parent
             relative_size = parent.GetRelative(Point(0,gamedata.text_manager.font_height*scale*texture.global_scale))
-            tr = Point(1,bl.y + relative_size.y)
+            tr = Point(1,bl.y + relative_size.y*1.05)
         super(TextBox,self).__init__(parent,bl,tr)
         self.text        = text
         self.scale       = scale
@@ -229,19 +237,16 @@ class TextBox(UIElement):
         for (i,quad) in enumerate(self.quads):
             letter_size = Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                                 float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y)
-            print 'letter_size',letter_size
             if cursor.x + letter_size.x > 1:
                 cursor.x = 0
                 cursor.y -= row_height
-            target_bl = self.pos+cursor
+            target_bl = cursor
             target_tr = target_bl + letter_size
-            print cursor,target_bl,target_tr
             if target_bl.y < 0:
-                #We've gone too far, now more text to write!
+                #We've gone too far, no more room to write!
                 break
             absolute_bl = self.GetAbsolute(target_bl)
             absolute_tr = self.GetAbsolute(target_tr)
-            print 'gibs'
             quad.SetVertices(absolute_bl,
                              absolute_tr,
                              texture.TextTypes.LEVELS[self.text_type])
@@ -271,8 +276,12 @@ class TextBox(UIElement):
         """Update the text"""
         self.Delete()
         self.text = text
-        self.quads = [self.text_manager.Letter(char,self.text_type) for char in self.text]
+        self.ReallocateResources()
         self.Position(self.pos,self.scale,colour)
+        self.Enable()
+    
+    def ReallocateResources(self):
+        self.quads = [self.text_manager.Letter(char,self.text_type) for char in self.text]
 
     def Disable(self):
         """Don't draw for a while, maybe we'll need you again"""
@@ -299,9 +308,11 @@ class TextBoxButton(TextBox):
         for i in xrange(4):
             self.hover_quads[i].Disable()
         self.registered = False
+        self.Enable()
         
     def Position(self,pos,scale,colour = None):
         super(TextBoxButton,self).Position(pos,scale,colour)
+        print 'Position called with text',self.text
         self.SetVertices()
 
     def UpdatePosition(self):
@@ -339,10 +350,15 @@ class TextBoxButton(TextBox):
         super(TextBoxButton,self).SetPos(pos)
         self.SetVertices()
 
+    def ReallocateResources(self):
+        super(TextBoxButton,self).ReallocateResources()
+        self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
+
     def Delete(self):
-        super(TextButtonBox,self).Delete()
+        super(TextBoxButton,self).Delete()
         for quad in self.hover_quads:
             quad.Delete()
+        self.enabled = False
 
     def Hover(self):
         self.hovered = True

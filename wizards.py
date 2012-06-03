@@ -86,18 +86,26 @@ def main():
             if event.type == pygame.locals.QUIT:
                 done = True
                 break
-            elif event.type == pygame.MOUSEMOTION:
-                pos = Point(event.pos[0],gamedata.screen[1]-event.pos[1])
-                rel = Point(event.rel[0],-event.rel[1])
-                hovered = gamedata.screen_root.MouseMotion(pos,rel)
-                if not hovered:
-                    gamedata.current_view.MouseMotion(pos,rel)
             elif (event.type == KEYDOWN):
                 gamedata.current_view.KeyDown(event.key)
-            elif (event.type == MOUSEBUTTONDOWN):
-                gamedata.current_view.MouseButtonDown(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
-            elif (event.type == MOUSEBUTTONUP):
-                gamedata.current_view.MouseButtonUp(Point(event.pos[0],gamedata.screen[1]-event.pos[1]),event.button)
+            else:
+                try:
+                    pos = Point(event.pos[0],gamedata.screen[1]-event.pos[1])
+                except AttributeError:
+                    continue
+                if event.type == pygame.MOUSEMOTION:
+                    rel = Point(event.rel[0],-event.rel[1])
+                    handled = gamedata.screen_root.MouseMotion(pos,rel)
+                    if not handled:
+                        gamedata.current_view.MouseMotion(pos,rel)
+                elif (event.type == MOUSEBUTTONDOWN):
+                    handled = gamedata.screen_root.MouseButtonDown
+                    if not handled:
+                        gamedata.current_view.MouseButtonDown(pos,event.button)
+                elif (event.type == MOUSEBUTTONUP):
+                    handled = gamedata.screen_root.MouseButtonUp(pos,event.button)
+                    if not handled:
+                        gamedata.current_view.MouseButtonUp(pos,event.button)
 
 import logging
 
