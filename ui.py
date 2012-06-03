@@ -214,12 +214,17 @@ class TextBox(UIElement):
             #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
             #the parent
             self.shrink_to_fit = True
-            tr = bl + (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)*1.05
-            print text,tr
-            #tr = Point(1,bl.y + relative_size.y*1.05)
+            text_size          = (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)
+            margin             = Point(text_size.y*0.06,text_size.y*0.15)
+            tr                 = bl + text_size + margin*2
+            #We'd like to store the margin relative to us, rather than our parent
+            self.margin = margin/(tr-bl)
         else:
             self.shrink_to_fit = False
         super(TextBox,self).__init__(parent,bl,tr)
+        if not self.shrink_to_fit:
+            #In this case our margin is a fixed part of the box
+            self.margin      = 0.05
         self.text        = text
         self.scale       = scale
         self.colour      = colour
@@ -231,13 +236,14 @@ class TextBox(UIElement):
 
     def Position(self,pos,scale,colour = None):
         """Draw the text at the given location and size. Maybe colour too"""
-        #set up the position for the characters
+        #set up the position for the characters. Note that we do everything here in size relative
+        #to our text box (so (0,0) is bottom_left, (1,1) is top_right. 
         self.pos = pos
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
         self.scale = scale
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
-        cursor = Point(0,1 - row_height)
+        cursor = Point(self.margin.x,1 - row_height-self.margin.y)
         for (i,quad) in enumerate(self.quads):
             letter_size = Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                                 float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y)
@@ -281,7 +287,11 @@ class TextBox(UIElement):
         self.Delete()
         self.text = text
         if self.shrink_to_fit:
-            tr = self.pos + (gamedata.text_manager.GetSize(text,self.scale).to_float()/self.parent.absolute.size)*1.05
+            text_size          = (gamedata.text_manager.GetSize(text,self.scale).to_float()/self.parent.absolute.size)
+            margin             = Point(text_size.y*0.06,text_size.y*0.15)
+            tr                 = self.pos + text_size + margin*2
+            #We'd like to store the margin relative to us, rather than our parent
+            self.margin = margin/(tr-self.pos)
             self.SetBounds(self.pos,tr)
         self.ReallocateResources()
         self.Position(self.pos,self.scale,colour)
