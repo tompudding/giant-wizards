@@ -213,9 +213,12 @@ class TextBox(UIElement):
         if tr == None:
             #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
             #the parent
+            self.shrink_to_fit = True
             tr = bl + (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)*1.05
             print text,tr
             #tr = Point(1,bl.y + relative_size.y*1.05)
+        else:
+            self.shrink_to_fit = False
         super(TextBox,self).__init__(parent,bl,tr)
         self.text        = text
         self.scale       = scale
@@ -277,6 +280,9 @@ class TextBox(UIElement):
         """Update the text"""
         self.Delete()
         self.text = text
+        if self.shrink_to_fit:
+            tr = self.pos + (gamedata.text_manager.GetSize(text,self.scale).to_float()/self.parent.absolute.size)*1.05
+            self.SetBounds(self.pos,tr)
         self.ReallocateResources()
         self.Position(self.pos,self.scale,colour)
         self.Enable()
