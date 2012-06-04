@@ -9,15 +9,17 @@ class Wizard(actor.Actor):
         self.controlled       = [self]
         self.controlled_index = 0
         self.player           = player
-        self.action_choices   = action.ActionChoiceList(self,
-                                                        Point(gamedata.screen.x*0.7,gamedata.screen.y*0.79),
+        self.action_choices   = action.ActionChoiceList(self.options_box,
+                                                        self,
+                                                        Point(0,0),
+                                                        Point(1,0.8),
                                                         ( action.MoveActionCreator    (self,action.MoveAction       ),
                                                           action.BlastActionCreator   (self,action.WizardBlastAction),
                                                           action.SummonActionCreator  (self,SummonGoblinAction      ),
                                                           action.TeleportActionCreator(self,action.TeleportAction   )))
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
-        self.action_choices.Disable(self.tiles)
+        self.action_choices.Disable()
         #This is just for AI players, I need to split them into different classes really
         self.blast_action_creator = action.BlastActionCreator(self,action.WizardBlastAction)
         self.summon_goblin_creator = action.SummonActionCreator(self,SummonGoblinAction)

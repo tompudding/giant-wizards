@@ -133,6 +133,8 @@ class MainMenu(object):
             a.Delete()
         for b in self.buttons:
             b.Delete()
+        self.play_button.Delete()
+        self.exit_button.Delete()
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)

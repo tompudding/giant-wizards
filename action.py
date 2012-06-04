@@ -466,10 +466,10 @@ class SummonActionCreator(BasicActionCreator):
 
 
 class ActionChoice(object):
-    def __init__(self,action,position,wizard,callback = None):
+    def __init__(self,ui_parent,action,position,wizard,callback = None):
         self.action         = action
         self.text           = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text           = ui.TextButton(self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.text           = ui.TextBoxButton(ui_parent,self.text,position,size=0.33,callback = self.OnButtonClick)
         self.actor_callback = callback
         self.wizard         = wizard
         self.quads          = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
@@ -570,6 +570,7 @@ class ActionChoice(object):
                 self.wizard.action_list.append(action)
 
     def OnButtonClick(self,pos):
+        print 'ac_selected',self.text.text,self
         return self.actor_callback(pos,self)
 
     def FriendlyTargetable(self):
@@ -577,13 +578,18 @@ class ActionChoice(object):
 
 
 class ActionChoiceList(ui.ButtonList):
-    def __init__(self,wizard,pos,creators):
-        super(ActionChoiceList,self).__init__(pos)
-        self.wizard = wizard
+    def __init__(self,parent,actor,pos,tr,creators):
+        super(ActionChoiceList,self).__init__(parent,pos,tr)
+        self.actor = actor
+        self.choices = []
         for creator in creators:
-            action_choice = ActionChoice(creator,Point(0,0),self.wizard,wizard.HandleAction)
-            self.AddButton(action_choice)
+            action_choice = ActionChoice(self,creator,Point(0,0),self.actor,self.actor.HandleAction)
+            self.choices.append(action_choice)
+            self.AddElement(action_choice.text)
 
     def Unselected(self):
-        for action_choice in self.buttons:
+        for action_choice in self.choices:
             action_choice.Unselected()
+
+    def __getitem__(self,index):
+        return self.choices[index]

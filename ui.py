@@ -18,6 +18,9 @@ class UIElementList:
 
     def __setitem__(self,item,value):
         self.items[item] = value
+
+    def __delitem__(self,item):
+        del self.items[item]
         
     def Get(self,pos):
         #not very efficient
@@ -94,7 +97,7 @@ class UIElement(object):
             child.Disable()
 
     def Enable(self):
-        for q in self.children:
+        for child in self.children:
             child.Enable()
 
     def Delete(self):
@@ -137,7 +140,7 @@ class RootElement(UIElement):
 
     def RemoveUIElement(self,element):
         try:
-            del self.uielements[element]
+            del self.active_children[element]
         except KeyError:
             pass
 
@@ -160,7 +163,6 @@ class RootElement(UIElement):
 
     def MouseButtonUp(self,pos,button):
         if self.hovered:
-            print self.hovered,button
             self.hovered.OnClick(pos,button)
             return True
         return False
@@ -329,7 +331,6 @@ class TextBoxButton(TextBox):
         
     def Position(self,pos,scale,colour = None):
         super(TextBoxButton,self).Position(pos,scale,colour)
-        print 'Position called with text',self.text
         self.SetVertices()
 
     def UpdatePosition(self):
@@ -375,7 +376,7 @@ class TextBoxButton(TextBox):
         super(TextBoxButton,self).Delete()
         for quad in self.hover_quads:
             quad.Delete()
-        self.enabled = False
+        self.Disable()
 
     def Hover(self):
         self.hovered = True
@@ -414,7 +415,7 @@ class TextBoxButton(TextBox):
         super(TextBoxButton,self).Disable()
         if self.enabled:
             self.enabled = False
-            self.root.RemoveUIElement(self,element)
+            self.root.RemoveUIElement(self)
             for i in xrange(4):
                 self.hover_quads[i].Disable()
 
@@ -447,10 +448,10 @@ class ButtonList(UIElement):
 
     def __init__(self,parent,bl,tr):
         super(ButtonList,self).__init__(parent,bl,tr)
-        self.itemheight = 0.04*gamedata.screen.y
+        self.itemheight = 0.04
 
     def AddElement(self,element):
-        element.SetPos(self.top_left - Point(0,self.itemheight*len(self.buttons)))
+        element.SetPos(self.top_right - Point(self.top_right.x,self.itemheight*len(self.children)))
         self.children.append(element)
 
     def __getitem__(self,index):
