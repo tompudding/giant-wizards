@@ -25,10 +25,11 @@ class MainMenu(object):
                      self.PlayerChange2,
                      self.PlayerChange3]
         for i,name in enumerate(names):
-            item = texture.TextObject(name,gamedata.text_manager)
-            item.Position(offset+Point(0.05*gamedata.screen.x,
-                                (0.55-i*0.1)*gamedata.screen.y),
-                          0.7)
+            item = ui.TextBox(parent = gamedata.screen_root,
+                              bl     = offset + Point(0.05,0.55-i*0.1),
+                              tr     = None,
+                              text   = name,
+                              scale  = 0.7)
             self.static_text.append(item)
             button_bl = offset+Point(0.50,(0.55-i*0.1))
             button = ui.TextBoxButton(gamedata.screen_root     ,

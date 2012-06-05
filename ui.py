@@ -319,7 +319,6 @@ class TextBox(UIElement):
 
 class TextBoxButton(TextBox):
     def __init__(self,parent,text,pos,tr=None,size=0.5,callback = None,line_width=2):
-        self.boxextra    = 0.2
         self.callback    = callback
         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         self.line_width  = line_width
