@@ -467,6 +467,7 @@ class SummonActionCreator(BasicActionCreator):
 
 class ActionChoice(object):
     def __init__(self,ui_parent,action,position,wizard,callback = None):
+        #todo, only active player-controlled characters should get their stuff created and registered
         self.action         = action
         self.text           = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
         self.text           = ui.TextBoxButton(ui_parent,self.text,position,size=0.33,callback = self.OnButtonClick)
@@ -570,26 +571,36 @@ class ActionChoice(object):
                 self.wizard.action_list.append(action)
 
     def OnButtonClick(self,pos):
-        print 'ac_selected',self.text.text,self
         return self.actor_callback(pos,self)
 
     def FriendlyTargetable(self):
         return False        
 
 
-class ActionChoiceList(ui.ButtonList):
+class ActionChoiceList(ui.UIElement):
     def __init__(self,parent,actor,pos,tr,creators):
         super(ActionChoiceList,self).__init__(parent,pos,tr)
         self.actor = actor
         self.choices = []
+        self.itemheight = 0.1
         for creator in creators:
             action_choice = ActionChoice(self,creator,Point(0,0),self.actor,self.actor.HandleAction)
             self.choices.append(action_choice)
-            self.AddElement(action_choice.text)
+            action_choice.text.SetPos(self.top_right - Point(self.top_right.x,self.itemheight*len(self.children)))
 
     def Unselected(self):
         for action_choice in self.choices:
             action_choice.Unselected()
+
+    def Enable(self):
+        super(ActionChoiceList,self).Enable()
+        for action_choice in self.choices:
+            action_choice.Enable()
+
+    def Disable(self):
+        super(ActionChoiceList,self).Disable()
+        for action_choice in self.choices:
+            action_choice.Disable()
 
     def __getitem__(self,index):
         return self.choices[index]

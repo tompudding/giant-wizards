@@ -137,6 +137,7 @@ class Goblin(actor.Actor):
         self.action_choices = action.ActionChoiceList(self,
                                                       Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
                                                       [action.MoveActionCreator   (self,action.MoveAction)])
+        self.action_choices.Disable()
         self.move = self.action_choices[0]
         for a in self.action_choices:
             a.Disable()

@@ -21,6 +21,9 @@ class UIElementList:
 
     def __delitem__(self,item):
         del self.items[item]
+
+    def __contains__(self,item):
+        return item in self.items
         
     def Get(self,pos):
         #not very efficient
@@ -115,7 +118,7 @@ class UIElement(object):
             child.MakeUnselectable()
 
     def __hash__(self):
-        return hash((self.absolute.bottom_left,self.absolute.top_right))
+        return hash((self.absolute.bottom_left,self.absolute.top_right,self.level))
 
 class RootElement(UIElement):
     """
@@ -365,8 +368,14 @@ class TextBoxButton(TextBox):
 
                                   
     def SetPos(self,pos):
+        #FIXME: This is shit. I can't be removing and adding every frame
+        reregister = self.enabled
+        if reregister:
+            self.root.RemoveUIElement(self)
         super(TextBoxButton,self).SetPos(pos)
         self.SetVertices()
+        if reregister:
+            self.root.RegisterUIElement(self)
 
     def ReallocateResources(self):
         super(TextBoxButton,self).ReallocateResources()
@@ -410,7 +419,7 @@ class TextBoxButton(TextBox):
             self.root.RegisterUIElement(self)
             if self.hovered:
                 self.Hover()
-        
+
     def Disable(self):
         super(TextBoxButton,self).Disable()
         if self.enabled:
@@ -420,7 +429,7 @@ class TextBoxButton(TextBox):
                 self.hover_quads[i].Disable()
 
     def OnClick(self,pos,button):
-        if self.callback != None and button == 1:
+        if 1 or self.callback != None and button == 1:
             self.callback(pos)
         
 # class TexturedButton(TextButton):
@@ -437,22 +446,3 @@ class TextBoxButton(TextBox):
 #         self.selected = False
 #         for i in xrange(4):
 #             self.hover_quads[i].Disable()
-
-class ButtonList(UIElement):
-    """
-    UI Element for showing a list of buttons. Right now it's very basic, does not actually 
-    inherit from UIElement(as it doesn't accept clicks itself), and doesn't really do anything
-
-    Just a placeholder really in case we need scrollbars at some point
-    """
-
-    def __init__(self,parent,bl,tr):
-        super(ButtonList,self).__init__(parent,bl,tr)
-        self.itemheight = 0.04
-
-    def AddElement(self,element):
-        element.SetPos(self.top_right - Point(self.top_right.x,self.itemheight*len(self.children)))
-        self.children.append(element)
-
-    def __getitem__(self,index):
-        return self.children[index]

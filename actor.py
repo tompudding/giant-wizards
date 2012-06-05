@@ -70,6 +70,7 @@ class Actor(object):
             self.tiles.player_action.UpdateQuads()
 
     def Select(self):
+        print 'actor selected',self.name
         self.selected = True
         for t in self.static_text:
             t.Enable()
@@ -148,10 +149,6 @@ class Actor(object):
 
     def HandleAction(self,pos,action):
         #raise TypeError
-        print 'a',self.tiles.player_action,action
-        if self.tiles.player_action and action:
-            print 'b',self.tiles.player_action.text.text,action.text.text
-            print 'c',self.tiles.player_action.wizard.name,action.wizard.name
         if self.tiles.player_action is action:
             if action is self.move: #always keep move selected if nothing else is
                 action.UpdateQuads()
