@@ -120,10 +120,10 @@ class Tiles(object):
                                   Point(0.01,0.07),
                                   Point(0.26,0.29),
                                   (0,0,0,0.6))
-        self.control_box.AddChild(ui.TextBoxButton(self.control_box,'End Turn',Point(0.3,0.2),size=0.4,callback=self.EndTurn))
-        self.control_box.AddChild(ui.TextBoxButton(self.control_box,'>',Point(0.8,0.2),size=1.5,callback=self.NextControlled))
-        self.control_box.AddChild(ui.TextBoxButton(self.control_box,'<',Point(0.1,0.2),size=1.5,callback=self.PrevControlled))
-        self.control_box.AddChild(ui.TextBoxButton(self.control_box,'Centre',Point(0.35,0.65),size=0.4,callback=self.CentreSelected))
+        ui.TextBoxButton(self.control_box,'End Turn',Point(0.3,0.2),size=0.4,callback=self.EndTurn)
+        ui.TextBoxButton(self.control_box,'>',Point(0.8,0.2),size=1.5,callback=self.NextControlled)
+        ui.TextBoxButton(self.control_box,'<',Point(0.1,0.2),size=1.5,callback=self.PrevControlled)
+        ui.TextBoxButton(self.control_box,'Centre',Point(0.35,0.65),size=0.4,callback=self.CentreSelected)
         self.control_box.MakeSelectable()
         
         gamedata.map_size = self.map_size
