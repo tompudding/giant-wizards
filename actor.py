@@ -18,10 +18,10 @@ class Actor(object):
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
         self.move_points        = 0
-        self.options_box        = ui.Box(gamedata.screen_root,
-                                         Point(0.7,0.5),
-                                         Point(0.95,0.95),
-                                         (0,0,0,0.6))
+        self.options_box        = ui.HoverableBox(gamedata.screen_root,
+                                                  Point(0.7,0.5),
+                                                  Point(0.95,0.95),
+                                                  (0,0,0,0.6))
         self.title              = texture.TextObject(name+':',gamedata.text_manager)
         self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
         self.movement_text = texture.TextObject('Movement : %d' % self.move_points,gamedata.text_manager)
@@ -76,7 +76,6 @@ class Actor(object):
             t.Enable()
         self.action_choices.Enable()
         self.options_box.Enable()
-        self.tiles.RegisterUIElement(self.options_box,0)
         self.HandleAction(Point(0,0),self.move)
     
     def Unselect(self):
@@ -85,7 +84,6 @@ class Actor(object):
             t.Disable()
         self.action_choices.Disable()
         self.options_box.Disable()
-        self.tiles.RemoveUIElement(self.options_box)
         self.flash_state = False
         self.quad.Enable()
         self.quad.SetColour((1,1,1,1))

@@ -170,6 +170,26 @@ class RootElement(UIElement):
             return True
         return False
             
+class HoverableElement(UIElement):
+    """
+    This class represents a UI element that accepts a hover; i.e when the cursor is over it the hover event
+    does not get passed through to the next layer.
+    """
+    def __init__(self,parent,pos,tr):
+        super(HoverableElement,self).__init__(parent,pos,tr)
+        self.root.RegisterUIElement(self)
+
+    def Delete(self):
+        self.root.RemoveUIElement(self)
+        super(HoverableElement,self).Delete()
+
+    def Disable(self):
+        self.root.RemoveUIElement(self)
+        super(HoverableElement,self).Disable()
+
+    def Enable(self):
+        self.root.RegisterUIElement(self)
+        super(HoverableElement,self).Enable()
     
 
 class Box(UIElement):
@@ -190,6 +210,7 @@ class Box(UIElement):
                               utils.ui_level)
 
     def Delete(self):
+        super(Box,self).Delete()
         self.quad.Delete()
         
     def Disable(self):
@@ -211,6 +232,8 @@ class Box(UIElement):
     def OnClick(self,pos,button):
         pass
 
+class HoverableBox(Box,HoverableElement):
+    pass
 
 class TextBox(UIElement):
     """ A Screen-relative text box wraps text to a given size """

@@ -116,10 +116,10 @@ class Tiles(object):
         self.mouse_text.Position(Point(10,10),0.5,(1,0,0,1))
         self.mouse_text_colour    = (1,1,1,1)
         
-        self.control_box = ui.Box(gamedata.screen_root,
-                                  Point(0.01,0.07),
-                                  Point(0.26,0.29),
-                                  (0,0,0,0.6))
+        self.control_box = ui.HoverableBox(gamedata.screen_root,
+                                           Point(0.01,0.07),
+                                           Point(0.26,0.29),
+                                           (0,0,0,0.6))
         ui.TextBoxButton(self.control_box,'End Turn',Point(0.3,0.2),size=0.4,callback=self.EndTurn)
         ui.TextBoxButton(self.control_box,'>',Point(0.8,0.2),size=1.5,callback=self.NextControlled)
         ui.TextBoxButton(self.control_box,'<',Point(0.1,0.2),size=1.5,callback=self.PrevControlled)
