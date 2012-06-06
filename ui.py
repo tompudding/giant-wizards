@@ -169,6 +169,9 @@ class RootElement(UIElement):
             self.hovered.OnClick(pos,button)
             return True
         return False
+
+    def CancelMouseMotion(self):
+        pass
             
 class HoverableElement(UIElement):
     """

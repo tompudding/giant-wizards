@@ -7,8 +7,9 @@ import texture,game_window,ui,random,gamedata,players
 #This is a terrible hack
 names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
 
-class MainMenu(object):
+class MainMenu(ui.RootElement):
     def __init__(self):
+        super(MainMenu,self).__init__(Point(0,0),gamedata.screen)
         self.texture = texture.Texture('main.png')
         self.uielements = {}
         self.backdrop = utils.Quad(gamedata.quad_buffer,tc = utils.full_tc)
@@ -77,18 +78,6 @@ class MainMenu(object):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
-
-    def MouseMotion(self,pos,rel):
-        pass
-
-    def CancelMouseMotion(self):
-        pass
-    
-    def MouseButtonDown(self,pos,button):
-        pass
-
-    def MouseButtonUp(self,pos,button):
-        pass
 
     def KeyDown(self,key):
         return

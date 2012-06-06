@@ -568,6 +568,7 @@ class Tiles(object):
         for element in self.uielements:
             element.Delete()
         self.uielements = {}
+        self.control_box.Disable()
 
         self.backdrop = ui.Box(Point(0.3,0.3),
                                  Point(0.7,0.7),
