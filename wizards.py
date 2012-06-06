@@ -98,6 +98,8 @@ def main():
                     handled = gamedata.screen_root.MouseMotion(pos,rel)
                     if not handled:
                         gamedata.current_view.MouseMotion(pos,rel)
+                    else:
+                        gamedata.current_view.CancelMouseMotion()
                 elif (event.type == MOUSEBUTTONDOWN):
                     handled = gamedata.screen_root.MouseButtonDown(pos,event.button)
                     if not handled:

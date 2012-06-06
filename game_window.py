@@ -466,6 +466,10 @@ class Tiles(object):
                 else:
                     self.selected_quad.tc[0:4] = self.tex_coords['selected']
 
+    def CancelMouseMotion(self):
+        self.selected_quad.Disable()
+        self.selected = None
+
     def Update(self,t):
         self.last_time = t
         if self.gameover:
@@ -748,6 +752,7 @@ class GameWindow(object):
                            'tiles.png'  ,
                            'tiles.data' ,
                            map_size     )
+        self.hovered_element = self.tiles
         #this will get passed in eventually, but for now configure statically
         #first come up with random positions that aren't too close to each other and aren't on top of a mountain
         positions = []
@@ -806,16 +811,16 @@ class GameWindow(object):
             cheat.KeyDown(key)
 
     def MouseMotion(self,pos,rel):
-        hovered_element = self.tiles
-        hovered_element.MouseMotion(pos,rel)
+        self.hovered_element.MouseMotion(pos,rel)
+
+    def CancelMouseMotion(self):
+        self.hovered_element.CancelMouseMotion()
 
     def MouseButtonDown(self,pos,button):
         #check which element we're over at this point?
-        hovered_element = self.tiles
-        hovered_element.MouseButtonDown(pos,button)
+        self.hovered_element.MouseButtonDown(pos,button)
 
     def MouseButtonUp(self,pos,button):
         #check which element we're over at this point?
-        hovered_element = self.tiles
-        hovered_element.MouseButtonUp(pos,button)
+        self.hovered_element.MouseButtonUp(pos,button)
 

@@ -80,6 +80,9 @@ class MainMenu(object):
 
     def MouseMotion(self,pos,rel):
         pass
+
+    def CancelMouseMotion(self):
+        pass
     
     def MouseButtonDown(self,pos,button):
         pass
