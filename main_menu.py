@@ -143,7 +143,7 @@ class MainMenu(object):
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)
         gamedata.text_manager.Purge()
-        game = game_window.GameWindow(states)
+        game = game_window.CreateTiles(states)
         gamedata.current_view = game
         
     def Quit(self,pos):

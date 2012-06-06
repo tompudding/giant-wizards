@@ -115,6 +115,8 @@ class Tiles(object):
         self.mouse_text           = texture.TextObject(' ',gamedata.text_manager,texture.TextTypes.MOUSE_RELATIVE)
         self.mouse_text.Position(Point(10,10),0.5,(1,0,0,1))
         self.mouse_text_colour    = (1,1,1,1)
+        self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustActionPoints(100)),
+                       Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)))
         
         self.control_box = ui.HoverableBox(gamedata.screen_root,
                                            Point(0.01,0.07),
@@ -500,6 +502,7 @@ class Tiles(object):
                         if diff.length() > 200:
                             self.viewpos.SetTarget(self.ValidViewpos(target),self.last_time)
                     self.current_action = action
+        self.Draw()
 
     def AddWizard(self,pos,type,playerType,name,colour):
         self.InvalidateCache()
@@ -512,6 +515,8 @@ class Tiles(object):
                 self.current_player.EndTurn(Point(0,0))
         elif key == pygame.locals.K_ESCAPE:
             self.Quit(0)
+        for cheat in self.cheats:
+            cheat.KeyDown(key)
 
     def GetTile(self,pos):
         pos.x = pos.x%self.width
@@ -744,83 +749,53 @@ class Cheat(object):
                 if player.IsPlayer():
                     self.action(player.player_character)
 
-class GameWindow(object):
-    def __init__(self,player_states):
-        map_size = (48,24)
-        self.cheatmatched = 0
-        self.tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
-                           'tiles.png'  ,
-                           'tiles.data' ,
-                           map_size     )
-        self.hovered_element = self.tiles
-        #this will get passed in eventually, but for now configure statically
-        #first come up with random positions that aren't too close to each other and aren't on top of a mountain
-        positions = []
-        total_tried = 0
-        player_list = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
-        while len(positions) < len(player_list):
-            good_position = False
-            tries = 0
-            total_tried += 1
-            if total_tried > 100:
-                #something is wrong here
-                print 'Something very wrong has happened to the map. Try again?'
-                raise ValueError
-            while not good_position:
-                tries += 1
-                if tries > 10000:
-                    #maybe we've tried an unwinnable configuration? start over
-                    positions = []
-                    break
-                pos = Point(*[random.randint(0,v-1) for v in map_size])
-                target_tile = self.tiles.GetTile(pos)
-                if target_tile and target_tile.name == 'mountain':
-                    continue
-                try:
-                    for other_pos in positions:
-                        if (other_pos - pos).length() < 5:
-                            raise ValueError
-                except ValueError:
-                    continue
-                positions.append(pos)
+
+def CreateTiles(player_states):
+    map_size = (48,24)
+    tiles = Tiles(texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt'),
+                       'tiles.png'  ,
+                       'tiles.data' ,
+                       map_size     )
+    #this will get passed in eventually, but for now configure statically
+    #first come up with random positions that aren't too close to each other and aren't on top of a mountain
+    positions = []
+    total_tried = 0
+    player_list = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
+    while len(positions) < len(player_list):
+        good_position = False
+        tries = 0
+        total_tried += 1
+        if total_tried > 100:
+            #something is wrong here
+            print 'Something very wrong has happened to the map. Try again?'
+            raise ValueError
+        while not good_position:
+            tries += 1
+            if tries > 10000:
+                #maybe we've tried an unwinnable configuration? start over
+                positions = []
                 break
-                
-            
-        for i in xrange(len(player_list)):
-            player_type,colour,type = player_list[i]
-            if player_states[type] != None:
-                self.tiles.AddWizard(pos  = positions[i],
-                                     type = type,
-                                     playerType = player_type,
-                                     name = ' '.join((players.PlayerColours.NAMES[colour],'wizard')).title(),
-                                     colour = colour)
-        self.tiles.NextPlayer()
-        self.cheats = (Cheat('gavinsmellslikecabbages',self.tiles,lambda x:x.AdjustActionPoints(100)),
-                       Cheat('sp',self.tiles,lambda x:x.AdjustMovePoints(2)))
+            pos = Point(*[random.randint(0,v-1) for v in map_size])
+            target_tile = tiles.GetTile(pos)
+            if target_tile and target_tile.name == 'mountain':
+                continue
+            try:
+                for other_pos in positions:
+                    if (other_pos - pos).length() < 5:
+                        raise ValueError
+            except ValueError:
+                continue
+            positions.append(pos)
+            break
 
-        
 
-    def Update(self,t):
-        self.tiles.Update(t)
-        self.tiles.Draw()
-
-    def KeyDown(self,key):
-        hovered_element = self.tiles
-        hovered_element.KeyDown(key)
-        for cheat in self.cheats:
-            cheat.KeyDown(key)
-
-    def MouseMotion(self,pos,rel):
-        self.hovered_element.MouseMotion(pos,rel)
-
-    def CancelMouseMotion(self):
-        self.hovered_element.CancelMouseMotion()
-
-    def MouseButtonDown(self,pos,button):
-        #check which element we're over at this point?
-        self.hovered_element.MouseButtonDown(pos,button)
-
-    def MouseButtonUp(self,pos,button):
-        #check which element we're over at this point?
-        self.hovered_element.MouseButtonUp(pos,button)
-
+    for i in xrange(len(player_list)):
+        player_type,colour,type = player_list[i]
+        if player_states[type] != None:
+            tiles.AddWizard(pos  = positions[i],
+                            type = type,
+                            playerType = player_type,
+                            name = ' '.join((players.PlayerColours.NAMES[colour],'wizard')).title(),
+                            colour = colour)
+    tiles.NextPlayer()
+    return tiles
