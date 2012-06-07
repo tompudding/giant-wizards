@@ -568,7 +568,6 @@ class Tiles(object):
         for element in self.uielements:
             element.Delete()
         self.uielements = {}
-        self.control_box.Disable()
 
         self.backdrop = ui.Box(Point(0.3,0.3),
                                  Point(0.7,0.7),
@@ -586,7 +585,8 @@ class Tiles(object):
     def Quit(self,pos):
         for element in self.uielements:
             element.Delete()
-        self.uielements = []
+        self.uielements = {}
+        self.control_box.Delete()
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)
