@@ -134,8 +134,10 @@ class Goblin(actor.Actor):
         self.caster = caster
         self.ignore_monsters = 0.75 if self.player_type == players.PlayerTypes.TENTATIVE else 0.25
         self.ignore_monsters = True if random.random() < self.ignore_monsters else False
-        self.action_choices = action.ActionChoiceList(self,
-                                                      Point(gamedata.screen.x*0.7,gamedata.screen.y*0.81),
+        self.action_choices = action.ActionChoiceList(self.options_box,
+                                                      self,
+                                                      Point(0,0),
+                                                      Point(1,0.8),
                                                       [action.MoveActionCreator   (self,action.MoveAction)])
         self.action_choices.Disable()
         self.move = self.action_choices[0]

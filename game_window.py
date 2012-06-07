@@ -116,7 +116,8 @@ class Tiles(object):
         self.mouse_text.Position(Point(10,10),0.5,(1,0,0,1))
         self.mouse_text_colour    = (1,1,1,1)
         self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustActionPoints(100)),
-                       Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)))
+                       Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
+                       Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)))
         
         self.control_box = ui.HoverableBox(gamedata.screen_root,
                                            Point(0.01,0.07),
@@ -270,8 +271,6 @@ class Tiles(object):
         else:
             self.control_box.MakeUnselectable()
         self.current_player.StartTurn()
-        #as we don't have any monsters or anything, there's no need to allow the player to choose which of his
-        #guys to select, as he only has one!
         if self.current_player.IsPlayer():
             self.SelectNextPlayerControlled(0)
         else:
@@ -445,7 +444,7 @@ class Tiles(object):
             if self.hovered_ui != None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
-            if not self.gameover:
+            if not self.gameover and rel != Point(0,0):
                 self.selected_quad.Enable() 
                 selected = GridCoords(current_viewpos).to_int()
                 if selected != self.selected:
@@ -473,6 +472,9 @@ class Tiles(object):
         self.selected = None
 
     def Update(self,t):
+        #Do the mouse motion call even if there hasn't been any; this then allows us to react sensibly when things
+        #change under the cursor
+        self.MouseMotion(self.mouse_pos,Point(0,0))
         self.last_time = t
         if self.gameover:
             return
@@ -565,19 +567,20 @@ class Tiles(object):
             
     def GameOver(self,winner):
         self.gameover = True
-        for element in self.uielements:
-            element.Delete()
-        self.uielements = {}
+        #for element in self.uielements:
+        #    element.Delete()
+        #self.uielements = {}
 
-        self.backdrop = ui.Box(Point(0.3,0.3),
-                                 Point(0.7,0.7),
-                                 (0,0,0,0.6))
-        self.backdrop.Enable()
-        self.RegisterUIElement(self.backdrop,0)
+        self.backdrop = ui.Box(gamedata.screen_root,
+                               Point(0.3,0.3),
+                               Point(0.7,0.7),
+                               (0,0,0,0.6))
         self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
         self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
-        self.return_button = ui.TextButton('Return',Point(gamedata.screen.x*0.45,gamedata.screen.y*0.35),callback = self.Quit)
-        self.RegisterUIElement(self.return_button,0)
+        self.return_button = ui.TextBoxButton(self.backdrop,
+                                              'Return',
+                                              Point(0.375,0.125),
+                                              callback = self.Quit)
         self.InvalidateCache()
         self.selected_quad.Delete()
         self.mouse_text.Delete()
