@@ -91,22 +91,25 @@ class TileHighlights(object):
         for q in self.highlight_quads:
             q.Disable()
 
-class Tiles(object):
+class Tiles(ui.RootElement):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
+        #FIXME: Some sort of splitting-up/additional namespacing would help here,
+        #this class is getting rather large
         self.atlas                = atlas
         self.tiles_name           = tiles_name
         self.dragging             = None
         self.mouse_pos            = Point(0,0)
-        self.map_size             = map_size
+        self.map_size             = Point(*map_size)
         self.width                = map_size[0]
         self.height               = map_size[1]
         self.wizards              = []
         self.current_player       = None
         self.current_player_index = 0
         self.selected_player      = None
-        self.uielements           = {}
         self.hovered_ui           = None
         self.hovered_player       = None
+        self.win_message          = None
+        self.return_button        = None
         self.current_action       = None
         self.player_action        = None
         self.gameover             = False
@@ -140,6 +143,8 @@ class Tiles(object):
         #Read the tile data from the tiles.data file
         data = {}
         gamedata.tile_dimensions = Point(48,48)
+        print gamedata.tile_dimensions*self.map_size
+        super(Tiles,self).__init__(Point(0,0),gamedata.tile_dimensions*self.map_size)
         with open(data_filename) as f:
             for line in f:
                 line = line.split('#')[0].strip()
@@ -432,7 +437,7 @@ class Tiles(object):
             
         current_viewpos = self.viewpos.Get() + pos
         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
-        hovered_ui = self.HoveredUiElement(pos)
+        hovered_ui = self.active_children.Get(pos)
         if hovered_ui:
             #if we're over the ui then obviously nothing is selected
             if hovered_ui is not self.hovered_ui:
@@ -532,24 +537,6 @@ class Tiles(object):
             return None
         return out
 
-    def RegisterUIElement(self,element,height):
-        self.uielements[element] = height
-
-    def RemoveUIElement(self,element):
-        try:
-            del self.uielements[element]
-        except KeyError:
-            pass
-
-    def HoveredUiElement(self,pos):
-        #not very efficient, but I only have 2 days, come on.
-        match = [-1,None]
-        for ui,height in self.uielements.iteritems():
-            if pos in ui and ui.Selectable():
-                if height > match[0]:
-                    match = [height,ui]
-        return match[1]
-
     def RemoveActor(self,actor):
         tile = self.GetTile(actor.pos)
         if tile:
@@ -571,13 +558,11 @@ class Tiles(object):
             
     def GameOver(self,winner):
         self.gameover = True
-        for element in self.uielements:
-            element.Delete()
-        self.uielements = {}
+        self.RemoveAllUIElements()
         self.control_box.Delete()
         for wizard in self.wizards:
             wizard.Unselect()
-        print gamedata.screen_root.active_children
+        gamedata.screen_root.RemoveAllUIElements()
         self.backdrop = ui.Box(gamedata.screen_root,
                                Point(0.3,0.3),
                                Point(0.7,0.7),
@@ -593,9 +578,6 @@ class Tiles(object):
         self.mouse_text.Delete()
 
     def Quit(self,pos):
-        for element in self.uielements:
-            element.Delete()
-        self.uielements = {}
         for item in self.win_message,self.return_button:
             if item:
                 item.Delete()

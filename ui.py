@@ -156,6 +156,9 @@ class RootElement(UIElement):
         except KeyError:
             pass
 
+    def RemoveAllUIElements(self):
+        self.active_childnre = UIElementList()
+
     def MouseMotion(self,pos,rel,handled):
         """
         Try to handle mouse motion. If it's over one of our elements, return True to indicate that
