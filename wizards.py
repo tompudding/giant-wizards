@@ -95,11 +95,10 @@ def main():
                     continue
                 if event.type == pygame.MOUSEMOTION:
                     rel = Point(event.rel[0],-event.rel[1])
-                    handled = gamedata.screen_root.MouseMotion(pos,rel)
-                    if not handled:
-                        gamedata.current_view.MouseMotion(pos,rel)
-                    else:
+                    handled = gamedata.screen_root.MouseMotion(pos,rel,False)
+                    if handled:
                         gamedata.current_view.CancelMouseMotion()
+                    gamedata.current_view.MouseMotion(pos,rel,True if handled else False)
                 elif (event.type == MOUSEBUTTONDOWN):
                     handled = gamedata.screen_root.MouseButtonDown(pos,event.button)
                     if not handled:

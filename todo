@@ -21,5 +21,4 @@ done - try pixelmix font
 
 BUGS
 ----
-     - Dragging no longer works over the UI elements
      - The win screen doesn't work properly, and after it appears, everything else goes to shit

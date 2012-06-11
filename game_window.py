@@ -421,11 +421,14 @@ class Tiles(object):
                         self.selected_player.Unselect()
                         self.selected_player = None
 
-    def MouseMotion(self,pos,rel):
+    def MouseMotion(self,pos,rel,handled):
         self.mouse_pos = pos
+        #always do dragging
         if self.dragging:
             self.viewpos.Set(self.ValidViewpos(self.dragging - pos))
             self.dragging = self.viewpos.Get() + pos
+        if handled:
+            return handled
             
         current_viewpos = self.viewpos.Get() + pos
         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
@@ -474,7 +477,7 @@ class Tiles(object):
     def Update(self,t):
         #Do the mouse motion call even if there hasn't been any; this then allows us to react sensibly when things
         #change under the cursor
-        self.MouseMotion(self.mouse_pos,Point(0,0))
+        self.MouseMotion(self.mouse_pos,Point(0,0),False)
         self.last_time = t
         if self.gameover:
             return
@@ -567,10 +570,10 @@ class Tiles(object):
             
     def GameOver(self,winner):
         self.gameover = True
-        #for element in self.uielements:
-        #    element.Delete()
-        #self.uielements = {}
-
+        for element in self.uielements:
+            element.Delete()
+        self.uielements = {}
+        self.control_box.Delete()
         self.backdrop = ui.Box(gamedata.screen_root,
                                Point(0.3,0.3),
                                Point(0.7,0.7),

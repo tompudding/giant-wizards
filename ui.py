@@ -147,11 +147,13 @@ class RootElement(UIElement):
         except KeyError:
             pass
 
-    def MouseMotion(self,pos,rel):
+    def MouseMotion(self,pos,rel,handled):
         """
         Try to handle mouse motion. If it's over one of our elements, return True to indicate that
         the lower levels should not handle it. Else return false to indicate that they should
         """
+        if handled:
+            return handled
         hovered = self.active_children.Get(pos)
         if hovered is not self.hovered:
             if self.hovered != None:
