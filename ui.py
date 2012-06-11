@@ -441,13 +441,14 @@ class TextBoxButton(TextBox):
         self.selected = True
         for i in xrange(4):
             self.hover_quads[i].SetColour((0,0,1,1))
-            self.hover_quads[i].Enable()
+            if self.enabled:
+                self.hover_quads[i].Enable()
 
     def Unselected(self):
         self.selected = False
         for i in xrange(4):
             self.hover_quads[i].SetColour((1,0,0,1))
-        if not self.hovered and not self.selected:
+        if not self.enabled or (not self.hovered and not self.selected):
             for i in xrange(4):
                 self.hover_quads[i].Disable()
 

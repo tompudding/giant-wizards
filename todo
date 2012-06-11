@@ -22,4 +22,4 @@ done - try pixelmix font
 BUGS
 ----
      - Dragging still activates buttons
-     - selected border still active on game win. Actually post win, things are still fucked. Didn't fix it as I first thought
+     - Post win, things are (mayme) still fucked. Can't reproduce this right now, but I'll leave it open for a while

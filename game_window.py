@@ -578,6 +578,9 @@ class Tiles(ui.RootElement):
         self.mouse_text.Delete()
 
     def Quit(self,pos):
+        self.RemoveAllUIElements()
+        self.control_box.Delete()
+        gamedata.screen_root.RemoveAllUIElements()
         for item in self.win_message,self.return_button:
             if item:
                 item.Delete()

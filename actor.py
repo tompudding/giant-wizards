@@ -70,7 +70,6 @@ class Actor(object):
             self.tiles.player_action.UpdateQuads()
 
     def Select(self):
-        print 'actor selected',self.name
         self.selected = True
         for t in self.static_text:
             t.Enable()
