@@ -596,6 +596,9 @@ class Tiles(object):
         for element in self.uielements:
             element.Delete()
         self.uielements = {}
+        for item in self.win_message,self.return_button:
+            if item:
+                item.Delete()
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)
