@@ -157,7 +157,7 @@ class RootElement(UIElement):
             pass
 
     def RemoveAllUIElements(self):
-        self.active_childnre = UIElementList()
+        self.active_children = UIElementList()
 
     def MouseMotion(self,pos,rel,handled):
         """
