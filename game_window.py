@@ -480,6 +480,7 @@ class Tiles(object):
         self.MouseMotion(self.mouse_pos,Point(0,0),False)
         self.last_time = t
         if self.gameover:
+            self.Draw()
             return
         self.viewpos.Update(t)
         for wiz in self.wizards:
@@ -574,6 +575,9 @@ class Tiles(object):
             element.Delete()
         self.uielements = {}
         self.control_box.Delete()
+        for wizard in self.wizards:
+            wizard.Unselect()
+        print gamedata.screen_root.active_children
         self.backdrop = ui.Box(gamedata.screen_root,
                                Point(0.3,0.3),
                                Point(0.7,0.7),
@@ -592,7 +596,6 @@ class Tiles(object):
         for element in self.uielements:
             element.Delete()
         self.uielements = {}
-        self.control_box.Delete()
         gamedata.ui_buffer.truncate(0)
         gamedata.quad_buffer.truncate(0)
         gamedata.nonstatic_text_buffer.truncate(0)

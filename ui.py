@@ -24,6 +24,15 @@ class UIElementList:
 
     def __contains__(self,item):
         return item in self.items
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        out =  ['UIElementList:']
+        for item in self.items:
+            out.append('%s:%s - %s(%s)' % (item.absolute.bottom_left,item.absolute.top_right,str(item),item.text if hasattr(item,'text') else 'N/A'))
+        return '\n'.join(out)
         
     def Get(self,pos):
         #not very efficient

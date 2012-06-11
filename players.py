@@ -59,6 +59,10 @@ class Player(object):
         monster.Select()
         self.controlled_index = self.controlled.index(monster)
 
+    def Unselect(self):
+        for monster in self.controlled:
+            monster.Unselect()
+
     def EndTurn(self,pos):
         for actor in self.controlled:
             actor.EndTurn(pos)
