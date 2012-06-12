@@ -82,26 +82,34 @@ class Quad(object):
         if tc != None:
             self.tc[0:4] = tc
         self.old_vertices = None
+        self.deleted = False
 
     def Delete(self):
         self.source.RemoveQuad(self.index)
+        self.deleted = True
 
     def Disable(self):
         #It still gets drawn, but just in a single dot in a corner.
         #not very efficient!
         #don't disable again if already disabled
+        if self.deleted:
+            return
         if self.old_vertices == None:
             self.old_vertices = numpy.copy(self.vertex[0:4])
             for i in xrange(4):
                 self.vertex[i] = (0,0,0)
 
     def Enable(self):
+        if self.deleted:
+            return
         if self.old_vertices != None:
             for i in xrange(4):
                 self.vertex[i] = self.old_vertices[i]
             self.old_vertices = None
 
     def SetVertices(self,bl,tr,z):
+        if self.deleted:
+            return
         setvertices(self.vertex,bl,tr,z)
         if self.old_vertices != None:
             self.old_vertices = numpy.copy(self.vertex[0:4])
@@ -109,9 +117,13 @@ class Quad(object):
                 self.vertex[i] = (0,0,0)
     
     def SetColour(self,colour):
+        if self.deleted:
+            return
         setcolour(self.colour,colour)
 
     def SetColours(self,colours):
+        if self.deleted:
+            return
         for current,target in zip(self.colour,colours):
             for i in xrange(4):
                 current[i] = target[i]
