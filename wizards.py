@@ -66,6 +66,7 @@ def main():
     gamedata.text_manager.Purge()
     #gamedata.current_view = game_window.GameWindow([True,True,True,True])
     gamedata.current_view = main_menu.MainMenu()
+    gamedata.dragging = None
 
     while not done:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -95,18 +96,29 @@ def main():
                     continue
                 if event.type == pygame.MOUSEMOTION:
                     rel = Point(event.rel[0],-event.rel[1])
-                    handled = gamedata.screen_root.MouseMotion(pos,rel,False)
-                    if handled:
-                        gamedata.current_view.CancelMouseMotion()
-                    gamedata.current_view.MouseMotion(pos,rel,True if handled else False)
+                    if gamedata.dragging:
+                        gamedata.dragging.MouseMotion(pos,rel,False)
+                    else:
+                        handled = gamedata.screen_root.MouseMotion(pos,rel,False)
+                        if handled:
+                            gamedata.current_view.CancelMouseMotion()
+                        gamedata.current_view.MouseMotion(pos,rel,True if handled else False)
                 elif (event.type == MOUSEBUTTONDOWN):
-                    handled = gamedata.screen_root.MouseButtonDown(pos,event.button)
-                    if not handled:
-                        gamedata.current_view.MouseButtonDown(pos,event.button)
+                    for layer in gamedata.screen_root,gamedata.current_view:
+                        handled,dragging = layer.MouseButtonDown(pos,event.button)
+                        if handled and dragging:
+                            gamedata.dragging = layer
+                            break
+                        if handled:
+                            break
+                    
                 elif (event.type == MOUSEBUTTONUP):
-                    handled = gamedata.screen_root.MouseButtonUp(pos,event.button)
-                    if not handled:
-                        gamedata.current_view.MouseButtonUp(pos,event.button)
+                    for layer in gamedata.screen_root,gamedata.current_view:
+                        handled,dragging = layer.MouseButtonUp(pos,event.button)
+                        if handled and not dragging:
+                            gamedata.dragging = None
+                        if handled:
+                            break
 
 import logging
 

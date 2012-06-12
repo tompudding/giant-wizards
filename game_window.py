@@ -379,20 +379,27 @@ class Tiles(ui.RootElement):
         glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
         glEnable(GL_TEXTURE_2D)
 
+    def IsDragging(self):
+        return True if self.dragging else False
 
             
     def MouseButtonDown(self,pos,button):
         if button == 3:
             self.dragging = self.viewpos.Get() + pos
+            return True,True
         elif button == 4: #scroll_up
             self.SelectNextPlayerControlled(1)
+            return True,self.IsDragging()
         elif button == 5:
             self.SelectNextPlayerControlled(-1)
+            return True,self.IsDragging()
+        return False,False
         
             
     def MouseButtonUp(self,pos,button):
         if button == 3:
             self.dragging = None
+            return True,False
         if self.hovered_ui:
             self.hovered_ui.OnClick(pos,button)
         elif not self.gameover:
@@ -425,6 +432,7 @@ class Tiles(ui.RootElement):
                         print 'unselect!'
                         self.selected_player.Unselect()
                         self.selected_player = None
+        return False,self.IsDragging()
 
     def MouseMotion(self,pos,rel,handled):
         self.mouse_pos = pos

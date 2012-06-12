@@ -5,9 +5,6 @@ import utils,gamedata
 from utils import Point
 import texture
 
-#todo, allow the textbox and textbox button to be specified without a top-right, and have 
-#the coords generated from the text.
-
 class UIElementList:
     """
     Very basic implementation of a list of UIElements that can be looked up by position.
@@ -176,13 +173,17 @@ class RootElement(UIElement):
         return True if hovered else False
 
     def MouseButtonDown(self,pos,button):
-        return False
+        """
+        Handle a mouse click at the given position (screen coords) of the given mouse button.
+        Return whether it was handled, and whether it started a drag event
+        """
+        return True if self.hovered else False,False
 
     def MouseButtonUp(self,pos,button):
         if self.hovered:
             self.hovered.OnClick(pos,button)
-            return True
-        return False
+            return True,False
+        return False,False
 
     def CancelMouseMotion(self):
         pass
