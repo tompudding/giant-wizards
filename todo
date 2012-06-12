@@ -21,5 +21,4 @@ done - try pixelmix font
 
 BUGS
 ----
-     - Depress-ness doesn't seem to work inside the boxes, I guess when the parent is not root
-     - Post win, things are (mayme) still fucked. Can't reproduce this right now, but I'll leave it open for a while
+     - The options box is red!

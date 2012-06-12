@@ -171,13 +171,15 @@ class RootElement(UIElement):
         if handled:
             return handled
         hovered = self.active_children.Get(pos)
+        #I'm not sure about the logic here. It might be a bit inefficient. Seems to work though
         if hovered is not self.hovered:
             if self.hovered != None:
                 self.hovered.EndHover()
-            if not hovered or not self.depressed or (self.depressed and hovered is self.depressed):
-                self.hovered = hovered
+        if not hovered or not self.depressed or (self.depressed and hovered is self.depressed):
+            self.hovered = hovered
             if self.hovered:
                 self.hovered.Hover()
+            
         return True if hovered else False
 
     def MouseButtonDown(self,pos,button):
@@ -392,6 +394,7 @@ class TextBoxButton(TextBox):
         self.line_width  = line_width
         self.hovered     = False
         self.selected    = False
+        self.depressed   = False
         self.enabled     = False
         super(TextBoxButton,self).__init__(parent,pos,tr,text,size)
         for i in xrange(4):
@@ -480,6 +483,16 @@ class TextBoxButton(TextBox):
             for i in xrange(4):
                 self.hover_quads[i].Disable()
 
+    def Depress(self):
+        self.depressed = True
+        for i in xrange(4):
+            self.hover_quads[i].SetColour((1,1,0,1))
+
+    def Undepress(self):
+        self.depressed = False
+        for i in xrange(4):
+            self.hover_quads[i].SetColour((1,0,0,1))
+
     def Enable(self):
         super(TextBoxButton,self).Enable()
         if not self.enabled:
@@ -489,6 +502,8 @@ class TextBoxButton(TextBox):
                 self.Hover()
             elif self.selected:
                 self.Selected()
+            elif self.depressed:
+                self.Depressed()
 
     def Disable(self):
         super(TextBoxButton,self).Disable()
