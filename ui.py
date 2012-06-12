@@ -98,6 +98,12 @@ class UIElement(object):
     def EndHover(self):
         pass
 
+    def Depress(self):
+        pass
+
+    def Undepress(self):
+        pass
+
     def Selectable(self):
         return self.on
 
@@ -142,6 +148,7 @@ class RootElement(UIElement):
         self.hovered             = None
         self.children            = []
         self.active_children     = UIElementList()
+        self.depressed           = None
         self.SetBounds(bl,tr)
         
     def RegisterUIElement(self,element):
@@ -167,7 +174,8 @@ class RootElement(UIElement):
         if hovered is not self.hovered:
             if self.hovered != None:
                 self.hovered.EndHover()
-            self.hovered = hovered
+            if not hovered or not self.depressed or (self.depressed and hovered is self.depressed):
+                self.hovered = hovered
             if self.hovered:
                 self.hovered.Hover()
         return True if hovered else False
@@ -177,12 +185,31 @@ class RootElement(UIElement):
         Handle a mouse click at the given position (screen coords) of the given mouse button.
         Return whether it was handled, and whether it started a drag event
         """
+        if button == 1 and self.hovered:
+            #If you click and hold on a button, it becomes depressed. If you then move the mouse away, 
+            #it becomes undepressed, and you can move the mouse back and depress it again (as long as you
+            #keep the mouse button down. You can't move over another button and depress it though, so 
+            #we record which button is depressed
+            if self.depressed:
+                #Something's got a bit messed up and we must have missed undepressing that last depressed button. Do
+                #that now
+                self.depressed.Undepress()
+            self.depressed = self.hovered
+            self.depressed.Depress()
         return True if self.hovered else False,False
 
     def MouseButtonUp(self,pos,button):
-        if self.hovered:
-            self.hovered.OnClick(pos,button)
-            return True,False
+        handled = False
+        if button == 1:
+            if self.hovered and self.hovered is self.depressed:
+                self.hovered.OnClick(pos,button)
+                handled = True
+            if self.depressed:
+                #Whatever happens, the button gets depressed
+                self.depressed.Undepress()
+                self.depressed = None
+        
+            return handled,False
         return False,False
 
     def CancelMouseMotion(self):
