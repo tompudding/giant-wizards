@@ -73,7 +73,6 @@ class Actor(object):
         self.selected = True
         for t in self.static_text:
             t.Enable()
-        self.action_choices.Enable()
         self.options_box.Enable()
         self.HandleAction(Point(0,0),self.move)
     
@@ -81,7 +80,6 @@ class Actor(object):
         self.selected = False
         for t in self.static_text:
             t.Disable()
-        self.action_choices.Disable()
         self.options_box.Disable()
         self.flash_state = False
         self.quad.Enable()

@@ -487,6 +487,8 @@ class TextBoxButton(TextBox):
             self.root.RegisterUIElement(self)
             if self.hovered:
                 self.Hover()
+            elif self.selected:
+                self.Selected()
 
     def Disable(self):
         super(TextBoxButton,self).Disable()
