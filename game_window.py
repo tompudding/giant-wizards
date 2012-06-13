@@ -115,8 +115,13 @@ class Tiles(ui.RootElement):
         self.gameover             = False
         self.last_time            = 0
         self.pathcache            = {}
-        self.mouse_text           = texture.TextObject(' ',gamedata.text_manager,texture.TextTypes.MOUSE_RELATIVE)
-        self.mouse_text.Position(Point(10,10),0.5,(1,0,0,1))
+        self.mouse_text           = ui.TextBox(parent   = gamedata.screen_root,
+                                               bl       = Point(0.005,0.005)  ,
+                                               tr       = None                ,
+                                               text     = ' '                 ,
+                                               scale    = 0.5                 ,
+                                               textType = texture.TextTypes.MOUSE_RELATIVE)
+
         self.mouse_text_colour    = (1,1,1,1)
         self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustActionPoints(100)),
                        Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
@@ -222,8 +227,11 @@ class Tiles(ui.RootElement):
                 temp_quad.SetVertices(world,world + gamedata.tile_dimensions,0)
                 
 
-        self.text = texture.TextObject('a',gamedata.text_manager)
-        self.text.Position(Point(10,10),0.5)
+        self.text = ui.TextBox(parent = gamedata.screen_root,
+                               bl     = Point(0.001,0.001)  ,
+                               tr     = None                ,
+                               text   = 'a'                 ,
+                               scale  = 0.5)
         self.viewpos = Viewpos(Point(0,0),self)
         self.selected      = None
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
@@ -575,8 +583,12 @@ class Tiles(ui.RootElement):
                                Point(0.3,0.3),
                                Point(0.7,0.7),
                                (0,0,0,0.6))
-        self.win_message = texture.TextObject('%s wins!' % winner.name,gamedata.text_manager)
-        self.win_message.Position(Point(gamedata.screen.x*0.35,gamedata.screen.y*0.6),0.5)
+        self.win_message = ui.TextBox(parent = self.backdrop    ,
+                                      bl     = Point(0.125,0.75),
+                                      tr     = None             ,
+                                      text   = '%s wins!' % winner.name,
+                                      scale  = 0.5              )
+
         self.return_button = ui.TextBoxButton(self.backdrop,
                                               'Return',
                                               Point(0.375,0.125),

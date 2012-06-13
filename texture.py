@@ -83,52 +83,7 @@ class TextTypes:
     MOUSE_RELATIVE  = 3
     LEVELS          = {SCREEN_RELATIVE : utils.text_level,
                        GRID_RELATIVE   : utils.grid_level + 0.1,
-                       MOUSE_RELATIVE  : utils.text_level}                       
-
-class TextObject(object):
-    def __init__(self,text,textmanager,textType = TextTypes.SCREEN_RELATIVE):
-        self.text = text
-        self.text_type = textType
-        self.quads = [textmanager.Letter(char,self.text_type) for char in self.text]
-        self.textmanager = textmanager
-        #that sets the texture coords for us
-
-    def Position(self,pos,scale,colour = None):
-        #set up the position for the characters
-        self.pos = pos
-        self.scale = scale
-        cursor = [0,0]
-        for (i,quad) in enumerate(self.quads):
-            quad.SetVertices(pos+Point(cursor[0]*self.scale*global_scale,0),
-                             pos+Point((cursor[0]+quad.width)*self.scale*global_scale,
-                                       quad.height*self.scale*global_scale),
-                             TextTypes.LEVELS[self.text_type])
-            if colour:
-                quad.SetColour(colour)
-            cursor[0] += quad.width
-        height = max([q.height for q in self.quads])
-        
-        self.top_right = pos+Point(cursor[0]*self.scale*global_scale,height*self.scale*global_scale)
-            
-
-    def Delete(self):
-        for quad in self.quads:
-            quad.Delete()
-
-    def SetText(self,text,colour = None):
-        self.Delete()
-        self.text = text
-        self.quads = [self.textmanager.Letter(char,self.text_type) for char in self.text]
-        self.Position(self.pos,self.scale,colour)
-
-    def Disable(self):
-        for q in self.quads:
-            q.Disable()
-
-    def Enable(self):
-        for q in self.quads:
-            q.Enable()
-            
+                       MOUSE_RELATIVE  : utils.text_level}                                   
 
 class TextManager(object):
     def __init__(self):

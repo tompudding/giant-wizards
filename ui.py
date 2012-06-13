@@ -299,7 +299,7 @@ class TextBox(UIElement):
         super(TextBox,self).__init__(parent,bl,tr)
         if not self.shrink_to_fit:
             #In this case our margin is a fixed part of the box
-            self.margin      = 0.05
+            self.margin      = Point(0.05,0.05)
         self.text        = text
         self.scale       = scale
         self.colour      = colour
@@ -517,17 +517,3 @@ class TextBoxButton(TextBox):
         if 1 or self.callback != None and button == 1:
             self.callback(pos)
         
-# class TexturedButton(TextButton):
-#     def __init__(self,text,pos,size=0.5,callback = None,line_width=2):
-#         self.text = texture.TextObject(text,gamedata.text_manager)
-#         self.text.Position(pos,size)
-#         self.pos = pos
-#         self.callback = callback
-#         super(TextButton,self).__init__(pos,self.text.top_right)
-#         self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
-#         self.line_width = line_width
-#         self.SetVertices()
-#         self.hovered = False
-#         self.selected = False
-#         for i in xrange(4):
-#             self.hover_quads[i].Disable()

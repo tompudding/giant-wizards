@@ -54,13 +54,6 @@ class Actor(object):
                                              scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
                                              
-        #self.health_text = texture.TextObject('%d' % self.health   ,
-        #                                      gamedata.text_manager,
-        #                                      textType = texture.TextTypes.GRID_RELATIVE)
-        #self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
-        #                                                  self.pos.y + 0.8)),
-        #                          0.3)
-
         self.options_box.Disable()
         self.static_text = [self.title,self.action_points_text,self.action_header,self.movement_text]
         for t in self.static_text:
