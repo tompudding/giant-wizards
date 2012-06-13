@@ -84,12 +84,8 @@ class MoveAction(Action):
                 #go halfway then come back
                 pos = self.start_pos + self.vector*(part if part < 0.5 else (1-part))
                 
-            self.actor.quad.SetVertices(utils.WorldCoords(pos).to_int(),
-                                         utils.WorldCoords(pos+Point(1,1)).to_int(),
-                                         0.5)
-            self.actor.health_text.Position(utils.WorldCoords(Point(pos.x + 0.6,
-                                                                     pos.y + 0.8)),
-                                             0.3)
+            self.actor.SetDrawPos(pos)
+
         return False
 
 

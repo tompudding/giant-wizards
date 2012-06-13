@@ -12,6 +12,7 @@ class Actor(object):
         self.colour_name        = players.PlayerColours.NAMES[self.colour]
         self.pos                = pos
         self.player             = player
+        self.tiles              = tiles
         self.type               = type
         self.full               = None
         self.health             = 10
@@ -22,52 +23,82 @@ class Actor(object):
                                                   Point(0.7,0.5),
                                                   Point(0.95,0.95),
                                                   (0,0,0,0.6))
-        self.title              = texture.TextObject(name+':',gamedata.text_manager)
-        self.title.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.9),0.5)
-        self.movement_text = texture.TextObject('Movement : %d' % self.move_points,gamedata.text_manager)
-        self.movement_text.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.87),0.33)
-        self.action_points_text = texture.TextObject('Mana : %d' % self.action_points,gamedata.text_manager)
-        self.action_points_text.Position(Point(gamedata.screen.x*0.85,gamedata.screen.y*0.87),0.33)
-        self.action_header      = texture.TextObject('%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),gamedata.text_manager)
-        self.action_header.Position(Point(gamedata.screen.x*0.7,gamedata.screen.y*0.83),0.33)
-        
-        
-        
-        self.static_text = [self.title,self.action_points_text,self.action_header,self.movement_text]
-        self.health_text = texture.TextObject('%d' % self.health   ,
-                                              gamedata.text_manager,
-                                              textType = texture.TextTypes.GRID_RELATIVE)
-        self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
-                                                          self.pos.y + 0.8)),
-                                  0.3)
+        self.title              = ui.TextBox(parent  = self.options_box,
+                                             bl      = Point(0,0.89)   ,
+                                             tr      = None            , #Work it out
+                                             text    = name+':'        ,
+                                             scale   = 0.5             )
+
+        self.movement_text      = ui.TextBox(parent  = self.options_box,
+                                             bl      = Point(0,0.82)   ,
+                                             tr      = None            ,
+                                             text    = 'Movement : %d' % self.move_points,
+                                             scale   = 0.33            )
+
+        self.action_points_text = ui.TextBox(parent  = self.options_box,
+                                             bl      = Point(0.6,0.82) ,
+                                             tr      = None            ,
+                                             text    = 'Mana : %d' % self.action_points,
+                                             scale   = 0.33            )
+
+        self.action_header      = ui.TextBox(parent  = self.options_box,
+                                             bl      = Point(0,0.73)   ,
+                                             tr      = None            ,
+                                             text    = '%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),
+                                             scale   = 0.33            )
+
+        self.health_text        = ui.TextBox(parent  = self.tiles      ,
+                                             bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
+                                             tr      = None            ,
+                                             text    = '%d' % self.health,
+                                             scale   = 0.3             ,
+                                             textType = texture.TextTypes.GRID_RELATIVE)
+                                             
+        #self.health_text = texture.TextObject('%d' % self.health   ,
+        #                                      gamedata.text_manager,
+        #                                      textType = texture.TextTypes.GRID_RELATIVE)
+        #self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
+        #                                                  self.pos.y + 0.8)),
+        #                          0.3)
+
         self.options_box.Disable()
+        self.static_text = [self.title,self.action_points_text,self.action_header,self.movement_text]
         for t in self.static_text:
             t.Disable()
                           
         self.player_type = playerType
         self.name        = name
         self.action_list = []
-        self.tiles       = tiles
         self.selected    = False
         self.flash_state = True
         self.SetPos(pos)
         
     def SetPos(self,pos):
+        """Set the position of the actor on the game board"""
         #FIXME : sort this shit out so that it doesn't use strings
         self.pos = pos
         tile_data = self.tiles.GetTile(pos)
         tile_type = tile_data.name
-        self.quad.SetVertices(utils.WorldCoords(self.pos),utils.WorldCoords(self.pos + Point(1,1)),0.5)
+        self.SetDrawPos(pos)
+
         if 'coast' in tile_type:
             tile_type = 'water'
         self.full_type = '_'.join((self.colour_name,self.type,tile_type))
         self.quad.tc[0:4] = self.tiles.tex_coords[self.full_type]
         tile_data.SetActor(self)
-        self.health_text.Position(utils.WorldCoords(Point(self.pos.x + 0.6,
-                                                          self.pos.y + 0.8)),
+
+        self.health_text.Position((self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                   0.3)
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
+
+    def SetDrawPos(self,pos):
+        """Set the position of the actor without updating the game board, used for partial moves animations"""
+        self.quad.SetVertices(utils.WorldCoords(pos).to_int(),
+                              utils.WorldCoords(pos+Point(1,1)).to_int(),
+                              0.5)
+        self.health_text.Position((pos + Point(0.6,0.8)) / self.tiles.map_size,
+                                  0.3)
 
     def Select(self):
         self.selected = True
