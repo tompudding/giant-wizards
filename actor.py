@@ -53,10 +53,19 @@ class Actor(object):
                                              text    = '%d' % self.health,
                                              scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
-                                             
-        self.options_box.Disable()
-        self.static_text = [self.title,self.action_points_text,self.action_header,self.movement_text]
-        for t in self.static_text:
+
+        self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
+                                                Point(0.7,0.08),
+                                                Point(0.95,0.45),
+                                                (0,0,0,0.6))
+                                      
+        self.ui_elements = [self.title              ,
+                            self.action_points_text ,
+                            self.action_header      ,
+                            self.movement_text      ,
+                            self.options_box        ,
+                            self.spell_detail_box]
+        for t in self.ui_elements:
             t.Disable()
                           
         self.player_type = playerType
@@ -95,16 +104,14 @@ class Actor(object):
 
     def Select(self):
         self.selected = True
-        for t in self.static_text:
+        for t in self.ui_elements:
             t.Enable()
-        self.options_box.Enable()
         self.HandleAction(Point(0,0),self.move)
     
     def Unselect(self):
         self.selected = False
-        for t in self.static_text:
+        for t in self.ui_elements:
             t.Disable()
-        self.options_box.Disable()
         self.flash_state = False
         self.quad.Enable()
         self.quad.SetColour((1,1,1,1))
