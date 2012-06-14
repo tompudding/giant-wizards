@@ -320,12 +320,26 @@ class TextBox(UIElement):
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
         cursor = Point(self.margin.x,1 - row_height-self.margin.y)
-        for (i,quad) in enumerate(self.quads):
-            letter_size = Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
-                                float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y)
+        letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
+                              float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
+        
+        for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
             if cursor.x + letter_size.x > 1:
                 cursor.x = self.margin.x
                 cursor.y -= row_height
+            
+            if cursor.x == self.margin.x and self.alignment == texture.TextAlignments.CENTRE:
+                #If we're at the start of a row, and we're trying to centre the text, then check to see how full this row is
+                #and if it's not full, offset so that it becomes centred
+                width = 0
+                for size in letter_sizes[i:]:
+                    width += size.x
+                    if width > 1-self.margin.x:
+                        width -= size.x
+                        break
+                if width > 0:
+                    cursor.x += float(1-(self.margin.x*2)-width)/2
+
             target_bl = cursor
             target_tr = target_bl + letter_size
             if target_bl.y < 0:
