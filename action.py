@@ -1,4 +1,4 @@
-import utils,math,gamedata,random,ui
+import utils,math,gamedata,random,ui,texture
 from utils import Point
 
 class Action(object):
@@ -464,13 +464,24 @@ class SummonActionCreator(BasicActionCreator):
 class ActionChoice(object):
     def __init__(self,ui_parent,action,position,wizard,callback = None):
         #todo, only active player-controlled characters should get their stuff created and registered
-        self.action         = action
-        self.text           = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
-        self.text           = ui.TextBoxButton(ui_parent,self.text,position,size=0.33,callback = self.OnButtonClick)
-        self.actor_callback = callback
-        self.wizard         = wizard
-        self.quads          = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
+        self.action           = action
+        self.text             = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
+        self.text             = ui.TextBoxButton(ui_parent,self.text,position,size=0.33,callback = self.OnButtonClick)
+        self.actor_callback   = callback
+        self.wizard           = wizard
+        self.quads            = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
+        self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
+                                                Point(0.7,0.08),
+                                                Point(0.95,0.45),
+                                                (0,0,0,0.6))
+        self.spell_detail_box.name = ui.TextBox(parent = self.spell_detail_box,
+                                                bl     = Point(0,0.9),
+                                                tr     = Point(1,1),
+                                                text   = action.name,
+                                                scale  = 0.3,
+                                                alignment = texture.TextAlignments.CENTRE)
         self.selected       = False
+        self.spell_detail_box.Disable()
         self.vectors_cache  = []
         self.UpdateQuads()
 
@@ -506,6 +517,7 @@ class ActionChoice(object):
         self.selected = True
         for q in self.quads:
             q.Enable()
+        self.spell_detail_box.Enable()
 
     def Update(self,t):
         self.action.Update(t)
@@ -518,6 +530,7 @@ class ActionChoice(object):
         for q in self.quads:
             q.Disable()
         self.action.Unselected()
+        self.spell_detail_box.Disable()
 
     def GetVector(self,pos):
         pos = pos.to_int()

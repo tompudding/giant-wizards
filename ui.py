@@ -284,7 +284,7 @@ class HoverableBox(Box,HoverableElement):
 
 class TextBox(UIElement):
     """ A Screen-relative text box wraps text to a given size """
-    def __init__(self,parent,bl,tr,text,scale,colour = None,textType = texture.TextTypes.SCREEN_RELATIVE):
+    def __init__(self,parent,bl,tr,text,scale,colour = None,textType = texture.TextTypes.SCREEN_RELATIVE,alignment = texture.TextAlignments.LEFT):
         if tr == None:
             #If we're given no tr; just set it to one row of text, as wide as it can get without overflowing
             #the parent
@@ -304,6 +304,7 @@ class TextBox(UIElement):
         self.scale       = scale
         self.colour      = colour
         self.text_type   = textType
+        self.alignment   = alignment
         self.text_manager = gamedata.text_manager
         self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
         #that sets the texture coords for us
@@ -323,7 +324,7 @@ class TextBox(UIElement):
             letter_size = Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                                 float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y)
             if cursor.x + letter_size.x > 1:
-                cursor.x = 0
+                cursor.x = self.margin.x
                 cursor.y -= row_height
             target_bl = cursor
             target_tr = target_bl + letter_size

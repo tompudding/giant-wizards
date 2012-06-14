@@ -2,7 +2,7 @@ import utils
 from utils import Point,GridCoords,WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,pygame,main_menu,ui,gamedata,players
+import texture,numpy,random,perlin,pygame,main_menu,ui,gamedata,players,traceback
 
 class TileData(object):
     IMPASSABLE = 1000
@@ -508,6 +508,10 @@ class Tiles(ui.RootElement):
             wiz.Update(t)
         if self.current_action:
             finished = self.current_action.Update(t)
+            #that might have ended the game...
+            if self.gameover:
+                self.Draw()
+                return
             if finished:
                 self.current_action = None
                 if self.player_action:

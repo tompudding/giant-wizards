@@ -53,18 +53,12 @@ class Actor(object):
                                              text    = '%d' % self.health,
                                              scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
-
-        self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
-                                                Point(0.7,0.08),
-                                                Point(0.95,0.45),
-                                                (0,0,0,0.6))
                                       
         self.ui_elements = [self.title              ,
                             self.action_points_text ,
                             self.action_header      ,
                             self.movement_text      ,
-                            self.options_box        ,
-                            self.spell_detail_box]
+                            self.options_box        ]
         for t in self.ui_elements:
             t.Disable()
                           
@@ -114,6 +108,7 @@ class Actor(object):
             t.Disable()
         self.flash_state = False
         self.quad.Enable()
+        self.action_choices.Unselected()
         self.quad.SetColour((1,1,1,1))
 
     def Update(self,t):
