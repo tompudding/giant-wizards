@@ -470,18 +470,8 @@ class ActionChoice(object):
         self.actor_callback   = callback
         self.wizard           = wizard
         self.quads            = [utils.Quad(gamedata.colour_tiles) for p in action.valid_vectors]
-        self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
-                                                Point(0.7,0.08),
-                                                Point(0.95,0.45),
-                                                (0,0,0,0.6))
-        self.spell_detail_box.name = ui.TextBox(parent = self.spell_detail_box,
-                                                bl     = Point(0,0.9),
-                                                tr     = Point(1,1),
-                                                text   = action.name,
-                                                scale  = 0.3,
-                                                alignment = texture.TextAlignments.CENTRE)
+        
         self.selected       = False
-        self.spell_detail_box.Disable()
         self.vectors_cache  = []
         self.UpdateQuads()
 
@@ -517,7 +507,6 @@ class ActionChoice(object):
         self.selected = True
         for q in self.quads:
             q.Enable()
-        self.spell_detail_box.Enable()
 
     def Update(self,t):
         self.action.Update(t)
@@ -530,7 +519,6 @@ class ActionChoice(object):
         for q in self.quads:
             q.Disable()
         self.action.Unselected()
-        self.spell_detail_box.Disable()
 
     def GetVector(self,pos):
         pos = pos.to_int()
@@ -583,8 +571,30 @@ class ActionChoice(object):
         return self.actor_callback(pos,self)
 
     def FriendlyTargetable(self):
-        return False        
+        return False   
 
+class SpellActionChoice(ActionChoice):
+    def __init__(self,ui_parent,action,position,wizard,callback = None):
+        super(SpellActionChoice,self).__init__(ui_parent,action,position,wizard,callback)
+        self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
+                                                Point(0.7,0.08),
+                                                Point(0.95,0.45),
+                                                (0,0,0,0.6))
+        self.spell_detail_box.name = ui.TextBox(parent = self.spell_detail_box,
+                                                bl     = Point(0,0.9),
+                                                tr     = Point(1,1),
+                                                text   = action.name,
+                                                scale  = 0.3,
+                                                alignment = texture.TextAlignments.CENTRE)
+        self.spell_detail_box.Disable()
+
+    def Selected(self):
+        super(SpellActionChoice,self).Selected()
+        self.spell_detail_box.Enable()
+
+    def Unselected(self):
+        super(SpellActionChoice,self).Unselected()
+        self.spell_detail_box.Disable()
 
 class ActionChoiceList(ui.UIElement):
     def __init__(self,parent,actor,pos,tr,creators):
@@ -593,7 +603,11 @@ class ActionChoiceList(ui.UIElement):
         self.choices = []
         self.itemheight = 0.1
         for creator in creators:
-            action_choice = ActionChoice(self,creator,Point(0,0),self.actor,self.actor.HandleAction)
+            if isinstance(creator,MoveActionCreator):
+                action_class = ActionChoice
+            else:
+                action_class = SpellActionChoice
+            action_choice = action_class(self,creator,Point(0,0),self.actor,self.actor.HandleAction)
             self.choices.append(action_choice)
             action_choice.text.SetPos(self.top_right - Point(self.top_right.x,self.itemheight*len(self.children)))
 
