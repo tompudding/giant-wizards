@@ -32,7 +32,7 @@ class UIElementList:
         return '\n'.join(out)
         
     def Get(self,pos):
-        #not very efficient
+        """Return the object at a given absolute position, or None if None exist"""
         match = [-1,None]
         for ui,height in self.items.iteritems():
             if pos in ui and ui.Selectable():
@@ -99,9 +99,26 @@ class UIElement(object):
         pass
 
     def Depress(self):
+        """
+        Called when you the mouse cursor is over the element and the button is pushed down. If the cursor
+        is moved away while the button is still down, and then the cursor is moved back over this element
+        still with the button held down, this is called again.
+        """
         pass
 
     def Undepress(self):
+        """
+        Called after Depress has been called, either when the button is released while the cursor is still
+        over the element (In which case a OnClick is called too), or when the cursor moves off the element 
+        (when OnClick is not called)
+        """
+        pass
+
+    def OnClick(self,pos,button):
+        """
+        Called when the mouse button is pressed and released over an element (although the cursor may move
+        off and return between those two events)
+        """
         pass
 
     def Selectable(self):
@@ -275,9 +292,6 @@ class Box(UIElement):
     def MakeUnselectable(self):
         super(Box,self).MakeUnselectable()
         self.quad.SetColour(self.unselectable_colour)
-
-    def OnClick(self,pos,button):
-        pass
 
 class HoverableBox(Box,HoverableElement):
     pass

@@ -462,6 +462,11 @@ class SummonActionCreator(BasicActionCreator):
 
 
 class ActionChoice(object):
+    """
+    An action choice represents an action that an actor can perform. It keeps track of an button in the options_box of the 
+    actor it belongs to. When that button is clicked it is "Selected", and it displays visual information of where it can
+    be applied to on the game board
+    """
     def __init__(self,ui_parent,action,position,wizard,callback = None):
         #todo, only active player-controlled characters should get their stuff created and registered
         self.action           = action
@@ -574,6 +579,12 @@ class ActionChoice(object):
         return False   
 
 class SpellActionChoice(ActionChoice):
+    """
+    An action choice that also has an extra spell detail box that gives additional information and customisation about
+    the spell. The intention is for it to also have a cast button, so that you customise the spell in that button, then
+    click cast, followed by clicking on the grid in an appropriate location. The cast button should be greyed out if you
+    don't have enough mana
+    """
     def __init__(self,ui_parent,action,position,wizard,callback = None):
         super(SpellActionChoice,self).__init__(ui_parent,action,position,wizard,callback)
         self.spell_detail_box = ui.HoverableBox(gamedata.screen_root,
