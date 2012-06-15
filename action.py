@@ -163,6 +163,7 @@ class MoveActionCreator(BasicActionCreator):
             self.shown_path = None
 
 class TeleportAction(Action):
+    description = 'Tunnel through space to arrive at a new location instantaneously. The further you want to go, the more likely you are to find yourself somewhere unexpected...'
     name = 'Teleport'
     cost = 5
     range         = 15
@@ -632,6 +633,12 @@ class SpellActionChoice(ActionChoice):
                                                 text   = action.name,
                                                 scale  = 0.3,
                                                 alignment = texture.TextAlignments.CENTRE)
+        self.spell_detail_box.description = ui.TextBox(parent = self.spell_detail_box,
+                                                       bl     = Point(0,0),
+                                                       tr     = Point(1,0.8),
+                                                       text   = action.action.description,
+                                                       scale  = 0.25)
+
         self.spell_detail_box.Disable()
 
     def Selected(self):

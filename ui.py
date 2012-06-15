@@ -346,7 +346,7 @@ class TextBox(UIElement):
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
         
         for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
-            if cursor.x + letter_size.x > 1:
+            if cursor.x + letter_size.x > 1-self.margin.x:
                 cursor.x = self.margin.x
                 cursor.y -= row_height
             
