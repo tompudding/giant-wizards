@@ -20,9 +20,11 @@ class Action(object):
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
 class BasicActionCreator(object):
-    def __init__(self,actor,action):
-        self.action      = action
-        self.actor       = actor
+    def __init__(self,actor,actions):
+        self.actions      = actions
+        self.action_index = 0
+        self.action       = self.actions[self.action_index]
+        self.actor        = actor
         #self.detail_text = ui.TextBox()
 
     @property
@@ -90,12 +92,12 @@ class MoveAction(Action):
 
 
 class MoveActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
+    def __init__(self,wizard,actions):
         self.last_ap        = -1
         self._valid_vectors = None
         self.wizard         = wizard
         self.shown_path     = None
-        self.action         = action
+        self.action         = actions[0]
 
     @property
     def valid_vectors(self):
@@ -228,8 +230,8 @@ class TeleportAction(Action):
 
 
 class TeleportActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
-        super(TeleportActionCreator,self).__init__(wizard,action)
+    def __init__(self,wizard,actions):
+        super(TeleportActionCreator,self).__init__(wizard,actions)
         self.cycle = 0
         
     @property
@@ -353,8 +355,8 @@ class BlastAction(Action):
 
 
 class BlastActionCreator(BasicActionCreator):
-    def __init__(self,wizard,action):
-        super(BlastActionCreator,self).__init__(wizard,action)
+    def __init__(self,wizard,actions):
+        super(BlastActionCreator,self).__init__(wizard,actions)
         self.cycle = 0
         
     @property
@@ -389,12 +391,17 @@ class BlastActionCreator(BasicActionCreator):
         #if abs(cycle - self.cycle) > 0.2:
         #    self.cycle = cycle
 
+def RangeTiles(range):
+    return set(Point(x,y) for x in xrange(-range,range+1) \
+                   for y in xrange(-range,range+1)        \
+                   if Point(x,y).length() != 0 and Point(x,y).length() < range)
 
 class WizardBlastAction(BlastAction):
-    name       = 'Wizard Blast'
-    cost       = 2
-    min_damage = 1
-    max_damage = 3
+    name        = 'Wizard Blast'
+    description = 'An entropic whirlwind punched out at the speed of sound. Conservation of momentum won\'t be the only thing getting smashed when your enemies are propelled backwards with the force of this blast.'
+    cost        = 2
+    min_damage  = 1
+    max_damage  = 3
 
     def Impact(self):
         target_tile = self.actor.tiles.GetTile(self.end_pos)
@@ -411,6 +418,33 @@ class WizardBlastAction(BlastAction):
     def MouseMotion(pos,vector):
         pass
 
+class WeakWizardBlastAction(WizardBlastAction):
+    name          = 'Weak Wizard Blast'
+    description   = 'A kinetic blast launched from your fingertips with enough speed and ferocity to intimidate even the most couragous butterfly. Roughly equivalent to throwing a shoe "really hard!"'
+    cost          = 1
+    min_damage    = 1
+    max_damage    = 2
+    range         = 3
+    valid_vectors = RangeTiles(range)
+
+class PowerfulWizardBlastAction(WizardBlastAction):
+    name          = 'Wizard Blast'
+    description   = 'Casting this spell causes an instant sonic-boom as a vortex of crackling energy bolts towards your enemies at a terrifying speed. Causing formidable damage and with a chance of disintegration, this spell should not be attempted indoors, or without adult supervision'
+    cost          = 4
+    min_damage    = 4
+    max_damage    = 8
+    range         = 6
+    valid_vectors = RangeTiles(range)
+
+class EpicWizardBlastAction(WizardBlastAction):
+    name          = 'Wizard Blast'
+    description   = 'Legend tells that in ages past, when Metrakai the World-Eater cast a shadow of apocalypse over the Earth, that a council of races gathered and channeled the power of the heavens itself into a spell of such destructive power that the gods themselves trembled to behold it. Use at your own risk'
+    cost          = 50
+    min_damage    = 100
+    max_damage    = 1000
+    range         = 16
+    valid_vectors = RangeTiles(range)
+
 
 class SummonMonsterAction(BlastAction):
     cost          = 4
@@ -418,6 +452,7 @@ class SummonMonsterAction(BlastAction):
     valid_vectors = set(Point(x,y) for x in xrange(-3,4) \
                             for y in xrange(-3,4)        \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 4)
+    Monster       = None #This is abstract, you must subclass and provide a Monster
 
     def Impact(self):
         target_tile = self.actor.tiles.GetTile(self.end_pos)

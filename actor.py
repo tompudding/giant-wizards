@@ -6,7 +6,8 @@ class Actor(object):
     Class to represent all characters than can appear on the game board
     """
     initial_action_points = 0
-    initial_move_points = 0
+    initial_move_points   = 0
+    initial_health_points = 0
     def __init__(self,pos,type,tiles,playerType,name,player):
         self.colour             = player.colour
         self.colour_name        = players.PlayerColours.NAMES[self.colour]
@@ -15,7 +16,7 @@ class Actor(object):
         self.tiles              = tiles
         self.type               = type
         self.full               = None
-        self.health             = 10
+        self.health             = self.initial_health_points
         self.quad               = utils.Quad(gamedata.quad_buffer)
         self.action_points      = 0
         self.move_points        = 0

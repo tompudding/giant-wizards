@@ -4,6 +4,7 @@ from utils import Point
 class Wizard(actor.Actor):
     initial_action_points = 2
     initial_move_points   = 2
+    initial_health_points = 10
     def __init__(self,pos,type,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
         self.controlled       = [self]
@@ -13,17 +14,23 @@ class Wizard(actor.Actor):
                                                         self,
                                                         Point(0,0),
                                                         Point(1,0.8),
-                                                        ( action.MoveActionCreator    (self,action.MoveAction       ),
-                                                          action.BlastActionCreator   (self,action.WizardBlastAction),
-                                                          action.SummonActionCreator  (self,SummonGoblinAction      ),
-                                                          action.TeleportActionCreator(self,action.TeleportAction   )))
+                                                        ( action.MoveActionCreator    (self,[action.MoveAction]       ),
+                                                          action.BlastActionCreator   (self,[action.WeakWizardBlastAction,
+                                                                                             action.WizardBlastAction,
+                                                                                             action.PowerfulWizardBlastAction,
+                                                                                             action.EpicWizardBlastAction]),
+                                                          action.SummonActionCreator  (self,[SummonGoblinRuntAction,
+                                                                                             SummonGoblinWarriorAction,
+                                                                                             SummonGoblinShamanAction,
+                                                                                             SummonGoblinLordAction]),
+                                                          action.TeleportActionCreator(self,[action.TeleportAction]   )))
         #move is special so make a shortcut for it
         self.move = self.action_choices[0]
         self.action_choices.Disable()
         #This is just for AI players, I need to split them into different classes really
-        self.blast_action_creator = action.BlastActionCreator(self,action.WizardBlastAction)
-        self.summon_goblin_creator = action.SummonActionCreator(self,SummonGoblinAction)
-        self.move_action_creator = action.MoveActionCreator(self,action.MoveAction)
+        self.blast_action_creator = action.BlastActionCreator(self,[action.WizardBlastAction])
+        self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinWarriorAction])
+        self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
 
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
@@ -129,6 +136,7 @@ class Wizard(actor.Actor):
 class Goblin(actor.Actor):
     initial_action_points = 0
     initial_move_points   = 3
+    initial_health_points = 10                                                     
     def __init__(self,pos,type,tiles,playerType,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
         self.caster = caster
@@ -138,12 +146,12 @@ class Goblin(actor.Actor):
                                                       self,
                                                       Point(0,0),
                                                       Point(1,0.8),
-                                                      [action.MoveActionCreator   (self,action.MoveAction)])
+                                                      [action.MoveActionCreator   (self,[action.MoveAction])])
         self.action_choices.Disable()
         self.move = self.action_choices[0]
         for a in self.action_choices:
             a.Disable()
-        self.move_action_creator = action.MoveActionCreator(self,action.MoveAction)
+        self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
 
     def Damage(self,value):
         self.health -= value
@@ -192,7 +200,51 @@ class Goblin(actor.Actor):
             return False
         return self.action_list.pop(0)
 
-class SummonGoblinAction(action.SummonMonsterAction):
-    name         = 'Summon Goblin'
-    Monster      = Goblin
-    monster_type = 'goblin'
+class GoblinRunt(Goblin):
+    description           = 'A weak and stunted goblin. Perhaps its powerful stench will intimidate opponents.'
+    cost                  = 1
+    initial_action_points = 0
+    initial_move_points   = 1
+    initial_health_points = 3                                                
+
+class GoblinWarrior(Goblin):
+    description           = 'The prime of their tribe\'s arena, this goblin will fight to the death for you, and it will probably take some enemies out with it'
+    cost                  = 4
+    initial_action_points = 0
+    initial_move_points   = 3
+    initial_health_points = 6                                                
+
+class GoblinShaman(Goblin):
+    description           = 'Goblins are not usually magical by nature, so this one is something of a rarity. Use it well'
+    cost                  = 5
+    initial_action_points = 1
+    initial_move_points   = 2
+    initial_health_points = 4                                                
+
+class GoblinLord(Goblin):
+    description           = 'Whole tribes give feality to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
+    cost                  = 8
+    initial_action_points = 0
+    initial_move_points   = 4
+    initial_health_points = 12                                                
+
+
+class SummonGoblinRuntAction(action.SummonMonsterAction):
+    name         = 'Summon Goblin runt'
+    Monster      = GoblinRunt
+    monster_type = 'goblin' #FIXME, make the goblins look different
+
+class SummonGoblinWarriorAction(action.SummonMonsterAction):
+    name         = 'Summon Goblin Warrior'
+    Monster      = GoblinWarrior
+    monster_type = 'goblin' #FIXME, make the goblins look different
+
+class SummonGoblinShamanAction(action.SummonMonsterAction):
+    name         = 'Summon Goblin Shaman'
+    Monster      = GoblinShaman
+    monster_type = 'goblin' #FIXME, make the goblins look different
+
+class SummonGoblinLordAction(action.SummonMonsterAction):
+    name         = 'Summon Goblin Lord'
+    Monster      = GoblinLord
+    monster_type = 'goblin' #FIXME, make the goblins look different

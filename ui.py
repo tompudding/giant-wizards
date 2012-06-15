@@ -117,7 +117,13 @@ class UIElement(object):
     def OnClick(self,pos,button):
         """
         Called when the mouse button is pressed and released over an element (although the cursor may move
-        off and return between those two events)
+        off and return between those two events). Pos is absolute coords
+        """
+        pass
+
+    def MouseMotion(self,pos):
+        """
+        Called when the mouse is moved over the element. Pos is absolute coords
         """
         pass
 
@@ -189,6 +195,8 @@ class RootElement(UIElement):
             return handled
         hovered = self.active_children.Get(pos)
         #I'm not sure about the logic here. It might be a bit inefficient. Seems to work though
+        if hovered:
+            hovered.MouseMotion(pos)
         if hovered is not self.hovered:
             if self.hovered != None:
                 self.hovered.EndHover()
@@ -546,3 +554,6 @@ class TextBoxButton(TextBox):
         if 1 or self.callback != None and button == 1:
             self.callback(pos)
         
+
+class Slider(UIElement):
+    pass
