@@ -48,6 +48,10 @@ class BasicActionCreator(object):
     def Valid(self,vector):
         return self.action.Valid(vector)
 
+    def SetAction(self,index):
+        self.action_index = index
+        self.action = self.actions[self.action_index]
+
     def MouseMotion(self,pos,vector):
         return
 
@@ -635,22 +639,24 @@ class SpellActionChoice(ActionChoice):
                                                 alignment = texture.TextAlignments.CENTRE)
         self.spell_detail_box.description = ui.TextBox(parent = self.spell_detail_box,
                                                        bl     = Point(0,0),
-                                                       tr     = Point(1,0.8),
+                                                       tr     = Point(1,0.7),
                                                        text   = self.action.action.description,
                                                        scale  = 0.25)
 
         #Construct the list of points for the slider
         points = [(action.cost,i) for (i,action) in enumerate(self.action.actions)]
         self.spell_detail_box.slider = ui.Slider(parent   = self.spell_detail_box,
-                                                 bl       = Point(0,0.8),
-                                                 tr       = Point(1,0.9),
+                                                 bl       = Point(0.1,0.7),
+                                                 tr       = Point(0.9,0.9),
                                                  points   = points,
                                                  callback = self.SetSubAction)
 
         self.spell_detail_box.Disable()
 
     def SetSubAction(self,index):
-        pass
+        self.action.SetAction(index)
+        self.spell_detail_box.name.SetText(self.action.name)
+        self.spell_detail_box.description.SetText(self.action.action.description)
 
     def Selected(self):
         super(SpellActionChoice,self).Selected()

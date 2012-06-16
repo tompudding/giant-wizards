@@ -313,7 +313,7 @@ class TextBox(UIElement):
             self.shrink_to_fit = True
             text_size          = (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)
             margin             = Point(text_size.y*0.06,text_size.y*0.15)
-            tr                 = bl + text_size + margin*2.1 #Add a little breathing room by using 2.1 instead of 2
+            tr                 = bl + text_size + margin*2 #Add a little breathing room by using 2.1 instead of 2
             #We'd like to store the margin relative to us, rather than our parent
             self.margin = margin/(tr-bl)
         else:
@@ -344,12 +344,18 @@ class TextBox(UIElement):
         cursor = Point(self.margin.x,1 - row_height-self.margin.y)
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
-        
+        if self.text == 'CPU':
+            print self.margin
+            print letter_sizes
+            print sum(letter_sizes,Point(0,0)) + self.margin*2
+            print
         #for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
         i = 0
         while i < len(self.quads):
             quad,letter_size = self.quads[i],letter_sizes[i]
-            if cursor.x + letter_size.x > 1-self.margin.x:
+            if cursor.x + letter_size.x > (1-self.margin.x)*1.001:
+                if self.text == 'CPU':
+                    print i,cursor.x,cursor.x + letter_size.x,1-self.margin.x
                 #This would take us over a line. If we're in the middle of a word, we need to go back to the start of the 
                 #word and start the new line there
                 restart = False
@@ -583,3 +589,48 @@ class TextBoxButton(TextBox):
 class Slider(UIElement):
     def __init__(self,parent,bl,tr,points,callback):
         super(Slider,self).__init__(parent,bl,tr)
+        self.points   = sorted(points,lambda x,y:cmp(x[0],y[0]))
+        self.callback = callback
+        self.lines    = []
+        self.uilevel  = utils.ui_level+1
+        self.enabled  = False
+        line          = utils.Quad(gamedata.ui_buffer)
+        line_bl       = self.absolute.bottom_left + self.absolute.size*Point(0,0.3)
+        line_tr       = line_bl + self.absolute.size*Point(1,0) + Point(0,2)
+        line.SetVertices(line_bl,line_tr,self.uilevel)
+        line.Disable()
+        self.lines.append(line)
+        self.index    = 0
+        
+        #now do the blips
+        low  = self.points[ 0][0]
+        high = self.points[-1][0]
+        for value,index in self.points:
+            offset = float(value - low)/(high-low) if low != high else 0
+            line    = utils.Quad(gamedata.ui_buffer)
+            line_bl = self.absolute.bottom_left + Point(offset,0.3)*self.absolute.size
+            line_tr = line_bl + self.absolute.size*Point(0,0.2) + Point(2,0)
+            line.SetVertices(line_bl,line_tr,self.uilevel)
+            line.Disable()
+            self.lines.append(line)
+
+    def Enable(self):
+        super(Slider,self).Enable()
+        for line in self.lines:
+            line.Enable()
+        if not self.enabled:
+            self.enabled = True
+            self.root.RegisterUIElement(self)
+
+    def Disable(self):
+        super(Slider,self).Disable()
+        for line in self.lines:
+            line.Disable()
+        if self.enabled:
+            self.enabled = False
+            self.root.RemoveUIElement(self)
+
+    def OnClick(self,pos,button):
+        #For now try just changing which is selected
+        self.index = (self.index + 1) % len(self.points)
+        self.callback(self.index)

@@ -9,20 +9,22 @@ done - differentiate goblins? Maybe just show name on hover
 done - make flash better(so not invisible)
      - add meditate (Turn movement into mana). Might do this so it's the only way to increase mana
 done - try pixelmix font
-     - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if
+donesud - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if
        it's a creature summoning
 done   - Start this by refactoring the UI code to be more sensible
        - Add a slider
          - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
+       - tabs in the description box to separate description, stats, abilities (for summons anyway)
      - nav bar along the bottom for selecting creatures
      - multi-turn commands?
      - issue commands to more than one unit? Draw box + shift selecting? Depends on balance, if we go for a fewer-stronger-monster
        kind of deal it may not be necessary
      - MOAR spells /creatures
      - AI
+     - Name wizards, change number
      - help screen
 
 BUGS
 ----
-     - The options box is red!
+     - Health text stops moving with the player for some reason
