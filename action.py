@@ -29,7 +29,7 @@ class BasicActionCreator(object):
 
     @property
     def name(self):
-        return self.action.name
+        return self.action.generic_name
 
     @property
     def cost(self):
@@ -64,6 +64,7 @@ class BasicActionCreator(object):
 
 class MoveAction(Action):
     name = 'Move'
+    generic_name = 'Move'
     cost = 1
         
     def Update(self,t):
@@ -169,6 +170,7 @@ class MoveActionCreator(BasicActionCreator):
 class TeleportAction(Action):
     description = 'Tunnel through space to arrive at a new location instantaneously. The further you want to go, the more likely you are to find yourself somewhere unexpected...'
     name = 'Teleport'
+    generic_name = 'Teleport'
     cost = 5
     range         = 15
     valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
@@ -292,7 +294,7 @@ class TeleportActionCreator(BasicActionCreator):
         #    self.cycle = cycle
 
 class BlastAction(Action):
-    name          = 'Blast'
+    generic_name  = 'Blast'
     cost          = 2
     range         = 5.0
     valid_vectors = set(Point(x,y) for x in xrange(-5,6) \
@@ -402,7 +404,8 @@ def RangeTiles(range):
                    if Point(x,y).length() != 0 and Point(x,y).length() < range)
 
 class WizardBlastAction(BlastAction):
-    name        = 'Wizard Blast'
+    name         = 'Wizard Blast'
+    generic_name = 'Wizard Blast'
     description = 'An entropic whirlwind punched out at the speed of sound. Conservation of momentum won\'t be the only thing getting smashed when your enemies are propelled backwards with the force of this blast.'
     cost        = 2
     min_damage  = 1
@@ -433,7 +436,7 @@ class WeakWizardBlastAction(WizardBlastAction):
     valid_vectors = RangeTiles(range)
 
 class PowerfulWizardBlastAction(WizardBlastAction):
-    name          = 'Wizard Blast'
+    name          = 'Powerful Wizard Blast'
     description   = 'Casting this spell causes an instant sonic-boom as a vortex of crackling energy bolts towards your enemies at a terrifying speed. Causing formidable damage and with a chance of disintegration, this spell should not be attempted indoors, or without adult supervision'
     cost          = 4
     min_damage    = 4
@@ -442,7 +445,7 @@ class PowerfulWizardBlastAction(WizardBlastAction):
     valid_vectors = RangeTiles(range)
 
 class EpicWizardBlastAction(WizardBlastAction):
-    name          = 'Wizard Blast'
+    name          = 'Epic Wizard Blast'
     description   = 'Legend tells that in ages past, when Metrakai the World-Eater cast a shadow of apocalypse over the Earth, that a council of races gathered and channeled the power of the heavens itself into a spell of such destructive power that the gods themselves trembled to behold it. Use at your own risk'
     cost          = 50
     min_damage    = 100
@@ -510,7 +513,7 @@ class ActionChoice(object):
     def __init__(self,ui_parent,action,position,wizard,callback = None):
         #todo, only active player-controlled characters should get their stuff created and registered
         self.action           = action
-        self.text             = '%s%s' % (action.name.ljust(14),str(action.cost).rjust(6))
+        self.text             = '%s' % action.name
         self.text             = ui.TextBoxButton(ui_parent,self.text,position,size=0.33,callback = self.OnButtonClick)
         self.actor_callback   = callback
         self.wizard           = wizard
@@ -634,14 +637,19 @@ class SpellActionChoice(ActionChoice):
         self.spell_detail_box.name = ui.TextBox(parent = self.spell_detail_box,
                                                 bl     = Point(0,0.9),
                                                 tr     = Point(1,1),
-                                                text   = self.action.name,
+                                                text   = self.action.action.name,
                                                 scale  = 0.3,
                                                 alignment = texture.TextAlignments.CENTRE)
         self.spell_detail_box.description = ui.TextBox(parent = self.spell_detail_box,
-                                                       bl     = Point(0,0),
+                                                       bl     = Point(0,0.15),
                                                        tr     = Point(1,0.7),
                                                        text   = self.action.action.description,
                                                        scale  = 0.25)
+        self.spell_detail_box.cost = ui.TextBox(parent = self.spell_detail_box,
+                                                bl     = Point(0.10,0.05),
+                                                tr     = None,
+                                                text   = 'cost : %d' % self.action.action.cost,
+                                                scale  = 0.3)
 
         #Construct the list of points for the slider
         points = [(action.cost,i) for (i,action) in enumerate(self.action.actions)]
@@ -655,8 +663,10 @@ class SpellActionChoice(ActionChoice):
 
     def SetSubAction(self,index):
         self.action.SetAction(index)
-        self.spell_detail_box.name.SetText(self.action.name)
+        self.spell_detail_box.name.SetText(self.action.action.name)
         self.spell_detail_box.description.SetText(self.action.action.description)
+        self.spell_detail_box.cost.SetText('cost : %d' % self.action.action.cost)
+        self.UpdateQuads()
 
     def Selected(self):
         super(SpellActionChoice,self).Selected()

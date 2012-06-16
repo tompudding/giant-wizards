@@ -13,7 +13,7 @@ class Wizard(actor.Actor):
         self.action_choices   = action.ActionChoiceList(self.options_box,
                                                         self,
                                                         Point(0,0),
-                                                        Point(1,0.8),
+                                                        Point(1,0.9),
                                                         ( action.MoveActionCreator    (self,[action.MoveAction]       ),
                                                           action.BlastActionCreator   (self,[action.WeakWizardBlastAction,
                                                                                              action.WizardBlastAction,
@@ -145,7 +145,7 @@ class Goblin(actor.Actor):
         self.action_choices = action.ActionChoiceList(self.options_box,
                                                       self,
                                                       Point(0,0),
-                                                      Point(1,0.8),
+                                                      Point(1,0.9),
                                                       [action.MoveActionCreator   (self,[action.MoveAction])])
         self.action_choices.Disable()
         self.move = self.action_choices[0]
@@ -218,30 +218,33 @@ class GoblinShaman(Goblin):
 class GoblinLord(Goblin):
     initial_action_points = 0
     initial_move_points   = 4
-    initial_health_points = 14                                               
+    initial_health_points = 14 
 
-class SummonGoblinRuntAction(action.SummonMonsterAction):
+class SummonGoblinAction(action.SummonMonsterAction):
+    generic_name = 'Summon Goblin'
+
+class SummonGoblinRuntAction(SummonGoblinAction):
     cost         = 2
     description  = 'A weak and stunted goblin. Perhaps its powerful stench will intimidate opponents.'
-    name         = 'Summon Goblin runt'
+    name         = 'Summon Goblin Runt'
     Monster      = GoblinRunt
     monster_type = 'goblin' #FIXME, make the goblins look different
 
-class SummonGoblinWarriorAction(action.SummonMonsterAction):
+class SummonGoblinWarriorAction(SummonGoblinAction):
     cost         = 4
     description  = 'The prime of their tribe\'s arena, this goblin will fight to the death for you, and it will probably take some enemies out with it'
     name         = 'Summon Goblin Warrior'
     Monster      = GoblinWarrior
     monster_type = 'goblin' #FIXME, make the goblins look different
 
-class SummonGoblinShamanAction(action.SummonMonsterAction):
+class SummonGoblinShamanAction(SummonGoblinAction):
     description  = 'Goblins are not usually magical by nature, so this one is something of a rarity. Use it well'
     cost         = 5
     name         = 'Summon Goblin Shaman'
     Monster      = GoblinShaman
     monster_type = 'goblin' #FIXME, make the goblins look different
 
-class SummonGoblinLordAction(action.SummonMonsterAction):
+class SummonGoblinLordAction(SummonGoblinAction):
     description  = 'Whole tribes give feality to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
     cost         = 8
     name         = 'Summon Goblin Lord'

@@ -42,12 +42,6 @@ class Actor(object):
                                              text    = 'Mana : %d' % self.action_points,
                                              scale   = 0.33            )
 
-        self.action_header      = ui.TextBox(parent  = self.options_box,
-                                             bl      = Point(0,0.73)   ,
-                                             tr      = None            ,
-                                             text    = '%s%s' % ('Action'.ljust(14),'Cost'.rjust(6)),
-                                             scale   = 0.33            )
-
         self.health_text        = ui.TextBox(parent  = self.tiles      ,
                                              bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                              tr      = None            ,
@@ -57,7 +51,6 @@ class Actor(object):
                                       
         self.ui_elements = [self.title              ,
                             self.action_points_text ,
-                            self.action_header      ,
                             self.movement_text      ,
                             self.options_box        ]
         for t in self.ui_elements:

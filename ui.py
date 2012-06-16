@@ -406,6 +406,8 @@ class TextBox(UIElement):
                 quad.SetColour(colour)
             cursor.x += letter_size.x
             i += 1
+        for quad in self.quads[i:]:
+            quad.SetVertices(Point(0,0),Point(0,0),-10)
         height = max([q.height for q in self.quads])
         super(TextBox,self).UpdatePosition()
 
