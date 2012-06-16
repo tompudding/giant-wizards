@@ -630,16 +630,27 @@ class SpellActionChoice(ActionChoice):
         self.spell_detail_box.name = ui.TextBox(parent = self.spell_detail_box,
                                                 bl     = Point(0,0.9),
                                                 tr     = Point(1,1),
-                                                text   = action.name,
+                                                text   = self.action.name,
                                                 scale  = 0.3,
                                                 alignment = texture.TextAlignments.CENTRE)
         self.spell_detail_box.description = ui.TextBox(parent = self.spell_detail_box,
                                                        bl     = Point(0,0),
                                                        tr     = Point(1,0.8),
-                                                       text   = action.action.description,
+                                                       text   = self.action.action.description,
                                                        scale  = 0.25)
 
+        #Construct the list of points for the slider
+        points = [(action.cost,i) for (i,action) in enumerate(self.action.actions)]
+        self.spell_detail_box.slider = ui.Slider(parent   = self.spell_detail_box,
+                                                 bl       = Point(0,0.8),
+                                                 tr       = Point(1,0.9),
+                                                 points   = points,
+                                                 callback = self.SetSubAction)
+
         self.spell_detail_box.Disable()
+
+    def SetSubAction(self,index):
+        pass
 
     def Selected(self):
         super(SpellActionChoice,self).Selected()

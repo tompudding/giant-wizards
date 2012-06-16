@@ -13,6 +13,8 @@ done - try pixelmix font
        it's a creature summoning
 done   - Start this by refactoring the UI code to be more sensible
        - Add a slider
+         - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
+           that in the button rather than the more explicit name like "epic wizard blast"
      - nav bar along the bottom for selecting creatures
      - multi-turn commands?
      - issue commands to more than one unit? Draw box + shift selecting? Depends on balance, if we go for a fewer-stronger-monster

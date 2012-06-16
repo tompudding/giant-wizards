@@ -581,4 +581,5 @@ class TextBoxButton(TextBox):
         
 
 class Slider(UIElement):
-    pass
+    def __init__(self,parent,bl,tr,points,callback):
+        super(Slider,self).__init__(parent,bl,tr)

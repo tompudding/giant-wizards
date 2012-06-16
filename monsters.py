@@ -201,36 +201,34 @@ class Goblin(actor.Actor):
         return self.action_list.pop(0)
 
 class GoblinRunt(Goblin):
-    cost                  = 1
     initial_action_points = 0
     initial_move_points   = 1
     initial_health_points = 3                                                
 
 class GoblinWarrior(Goblin):
-    cost                  = 4
     initial_action_points = 0
     initial_move_points   = 3
     initial_health_points = 6                                                
 
 class GoblinShaman(Goblin):
-    cost                  = 5
     initial_action_points = 1
     initial_move_points   = 2
     initial_health_points = 4                                                
 
 class GoblinLord(Goblin):
-    cost                  = 8
     initial_action_points = 0
     initial_move_points   = 4
-    initial_health_points = 12                                                
+    initial_health_points = 14                                               
 
 class SummonGoblinRuntAction(action.SummonMonsterAction):
+    cost         = 2
     description  = 'A weak and stunted goblin. Perhaps its powerful stench will intimidate opponents.'
     name         = 'Summon Goblin runt'
     Monster      = GoblinRunt
     monster_type = 'goblin' #FIXME, make the goblins look different
 
 class SummonGoblinWarriorAction(action.SummonMonsterAction):
+    cost         = 4
     description  = 'The prime of their tribe\'s arena, this goblin will fight to the death for you, and it will probably take some enemies out with it'
     name         = 'Summon Goblin Warrior'
     Monster      = GoblinWarrior
@@ -238,12 +236,14 @@ class SummonGoblinWarriorAction(action.SummonMonsterAction):
 
 class SummonGoblinShamanAction(action.SummonMonsterAction):
     description  = 'Goblins are not usually magical by nature, so this one is something of a rarity. Use it well'
+    cost         = 5
     name         = 'Summon Goblin Shaman'
     Monster      = GoblinShaman
     monster_type = 'goblin' #FIXME, make the goblins look different
 
 class SummonGoblinLordAction(action.SummonMonsterAction):
     description  = 'Whole tribes give feality to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
+    cost         = 8
     name         = 'Summon Goblin Lord'
     Monster      = GoblinLord
     monster_type = 'goblin' #FIXME, make the goblins look different
