@@ -313,7 +313,7 @@ class TextBox(UIElement):
             self.shrink_to_fit = True
             text_size          = (gamedata.text_manager.GetSize(text,scale).to_float()/parent.absolute.size)
             margin             = Point(text_size.y*0.06,text_size.y*0.15)
-            tr                 = bl + text_size + margin*2
+            tr                 = bl + text_size + margin*2.1 #Add a little breathing room by using 2.1 instead of 2
             #We'd like to store the margin relative to us, rather than our parent
             self.margin = margin/(tr-bl)
         else:
@@ -345,10 +345,34 @@ class TextBox(UIElement):
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
         
-        for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
+        #for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
+        i = 0
+        while i < len(self.quads):
+            quad,letter_size = self.quads[i],letter_sizes[i]
             if cursor.x + letter_size.x > 1-self.margin.x:
+                #This would take us over a line. If we're in the middle of a word, we need to go back to the start of the 
+                #word and start the new line there
+                restart = False
+                if quad.letter in ' \t':
+                    #It's whitespace, so ok to start a new line, but do it after the whitespace
+                    while self.quads[i].letter in ' \t':
+                        i += 1
+                    restart = True
+                else:
+                    #look for the start of the word
+                    while i >= 0 and self.quads[i].letter not in ' \t':
+                        i -= 1
+                    if i <= 0:
+                        #This single word is too big for the line. Shit, er, lets just bail
+                        break
+                    #skip the space
+                    i += 1
+                    restart = True
+                        
                 cursor.x = self.margin.x
                 cursor.y -= row_height
+                if restart:
+                    continue
             
             if cursor.x == self.margin.x and self.alignment == texture.TextAlignments.CENTRE:
                 #If we're at the start of a row, and we're trying to centre the text, then check to see how full this row is
@@ -375,6 +399,7 @@ class TextBox(UIElement):
             if colour:
                 quad.SetColour(colour)
             cursor.x += letter_size.x
+            i += 1
         height = max([q.height for q in self.quads])
         super(TextBox,self).UpdatePosition()
 

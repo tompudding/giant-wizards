@@ -107,6 +107,7 @@ class TextManager(object):
         quad.tc[0:4]  = self.atlas.TextureCoords(char)
         #this is a bit dodge, should get its own class if I want to store extra things in it
         quad.width,quad.height = self.atlas.Subimage(char).size
+        quad.letter = char
         return quad
 
     def GetSize(self,text,scale):
