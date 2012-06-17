@@ -8,6 +8,7 @@ class Actor(object):
     initial_action_points = 0
     initial_move_points   = 0
     initial_health_points = 0
+    max_action_points     = 0
     def __init__(self,pos,type,tiles,playerType,name,player):
         self.colour             = player.colour
         self.colour_name        = players.PlayerColours.NAMES[self.colour]
@@ -129,6 +130,8 @@ class Actor(object):
 
     def NewTurn(self):
         self.action_points += self.initial_action_points
+        if self.action_points > self.max_action_points:
+            self.action_points = self.max_action_points
         self.move_points    = self.initial_move_points
         self.action_points_text.SetText('Mana : %d' % self.action_points)
         self.movement_text.SetText('Movement : %d' % self.move_points)

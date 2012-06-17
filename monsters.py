@@ -5,6 +5,7 @@ class Wizard(actor.Actor):
     initial_action_points = 2
     initial_move_points   = 2
     initial_health_points = 10
+    max_action_points     = 1000
     def __init__(self,pos,type,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
         self.controlled       = [self]
@@ -136,7 +137,8 @@ class Wizard(actor.Actor):
 class Goblin(actor.Actor):
     initial_action_points = 0
     initial_move_points   = 3
-    initial_health_points = 10                                                     
+    initial_health_points = 10     
+    actionchoice_list = [(action.MoveActionCreator,[action.MoveAction])]
     def __init__(self,pos,type,tiles,playerType,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
         self.caster = caster
@@ -146,7 +148,7 @@ class Goblin(actor.Actor):
                                                       self,
                                                       Point(0,0),
                                                       Point(1,0.9),
-                                                      [action.MoveActionCreator   (self,[action.MoveAction])])
+                                                      [creator(self,types) for creator,types in self.actionchoice_list])
         self.action_choices.Disable()
         self.move = self.action_choices[0]
         for a in self.action_choices:
@@ -212,8 +214,11 @@ class GoblinWarrior(Goblin):
 
 class GoblinShaman(Goblin):
     initial_action_points = 1
+    max_action_points     = 6
     initial_move_points   = 2
-    initial_health_points = 4                                                
+    initial_health_points = 4        
+    actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
+                   (action.BlastActionCreator,[action.WeakWizardBlastAction])]
 
 class GoblinLord(Goblin):
     initial_action_points = 0
