@@ -28,4 +28,4 @@ done     - Make the action creators have a name of their own, like "wizard blast
 
 BUGS
 ----
-     - select next player button seems to deselect the action choice
+     - The clickable area of the slider doesn't quite extend to the edges. Need to make a sub-object that's slightly smaller maybe

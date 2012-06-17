@@ -3,7 +3,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import utils,gamedata
 from utils import Point
-import texture
+import texture,bisect
 
 class UIElementList:
     """
@@ -84,6 +84,15 @@ class UIElement(object):
 
     def AddChild(self,element):
         self.children.append(element)
+
+    def RemoveChild(self,element):
+        for i,child in enumerate(self.children):
+            if child is element:
+                break
+        else:
+            return
+        del self.children[i]
+                
 
     def __contains__(self,pos):
         if pos.x < self.absolute.bottom_left.x or pos.x >= self.absolute.top_right.x:
@@ -721,20 +730,36 @@ class Slider(UIElement):
         line_tr       = line_bl + self.absolute.size*Point(1,0) + Point(0,2)
         line.SetVertices(line_bl,line_tr,self.uilevel)
         line.Disable()
-        self.lines.append(line)
-        self.index    = 0
         
-        #now do the blips
         low  = self.points[ 0][0]
         high = self.points[-1][0]
-        for value,index in self.points:
-            offset = float(value - low)/(high-low) if low != high else 0
+        self.offsets = [float(value - low)/(high-low) if low != high else 0 for value,index in self.points]
+        self.lines.append(line)
+        self.index    = 0
+        self.pointer_quad = utils.Quad(gamedata.ui_buffer)
+        self.pointer_colour = (1,0,0,1)
+        self.lines.append(self.pointer_quad)
+        self.pointer_ui = UIElement(self,Point(0,0),Point(0,0))
+        self.SetPointer()
+        self.pointer_quad.Disable()
+        self.dragging = False
+        #now do the blips
+        for offset in self.offsets:
             line    = utils.Quad(gamedata.ui_buffer)
             line_bl = self.absolute.bottom_left + Point(offset,0.3)*self.absolute.size
             line_tr = line_bl + self.absolute.size*Point(0,0.2) + Point(2,0)
             line.SetVertices(line_bl,line_tr,self.uilevel)
             line.Disable()
             self.lines.append(line)
+
+    def SetPointer(self):
+        offset = self.offsets[self.index]
+        
+        pointer_bl = Point(offset,0.3) - (Point(2,10)/self.absolute.size)
+        pointer_tr = pointer_bl + (Point(7,14)/self.absolute.size)
+        self.pointer_ui.SetBounds(pointer_bl,pointer_tr)
+        self.pointer_quad.SetVertices(self.pointer_ui.absolute.bottom_left,self.pointer_ui.absolute.top_right,self.uilevel + 0.1)
+        self.pointer_quad.SetColour(self.pointer_colour)
 
     def Enable(self):
         super(Slider,self).Enable()
@@ -752,7 +777,61 @@ class Slider(UIElement):
             self.enabled = False
             self.root.RemoveUIElement(self)
 
+    def Depress(self,pos):
+        if pos in self.pointer_ui:
+            self.dragging = True
+            return self
+        else:
+            return None
+
+    def MouseMotion(self,pos,rel,handled):
+        if not self.dragging:
+            return #we don't care
+        relative_pos = self.GetRelative(pos)
+        pointer_bl = Point(relative_pos.x,0.3) - (Point(2,10)/self.absolute.size)
+        pointer_tr = pointer_bl + (Point(7,14)/self.absolute.size)
+        #This is a bit of a hack to avoid having to do a calculation
+        temp_ui = UIElement(self,pointer_bl,pointer_tr)
+        self.pointer_quad.SetVertices(temp_ui.absolute.bottom_left,temp_ui.absolute.top_right,self.uilevel + 0.1)
+        self.RemoveChild(temp_ui)
+        #If there are any eligible choices between the currently selected choice and the mouse cursor, choose 
+        #the one closest to the cursor
+        #Where is the mouse?
+        i = bisect.bisect_right(self.offsets,relative_pos.x)
+        if i == len(self.offsets):
+            #It's off the right, so choose the last option
+            chosen = i - 1
+        elif i == 0:
+            #It's off the left, so choose the first
+            chosen = 0
+        else:
+            #It's between 2 options, so choose whichevers closest
+            if abs(relative_pos.x - self.offsets[i-1]) < abs(relative_pos.x - self.offsets[i]):
+                chosen = i-1
+            else:
+                chosen = i
+            
+        if chosen != self.index:
+            self.index = chosen
+            self.SetPointer()
+            self.callback(self.index)
+
+    def Undepress(self):
+        self.dragging = False
+        self.SetPointer()
+
     def OnClick(self,pos,button):
         #For now try just changing which is selected
-        self.index = (self.index + 1) % len(self.points)
+        if pos in self.pointer_ui or self.dragging:
+            #It's a click on the pointer, which we ignore
+            return
+        #If it's a click to the right or left of the pointer, adjust accordingly
+        if pos.x > self.pointer_ui.absolute.top_right.x:
+            self.index = (self.index + 1) % len(self.points)
+        elif pos.x < self.pointer_ui.absolute.bottom_left.x:
+            self.index = (self.index + len(self.points) - 1) % len(self.points)
+        else:
+            return
+        self.SetPointer()
         self.callback(self.index)
+            
