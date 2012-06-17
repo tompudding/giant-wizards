@@ -374,6 +374,7 @@ class TextBox(UIElement):
         self.pos = pos
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
         self.scale = scale
+        self.lowest_y = 0
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
         cursor = Point(self.margin.x,-self.viewpos + 1 - row_height-self.margin.y)
@@ -429,6 +430,8 @@ class TextBox(UIElement):
 
             target_bl = cursor
             target_tr = target_bl + letter_size
+            if target_bl.y < self.lowest_y:
+                self.lowest_y = target_bl.y
             if target_bl.y < 0 and not ignore_height:
                 #We've gone too far, no more room to write!
                 break
@@ -557,9 +560,21 @@ class ScrollTextBox(TextBox):
        
     def MouseMotion(self,pos,rel,handled):
         pos = self.GetRelative(pos)
-        if self.dragging:
+        low_thresh = 0.05
+        high_thresh = 1.05
+        if self.dragging != None:
             #print pos,'vp:',self.viewpos,(self.dragging - pos).y
-            self.viewpos = self.dragging - pos.y
+            next_viewpos = self.dragging - pos.y
+            if next_viewpos < self.lowest_y - low_thresh:
+                next_viewpos = self.lowest_y - low_thresh
+            if next_viewpos > low_thresh:
+                next_viewpos = low_thresh
+            self.viewpos = next_viewpos
+            self.dragging = self.viewpos + pos.y
+            if self.dragging > high_thresh:
+                self.dragging = high_thresh
+            if self.dragging < low_thresh:
+                self.dragging = low_thresh
             #print 'stb vp:',self.viewpos
             #self.UpdatePosition()
 
