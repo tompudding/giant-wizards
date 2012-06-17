@@ -333,7 +333,7 @@ class TextBox(UIElement):
         self.alignment   = alignment
         self.text_manager = gamedata.text_manager
         self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
-        self.viewpos     = 1
+        self.viewpos     = 0
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
 
@@ -346,7 +346,7 @@ class TextBox(UIElement):
         self.scale = scale
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
-        cursor = Point(self.margin.x,self.viewpos - row_height-self.margin.y)
+        cursor = Point(self.margin.x,self.viewpos + 1 - row_height-self.margin.y)
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
         if self.text == 'CPU':
@@ -484,7 +484,7 @@ class ScrollTextBox(TextBox):
             self.root.RemoveUIElement(self)
 
     def Depress(self,pos):
-        self.dragging = self.GetRelative(pos)
+        self.dragging = self.GetRelative(pos).y - self.viewpos
         print 'stb depressed',self.dragging
         return self
 
@@ -496,7 +496,7 @@ class ScrollTextBox(TextBox):
         pos = self.GetRelative(pos)
         if self.dragging:
             #print pos,'vp:',self.viewpos,(self.dragging - pos).y
-            self.viewpos = 1 - (self.dragging - pos).y
+            self.viewpos = pos.y - self.dragging
             self.UpdatePosition()
 
 class TextBoxButton(TextBox):
