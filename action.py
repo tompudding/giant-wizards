@@ -640,11 +640,11 @@ class SpellActionChoice(ActionChoice):
                                                 text   = self.action.action.name,
                                                 scale  = 0.3,
                                                 alignment = texture.TextAlignments.CENTRE)
-        self.spell_detail_box.description = ui.TextBox(parent = self.spell_detail_box,
-                                                       bl     = Point(0,0.15),
-                                                       tr     = Point(1,0.7),
-                                                       text   = self.action.action.description,
-                                                       scale  = 0.25)
+        self.spell_detail_box.description = ui.ScrollTextBox(parent = self.spell_detail_box,
+                                                             bl     = Point(0,0.15),
+                                                             tr     = Point(1,0.7),
+                                                             text   = self.action.action.description,
+                                                             scale  = 0.25)
         self.spell_detail_box.cost = ui.TextBox(parent = self.spell_detail_box,
                                                 bl     = Point(0.10,0.05),
                                                 tr     = None,

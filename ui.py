@@ -98,13 +98,15 @@ class UIElement(object):
     def EndHover(self):
         pass
 
-    def Depress(self):
+    def Depress(self,pos):
         """
         Called when you the mouse cursor is over the element and the button is pushed down. If the cursor
         is moved away while the button is still down, and then the cursor is moved back over this element
-        still with the button held down, this is called again.
+        still with the button held down, this is called again. 
+
+        Returns if a dragging event was started
         """
-        pass
+        return False
 
     def Undepress(self):
         """
@@ -212,6 +214,7 @@ class RootElement(UIElement):
         Handle a mouse click at the given position (screen coords) of the given mouse button.
         Return whether it was handled, and whether it started a drag event
         """
+        dragging = False
         if button == 1 and self.hovered:
             #If you click and hold on a button, it becomes depressed. If you then move the mouse away, 
             #it becomes undepressed, and you can move the mouse back and depress it again (as long as you
@@ -222,8 +225,8 @@ class RootElement(UIElement):
                 #that now
                 self.depressed.Undepress()
             self.depressed = self.hovered
-            self.depressed.Depress()
-        return True if self.hovered else False,False
+            dragging = self.depressed.Depress(pos)
+        return True if self.hovered else False,dragging
 
     def MouseButtonUp(self,pos,button):
         handled = False
@@ -329,6 +332,7 @@ class TextBox(UIElement):
         self.alignment   = alignment
         self.text_manager = gamedata.text_manager
         self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
+        self.viewpos     = 1
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
 
@@ -341,7 +345,7 @@ class TextBox(UIElement):
         self.scale = scale
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
-        cursor = Point(self.margin.x,1 - row_height-self.margin.y)
+        cursor = Point(self.margin.x,self.viewpos - row_height-self.margin.y)
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
         if self.text == 'CPU':
@@ -406,6 +410,7 @@ class TextBox(UIElement):
                 quad.SetColour(colour)
             cursor.x += letter_size.x
             i += 1
+        #For the quads that we're not using right now, set them to display nothing
         for quad in self.quads[i:]:
             quad.SetVertices(Point(0,0),Point(0,0),-10)
         height = max([q.height for q in self.quads])
@@ -456,6 +461,39 @@ class TextBox(UIElement):
         super(TextBox,self).Enable()
         for q in self.quads:
             q.Enable()
+
+
+class ScrollTextBox(TextBox):
+    """A TextBox that can be scrolled to see text that doesn't fit in the box"""
+    def __init__(self,*args,**kwargs):
+        super(ScrollTextBox,self).__init__(*args,**kwargs)
+        self.enabled = False
+        self.dragging = None
+
+    def Enable(self):
+        super(ScrollTextBox,self).Enable()
+        if not self.enabled:
+            self.enabled = True
+            self.root.RegisterUIElement(self)
+
+    def Disable(self):
+        super(ScrollTextBox,self).Disable()
+        if self.enabled:
+            self.enabled = False
+            self.root.RemoveUIElement(self)
+
+    def Depress(self,pos):
+        print 'stb depressed',pos
+        self.dragging = self.GetRelative(pos)
+        return True
+
+    def Undepress(self):
+        self.dragging = None
+        print 'stb undepressed'
+       
+    def MouseMotion(self,pos):
+        print 'mm',self.dragging
+        pass
 
 class TextBoxButton(TextBox):
     def __init__(self,parent,text,pos,tr=None,size=0.5,callback = None,line_width=2):
@@ -553,7 +591,7 @@ class TextBoxButton(TextBox):
             for i in xrange(4):
                 self.hover_quads[i].Disable()
 
-    def Depress(self):
+    def Depress(self,pos):
         self.depressed = True
         for i in xrange(4):
             self.hover_quads[i].SetColour((1,1,0,1))
