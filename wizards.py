@@ -107,7 +107,7 @@ def main():
                     for layer in gamedata.screen_root,gamedata.current_view:
                         handled,dragging = layer.MouseButtonDown(pos,event.button)
                         if handled and dragging:
-                            gamedata.dragging = layer
+                            gamedata.dragging = dragging
                             break
                         if handled:
                             break

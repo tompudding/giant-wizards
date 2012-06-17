@@ -394,14 +394,14 @@ class Tiles(ui.RootElement):
     def MouseButtonDown(self,pos,button):
         if button == 3:
             self.dragging = self.viewpos.Get() + pos
-            return True,True
+            return True,self
         elif button == 4: #scroll_up
             self.SelectNextPlayerControlled(1)
-            return True,self.IsDragging()
+            return True,self if self.IsDragging() else None
         elif button == 5:
             self.SelectNextPlayerControlled(-1)
-            return True,self.IsDragging()
-        return False,False
+            return True,self if self.IsDragging() else None
+        return False,None
         
             
     def MouseButtonUp(self,pos,button):

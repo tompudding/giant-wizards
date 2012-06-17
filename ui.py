@@ -104,9 +104,10 @@ class UIElement(object):
         is moved away while the button is still down, and then the cursor is moved back over this element
         still with the button held down, this is called again. 
 
-        Returns if a dragging event was started
+        Returns the target of a dragging event if any. For example, if we return self, then we indicate 
+        that we have begun a drag and want to receive all mousemotion events until that drag is ended.
         """
-        return False
+        return None
 
     def Undepress(self):
         """
@@ -123,7 +124,7 @@ class UIElement(object):
         """
         pass
 
-    def MouseMotion(self,pos):
+    def MouseMotion(self,pos,rel,handled):
         """
         Called when the mouse is moved over the element. Pos is absolute coords
         """
@@ -198,7 +199,7 @@ class RootElement(UIElement):
         hovered = self.active_children.Get(pos)
         #I'm not sure about the logic here. It might be a bit inefficient. Seems to work though
         if hovered:
-            hovered.MouseMotion(pos)
+            hovered.MouseMotion(pos,rel,handled)
         if hovered is not self.hovered:
             if self.hovered != None:
                 self.hovered.EndHover()
@@ -214,7 +215,7 @@ class RootElement(UIElement):
         Handle a mouse click at the given position (screen coords) of the given mouse button.
         Return whether it was handled, and whether it started a drag event
         """
-        dragging = False
+        dragging = None
         if button == 1 and self.hovered:
             #If you click and hold on a button, it becomes depressed. If you then move the mouse away, 
             #it becomes undepressed, and you can move the mouse back and depress it again (as long as you
@@ -483,17 +484,20 @@ class ScrollTextBox(TextBox):
             self.root.RemoveUIElement(self)
 
     def Depress(self,pos):
-        print 'stb depressed',pos
         self.dragging = self.GetRelative(pos)
-        return True
+        print 'stb depressed',self.dragging
+        return self
 
     def Undepress(self):
         self.dragging = None
         print 'stb undepressed'
        
-    def MouseMotion(self,pos):
-        print 'mm',self.dragging
-        pass
+    def MouseMotion(self,pos,rel,handled):
+        pos = self.GetRelative(pos)
+        if self.dragging:
+            #print pos,'vp:',self.viewpos,(self.dragging - pos).y
+            self.viewpos = 1 - (self.dragging - pos).y
+            self.UpdatePosition()
 
 class TextBoxButton(TextBox):
     def __init__(self,parent,text,pos,tr=None,size=0.5,callback = None,line_width=2):
@@ -595,6 +599,7 @@ class TextBoxButton(TextBox):
         self.depressed = True
         for i in xrange(4):
             self.hover_quads[i].SetColour((1,1,0,1))
+        return None
 
     def Undepress(self):
         self.depressed = False
