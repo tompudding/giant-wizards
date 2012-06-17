@@ -13,10 +13,11 @@ done - info box about spells/what it does, what the current casting chance is, s
        it's a creature summoning
 done   - Start this by refactoring the UI code to be more sensible
        - Make the text boxes scrollable with a drag or scroll wheel    
-       - Add a slider
+done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
        - tabs in the description box to separate description, stats, abilities (for summons anyway)
+     - Update the current spells to work as described, make the epic blast better, allow the shaman to cast spells
      - nav bar along the bottom for selecting creatures
      - multi-turn commands?
      - issue commands to more than one unit? Draw box + shift selecting? Depends on balance, if we go for a fewer-stronger-monster
@@ -28,4 +29,3 @@ done     - Make the action creators have a name of their own, like "wizard blast
 
 BUGS
 ----
-     - The clickable area of the slider doesn't quite extend to the edges. Need to make a sub-object that's slightly smaller maybe
