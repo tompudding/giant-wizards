@@ -126,6 +126,7 @@ class TextTypes:
     MOUSE_RELATIVE  = 3
     CUSTOM          = 4
     LEVELS          = {SCREEN_RELATIVE : utils.text_level,
+                       CUSTOM          : utils.text_level,
                        GRID_RELATIVE   : utils.grid_level + 0.1,
                        MOUSE_RELATIVE  : utils.text_level}         
 

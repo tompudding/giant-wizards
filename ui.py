@@ -362,6 +362,7 @@ class TextBox(UIElement):
         self.alignment   = alignment
         self.text_manager = gamedata.text_manager
         self.ReallocateResources()
+        #self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
         self.viewpos     = 0
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
@@ -519,13 +520,19 @@ class ScrollTextBox(TextBox):
         print 'stb depressed',self.dragging
         return self
 
+    def ReallocateResources(self):
+        self.quad_buffer = utils.QuadBuffer(1024)
+        self.text_type = texture.TextTypes.CUSTOM
+        self.quads = [self.text_manager.Letter(char,self.text_type,self.quad_buffer) for char in self.text]
+
+
     def Draw(self):
-        return
         glLoadIdentity()
-        glTranslate(0,self.viewpos.Get().y,0)
-        glVertexPointerf(gamedata.ui_buffer.vertex_data)
-        glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
-        glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
+        glTranslate(0,-self.viewpos*self.absolute.size.y,0)
+        glVertexPointerf(self.quad_buffer.vertex_data)
+        glTexCoordPointerf(self.quad_buffer.tc_data)
+        glColorPointer(4,GL_FLOAT,0,self.quad_buffer.colour_data)
+        glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
         
 
     def Undepress(self):
@@ -537,13 +544,12 @@ class ScrollTextBox(TextBox):
         if self.dragging:
             #print pos,'vp:',self.viewpos,(self.dragging - pos).y
             self.viewpos = self.dragging - pos.y
-            print 'stb vp:',self.viewpos
-            self.UpdatePosition()
+            #print 'stb vp:',self.viewpos
+            #self.UpdatePosition()
 
 class TextBoxButton(TextBox):
     def __init__(self,parent,text,pos,tr=None,size=0.5,callback = None,line_width=2):
         self.callback    = callback
-        self.hover_quads = [utils.Quad(gamedata.ui_buffer) for i in xrange(4)]
         self.line_width  = line_width
         self.hovered     = False
         self.selected    = False
