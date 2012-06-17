@@ -261,6 +261,7 @@ class UIRoot(RootElement):
         glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
         glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
         glEnable(GL_TEXTURE_2D)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         for item in self.drawable_children:
             item.Draw()
 
@@ -374,7 +375,7 @@ class TextBox(UIElement):
         self.scale = scale
         row_height = (float(self.text_manager.font_height*self.scale*texture.global_scale)/self.absolute.size.y)
         #Do this without any kerning or padding for now, and see what it looks like
-        cursor = Point(self.margin.x,self.viewpos + 1 - row_height-self.margin.y)
+        cursor = Point(self.margin.x,-self.viewpos + 1 - row_height-self.margin.y)
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
         if self.text == 'CPU':
@@ -514,12 +515,18 @@ class ScrollTextBox(TextBox):
             self.root.RemoveDrawable(self)
 
     def Depress(self,pos):
-        self.dragging = self.GetRelative(pos).y - self.viewpos
+        self.dragging = self.viewpos + self.GetRelative(pos).y
         print 'stb depressed',self.dragging
         return self
 
     def Draw(self):
-        pass
+        return
+        glLoadIdentity()
+        glTranslate(0,self.viewpos.Get().y,0)
+        glVertexPointerf(gamedata.ui_buffer.vertex_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
+        glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
+        
 
     def Undepress(self):
         self.dragging = None
@@ -529,7 +536,8 @@ class ScrollTextBox(TextBox):
         pos = self.GetRelative(pos)
         if self.dragging:
             #print pos,'vp:',self.viewpos,(self.dragging - pos).y
-            self.viewpos = pos.y - self.dragging
+            self.viewpos = self.dragging - pos.y
+            print 'stb vp:',self.viewpos
             self.UpdatePosition()
 
 class TextBoxButton(TextBox):

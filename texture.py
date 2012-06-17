@@ -29,6 +29,50 @@ class Texture(object):
             self.texture,self.width,self.height = cache[filename]
             glBindTexture(GL_TEXTURE_2D, self.texture)
 
+class RenderTarget(object):
+    def __init__(self,x,y,screensize):
+        self.fbo = glGenFramebuffers(1)
+        self.depthbuffer = glGenRenderbuffers(1)
+        self.x = x
+        self.y = y
+        self.screensize = screensize
+        print 'x',x,y
+        self.texture = glGenTextures(1)
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
+        glBindTexture(GL_TEXTURE_2D, self.texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self.x, self.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, None);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, self.depthbuffer)
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, self.x, self.y)
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER_EXT, self.depthbuffer)
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, self.texture, 0); 
+        if glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT:
+            print 'crapso'
+            raise SystemExit
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+        
+    def Target(self):
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
+        if glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT:
+            print 'crapso1'
+            raise SystemExit
+        glPushAttrib(GL_VIEWPORT_BIT)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, self.x, 0, self.y,-10000,10000)
+        glMatrixMode(GL_MODELVIEW)
+        glViewport(0,0,self.x, self.y)
+
+    def Detarget(self):
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, self.screensize.x, 0, self.screensize.y,-10000,10000)
+        glMatrixMode(GL_MODELVIEW)
+        glPopAttrib()
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+
+
 #texture atlas code taken from 
 #http://omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
 #I'm assuming it's open source!
