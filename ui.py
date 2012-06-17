@@ -478,6 +478,7 @@ class TextBox(UIElement):
             self.margin = margin/(tr-self.pos)
             self.SetBounds(self.pos,tr)
         self.ReallocateResources()
+        self.viewpos = 0
         self.Position(self.pos,self.scale,colour)
         self.Enable()
     
@@ -523,7 +524,6 @@ class ScrollTextBox(TextBox):
 
     def Depress(self,pos):
         self.dragging = self.viewpos + self.GetRelative(pos).y
-        print 'stb depressed',self.dragging
         return self
 
     def ReallocateResources(self):
@@ -556,7 +556,6 @@ class ScrollTextBox(TextBox):
 
     def Undepress(self):
         self.dragging = None
-        print 'stb undepressed'
        
     def MouseMotion(self,pos,rel,handled):
         pos = self.GetRelative(pos)
