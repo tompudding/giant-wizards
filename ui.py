@@ -367,7 +367,7 @@ class TextBox(UIElement):
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
 
-    def Position(self,pos,scale,colour = None):
+    def Position(self,pos,scale,colour = None,ignore_height = False):
         """Draw the text at the given location and size. Maybe colour too"""
         #set up the position for the characters. Note that we do everything here in size relative
         #to our text box (so (0,0) is bottom_left, (1,1) is top_right. 
@@ -429,7 +429,7 @@ class TextBox(UIElement):
 
             target_bl = cursor
             target_tr = target_bl + letter_size
-            if target_bl.y < 0:
+            if target_bl.y < 0 and not ignore_height:
                 #We've gone too far, no more room to write!
                 break
             absolute_bl = self.GetAbsolute(target_bl)
@@ -501,6 +501,9 @@ class ScrollTextBox(TextBox):
         self.enabled = False
         self.dragging = None
 
+    def Position(self,pos,scale,colour = None):
+        super(ScrollTextBox,self).Position(pos,scale,colour,ignore_height = True)
+
     def Enable(self):
         super(ScrollTextBox,self).Enable()
         if not self.enabled:
@@ -525,14 +528,27 @@ class ScrollTextBox(TextBox):
         self.text_type = texture.TextTypes.CUSTOM
         self.quads = [self.text_manager.Letter(char,self.text_type,self.quad_buffer) for char in self.text]
 
-
     def Draw(self):
+        glPushAttrib(GL_VIEWPORT_BIT)
+        glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
+        bl = self.absolute.bottom_left.to_int()
+        tr = self.absolute.top_right.to_int()
+        glOrtho(bl.x, tr.x, bl.y, tr.y,-10000,10000)
+        glMatrixMode(GL_MODELVIEW)
+        glViewport(bl.x, bl.y, tr.x-bl.x, tr.y-bl.y)
+
         glTranslate(0,-self.viewpos*self.absolute.size.y,0)
         glVertexPointerf(self.quad_buffer.vertex_data)
         glTexCoordPointerf(self.quad_buffer.tc_data)
         glColorPointer(4,GL_FLOAT,0,self.quad_buffer.colour_data)
         glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
+        
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, gamedata.screen.x, 0, gamedata.screen.y,-10000,10000)
+        glMatrixMode(GL_MODELVIEW)
+        glPopAttrib()
         
 
     def Undepress(self):
