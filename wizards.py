@@ -26,14 +26,14 @@ gamedata.text_manager          = None
 gamedata.main_menu             = None
 gamedata.current_view          = None
 gamedata.player_config         = ['Human','CPU','CPU','CPU']
-gamedata.time                  = 0 
+gamedata.time                  = 0
 
 import texture,main_menu
 
 def Init(gamedata):
     w,h = (1280,720)
     gamedata.screen = Point(w,h)
-    gamedata.screen_root = ui.RootElement(Point(0,0),gamedata.screen)
+    gamedata.screen_root = ui.UIRoot(Point(0,0),gamedata.screen)
     screen = pygame.display.set_mode((w,h),pygame.OPENGL | pygame.DOUBLEBUF)
     glClearColor(0.0, 0.0, 0.0, 1.0)
     pygame.display.set_caption('Giant Wizards from the Outer Rim!')
@@ -79,6 +79,8 @@ def main():
 
         glLoadIdentity()
         gamedata.current_view.Update(t)
+        gamedata.current_view.Draw()
+        gamedata.screen_root.Draw()
         gamedata.text_manager.Draw()
         pygame.display.flip()
 

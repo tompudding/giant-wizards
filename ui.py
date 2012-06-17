@@ -245,6 +245,34 @@ class RootElement(UIElement):
 
     def CancelMouseMotion(self):
         pass
+
+class UIRoot(RootElement):
+    def __init__(self,*args,**kwargs):
+        super(UIRoot,self).__init__(*args,**kwargs)
+        self.drawable_children = {}
+
+    def Draw(self):
+        glDisable(GL_TEXTURE_2D)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glLoadIdentity()
+        glVertexPointerf(gamedata.ui_buffer.vertex_data)
+        glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
+        glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
+        glEnable(GL_TEXTURE_2D)
+        for item in self.drawable_children:
+            item.Draw()
+
+    def RegisterDrawable(self,item):
+        self.drawable_children[item] = True
+
+    def RemoveDrawable(self,item):
+        try:
+            del self.drawable_children[item]
+        except KeyError:
+            pass
+        
             
 class HoverableElement(UIElement):
     """
@@ -476,17 +504,22 @@ class ScrollTextBox(TextBox):
         if not self.enabled:
             self.enabled = True
             self.root.RegisterUIElement(self)
+            self.root.RegisterDrawable(self)
 
     def Disable(self):
         super(ScrollTextBox,self).Disable()
         if self.enabled:
             self.enabled = False
             self.root.RemoveUIElement(self)
+            self.root.RemoveDrawable(self)
 
     def Depress(self,pos):
         self.dragging = self.GetRelative(pos).y - self.viewpos
         print 'stb depressed',self.dragging
         return self
+
+    def Draw(self):
+        pass
 
     def Undepress(self):
         self.dragging = None

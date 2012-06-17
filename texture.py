@@ -28,7 +28,6 @@ class Texture(object):
         else:
             self.texture,self.width,self.height = cache[filename]
             glBindTexture(GL_TEXTURE_2D, self.texture)
-        
 
 #texture atlas code taken from 
 #http://omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
