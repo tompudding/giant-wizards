@@ -725,9 +725,10 @@ class Slider(UIElement):
         self.lines    = []
         self.uilevel  = utils.ui_level+1
         self.enabled  = False
+        self.clickable_area = UIElement(self,Point(0.05,0),Point(0.95,1))
         line          = utils.Quad(gamedata.ui_buffer)
-        line_bl       = self.absolute.bottom_left + self.absolute.size*Point(0,0.3)
-        line_tr       = line_bl + self.absolute.size*Point(1,0) + Point(0,2)
+        line_bl       = self.clickable_area.absolute.bottom_left + self.clickable_area.absolute.size*Point(0,0.3)
+        line_tr       = line_bl + self.clickable_area.absolute.size*Point(1,0) + Point(0,2)
         line.SetVertices(line_bl,line_tr,self.uilevel)
         line.Disable()
         
@@ -739,15 +740,15 @@ class Slider(UIElement):
         self.pointer_quad = utils.Quad(gamedata.ui_buffer)
         self.pointer_colour = (1,0,0,1)
         self.lines.append(self.pointer_quad)
-        self.pointer_ui = UIElement(self,Point(0,0),Point(0,0))
+        self.pointer_ui = UIElement(self.clickable_area,Point(0,0),Point(0,0))
         self.SetPointer()
         self.pointer_quad.Disable()
         self.dragging = False
         #now do the blips
         for offset in self.offsets:
             line    = utils.Quad(gamedata.ui_buffer)
-            line_bl = self.absolute.bottom_left + Point(offset,0.3)*self.absolute.size
-            line_tr = line_bl + self.absolute.size*Point(0,0.2) + Point(2,0)
+            line_bl = self.clickable_area.absolute.bottom_left + Point(offset,0.3)*self.clickable_area.absolute.size
+            line_tr = line_bl + self.clickable_area.absolute.size*Point(0,0.2) + Point(2,0)
             line.SetVertices(line_bl,line_tr,self.uilevel)
             line.Disable()
             self.lines.append(line)
@@ -755,8 +756,8 @@ class Slider(UIElement):
     def SetPointer(self):
         offset = self.offsets[self.index]
         
-        pointer_bl = Point(offset,0.3) - (Point(2,10)/self.absolute.size)
-        pointer_tr = pointer_bl + (Point(7,14)/self.absolute.size)
+        pointer_bl = Point(offset,0.3) - (Point(2,10)/self.clickable_area.absolute.size)
+        pointer_tr = pointer_bl + (Point(7,14)/self.clickable_area.absolute.size)
         self.pointer_ui.SetBounds(pointer_bl,pointer_tr)
         self.pointer_quad.SetVertices(self.pointer_ui.absolute.bottom_left,self.pointer_ui.absolute.top_right,self.uilevel + 0.1)
         self.pointer_quad.SetColour(self.pointer_colour)
@@ -787,13 +788,19 @@ class Slider(UIElement):
     def MouseMotion(self,pos,rel,handled):
         if not self.dragging:
             return #we don't care
-        relative_pos = self.GetRelative(pos)
-        pointer_bl = Point(relative_pos.x,0.3) - (Point(2,10)/self.absolute.size)
-        pointer_tr = pointer_bl + (Point(7,14)/self.absolute.size)
+        outer_relative_pos = self.GetRelative(pos)
+        if outer_relative_pos.x < 0:
+            outer_relative_pos.x = 0
+        if outer_relative_pos.x > 1:
+            outer_relative_pos = 1
+        relative_pos = self.GetAbsolute(outer_relative_pos)
+        relative_pos = self.clickable_area.GetRelative(relative_pos)
+        pointer_bl = Point(relative_pos.x,0.3) - (Point(2,10)/self.clickable_area.absolute.size)
+        pointer_tr = pointer_bl + (Point(7,14)/self.clickable_area.absolute.size)
         #This is a bit of a hack to avoid having to do a calculation
-        temp_ui = UIElement(self,pointer_bl,pointer_tr)
+        temp_ui = UIElement(self.clickable_area,pointer_bl,pointer_tr)
         self.pointer_quad.SetVertices(temp_ui.absolute.bottom_left,temp_ui.absolute.top_right,self.uilevel + 0.1)
-        self.RemoveChild(temp_ui)
+        self.clickable_area.RemoveChild(temp_ui)
         #If there are any eligible choices between the currently selected choice and the mouse cursor, choose 
         #the one closest to the cursor
         #Where is the mouse?
@@ -813,7 +820,7 @@ class Slider(UIElement):
             
         if chosen != self.index:
             self.index = chosen
-            self.SetPointer()
+            #self.SetPointer()
             self.callback(self.index)
 
     def Undepress(self):
