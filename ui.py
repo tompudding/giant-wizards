@@ -361,7 +361,7 @@ class TextBox(UIElement):
         self.text_type   = textType
         self.alignment   = alignment
         self.text_manager = gamedata.text_manager
-        self.quads       = [self.text_manager.Letter(char,self.text_type) for char in self.text]
+        self.ReallocateResources()
         self.viewpos     = 0
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)

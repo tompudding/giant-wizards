@@ -124,6 +124,7 @@ class TextTypes:
     SCREEN_RELATIVE = 1
     GRID_RELATIVE   = 2
     MOUSE_RELATIVE  = 3
+    CUSTOM          = 4
     LEVELS          = {SCREEN_RELATIVE : utils.text_level,
                        GRID_RELATIVE   : utils.grid_level + 0.1,
                        MOUSE_RELATIVE  : utils.text_level}         
@@ -145,8 +146,8 @@ class TextManager(object):
                             TextTypes.MOUSE_RELATIVE  : gamedata.mouse_relative_buffer}
 
 
-    def Letter(self,char,textType):
-        quad = utils.Quad(TextTypes.BUFFER[textType])    
+    def Letter(self,char,textType,userBuffer = None):
+        quad = utils.Quad(userBuffer if textType == TextTypes.CUSTOM else TextTypes.BUFFER[textType])    
         quad.tc[0:4]  = self.atlas.TextureCoords(char)
         #this is a bit dodge, should get its own class if I want to store extra things in it
         quad.width,quad.height = self.atlas.Subimage(char).size
