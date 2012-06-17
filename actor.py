@@ -185,6 +185,8 @@ class Actor(object):
     def AdjustActionPoints(self,value):
         self.action_points += value
         self.action_points_text.SetText('Mana : %d' % self.action_points)
+        if self.tiles.player_action:
+            self.tiles.player_action.UpdateQuads()
         if not self.selected:
             self.action_points_text.Disable()
 

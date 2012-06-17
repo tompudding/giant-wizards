@@ -205,18 +205,21 @@ class Goblin(actor.Actor):
 class GoblinRunt(Goblin):
     initial_action_points = 0
     initial_move_points   = 1
-    initial_health_points = 3                                                
+    initial_health_points = 3                
+    name = 'Goblin Runt'
 
 class GoblinWarrior(Goblin):
     initial_action_points = 0
     initial_move_points   = 3
     initial_health_points = 6                                                
+    name = 'Goblin Warrior'
 
 class GoblinShaman(Goblin):
     initial_action_points = 1
     max_action_points     = 6
     initial_move_points   = 2
     initial_health_points = 4        
+    name = 'Goblin Shaman'
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
                    (action.BlastActionCreator,[action.WeakWizardBlastAction])]
 
@@ -224,6 +227,7 @@ class GoblinLord(Goblin):
     initial_action_points = 0
     initial_move_points   = 4
     initial_health_points = 14 
+    name = 'Goblin Lord'
 
 class SummonGoblinAction(action.SummonMonsterAction):
     generic_name = 'Summon Goblin'

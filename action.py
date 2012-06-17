@@ -323,6 +323,8 @@ class BlastAction(Action):
             if self.actor.action_points >= self.cost:
                 self.actor.AdjustActionPoints(-self.cost)
                 self.firing = True
+                self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
+                self.visited = {}
                 self.quad.Enable()
             else:
                 #we're not going to do it so we're already finished
@@ -340,10 +342,19 @@ class BlastAction(Action):
             elif t >= self.start_time:
                 part = float(t-self.start_time)/self.duration
                 pos = self.start_pos + self.vector*part
+                for d in Point(0,0),Point(0,1),Point(1,0),Point(1,1):
+                    p = (pos + d).to_int()
+                    if p in self.path and p not in self.visited:
+                        self.visited[p] = True
+                        self.VisitTile(p)
+                    
                 self.quad.SetVertices(utils.WorldCoords(pos).to_int(),
                                       utils.WorldCoords(pos+Point(1,1)).to_int(),
                                       0.5)
                 return False
+
+    def VisitTile(self,tile):
+        pass
 
     @staticmethod
     def Create(vector,t,wizard,speed=4):
@@ -381,7 +392,9 @@ class BlastActionCreator(BasicActionCreator):
             path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
             if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
-                continue
+                if self.action != EpicWizardBlastAction:
+                    #The epic blast can go through obstacles
+                    continue
             vectors.append(p)
         return vectors
 
@@ -453,6 +466,25 @@ class EpicWizardBlastAction(WizardBlastAction):
     range         = 16
     valid_vectors = RangeTiles(range)
 
+    def __init__(self,*args,**kwargs):
+        super(EpicWizardBlastAction,self).__init__(*args,**kwargs)
+        self.total_damage = random.randint(self.min_damage,self.max_damage)
+
+    def Impact(self):
+        target_tile = self.actor.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if target:
+            damage = random.randint(self.total_damage)
+            target.Damage(damage)
+
+    def VisitTile(self,pos):
+        """Do damage to each tile we go through as we're epic"""
+        target_tile = self.actor.tiles.GetTile(pos)
+        target = target_tile.GetActor()
+        if target:
+            target.Damage(int(self.total_damage*0.1))
+            self.total_damage*=0.9
+
 
 class SummonMonsterAction(BlastAction):
     cost          = 4
@@ -470,7 +502,7 @@ class SummonMonsterAction(BlastAction):
                                    self.monster_type,
                                    self.actor.tiles,
                                    self.actor.IsPlayer(),
-                                   self.actor.name + '\'s ' + self.monster_type,
+                                   self.actor.name + '\'s ' + self.Monster.name,
                                    self.actor)
             self.actor.player.AddSummoned(monster)
 
