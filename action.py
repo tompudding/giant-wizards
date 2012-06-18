@@ -324,7 +324,7 @@ class BlastAction(Action):
                 self.actor.AdjustActionPoints(-self.cost)
                 self.firing = True
                 self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
-                self.visited = {}
+                self.visited = {self.start_pos:True}
                 self.quad.Enable()
             else:
                 #we're not going to do it so we're already finished
@@ -342,9 +342,10 @@ class BlastAction(Action):
             elif t >= self.start_time:
                 part = float(t-self.start_time)/self.duration
                 pos = self.start_pos + self.vector*part
-                for d in Point(0,0),Point(0,1),Point(1,0),Point(1,1):
+                for d in Point(0,0),Point(0,0.8),Point(0.8,0),Point(0.8,0.8):
                     p = (pos + d).to_int()
-                    if p in self.path and p not in self.visited:
+                    #if p in self.path and p not in self.visited:
+                    if p not in self.visited:
                         self.visited[p] = True
                         self.VisitTile(p)
                     
@@ -480,6 +481,10 @@ class EpicWizardBlastAction(WizardBlastAction):
     def VisitTile(self,pos):
         """Do damage to each tile we go through as we're epic"""
         target_tile = self.actor.tiles.GetTile(pos)
+        if target_tile.name in ('grass','mountain','tree'):
+            target_tile.name = 'scorched'
+            target_tile.movement_cost = 1
+            self.actor.tiles.SetMapVertices()
         target = target_tile.GetActor()
         if target:
             target.Damage(int(self.total_damage*0.1))

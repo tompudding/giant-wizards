@@ -215,17 +215,8 @@ class Tiles(ui.RootElement):
                         
 
         #Fill in the fixed vertices for the tiles
-        index = 0
-        for col in self.map:
-            for tile_data in col:
-                world = WorldCoords(tile_data.pos)
-                #world.y -= (gamedata.tile_dimensions.y/2)
-                #world.y += self.height*gamedata.tile_dimensions.y/2 #make sure it's all above zero
-                tex_coords=self.tex_coords[tile_data.name]
-                temp_quad = utils.Quad(gamedata.quad_buffer,tc = tex_coords,index = index)
-                index += 4
-                temp_quad.SetVertices(world,world + gamedata.tile_dimensions,0)
-                
+        self.tile_quads = []           
+        self.SetMapVertices()                
 
         self.text = ui.TextBox(parent = gamedata.screen_root,
                                bl     = Point(0.001,0.001)  ,
@@ -237,6 +228,28 @@ class Tiles(ui.RootElement):
         self.selected_quad = utils.Quad(gamedata.quad_buffer,tc = self.tex_coords['selected'])
         #self.highlights    = TileHighlights(100)
         
+    def SetMapVertices(self):
+        index = 0
+        if len(self.tile_quads) == 0:
+            filling = True
+        else:
+            filling = False
+        pos = 0
+        for col in self.map:
+            for tile_data in col:
+                world = WorldCoords(tile_data.pos)
+                #world.y -= (gamedata.tile_dimensions.y/2)
+                #world.y += self.height*gamedata.tile_dimensions.y/2 #make sure it's all above zero
+                tex_coords=self.tex_coords[tile_data.name]
+                if filling:
+                    temp_quad = utils.Quad(gamedata.quad_buffer,index = index)
+                    self.tile_quads.append(temp_quad)
+                else:
+                    temp_quad = self.tile_quads[pos]
+                    pos += 1
+                index += 4
+                temp_quad.SetVertices(world,world + gamedata.tile_dimensions,0)
+                temp_quad.SetTextureCoordinates(tex_coords)
 
     def ValidViewpos(self,viewpos):
         #viewpos = list(viewpos)

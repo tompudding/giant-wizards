@@ -3,6 +3,7 @@ grass               : 0,0,1,1
 mountain            : 1,0,1,1
 tree                : 2,0,1,1
 water               : 0,1,1,1
+scorched            : 3,0,1,1
 
 coast_left          : 1,1,1,1
 coast_top           : 2,1,1,1

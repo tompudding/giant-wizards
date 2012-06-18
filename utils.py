@@ -128,6 +128,9 @@ class Quad(object):
             for i in xrange(4):
                 current[i] = target[i]
 
+    def SetTextureCoordinates(self,tc):
+        self.tc[0:4] = tc
+
 def setvertices(vertex,bl,tr,z):
     vertex[0] = (bl.x,bl.y,z)
     vertex[1] = (bl.x,tr.y,z)
