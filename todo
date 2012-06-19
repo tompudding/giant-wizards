@@ -29,4 +29,16 @@ done     - Make the action creators have a name of their own, like "wizard blast
 
 BUGS
 ----
-     - valid_vectors gets called a lot. When there's a lot of tiles, that's a huge amount of CPU going to waste
+fixed - valid_vectors gets called a lot. When there's a lot of tiles, that's a huge amount of CPU going to waste
+fixed - The clickable area of the slider doesn't quite extend to the edges. Need to make a sub-object that's slightly smaller maybe
+fixed - select next player button seems to deselect the action choice
+fixed - Health text stops moving with the player for some reason
+fixed - The options box is red!
+fixed - Post win, things are (mayme) still fucked. Can't reproduce this right now, but I'll leave it open for a while
+fixed - Depress-ness doesn't seem to work inside the boxes, I guess when the parent is not root
+fixed - Clicking on buttons seems to unselect the selected action (at least in terms of the blue box)
+fixed - selected border still active on game win. Actually post win, things are still fucked. Didn't fix it as I first thought
+fixed - Dragging still activates buttons
+fixed - The win screen doesn't work properly, and after it appears, everything else goes to shit
+fixed - Dragging no longer works over the UI elements
+fixed - casting a goblin onto a mountain causes a crash
