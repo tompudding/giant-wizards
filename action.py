@@ -16,6 +16,9 @@ class Action(object):
     def Update(t):
         pass
 
+    def InvalidatePathCache(self):
+        pass
+
 
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
@@ -51,6 +54,7 @@ class BasicActionCreator(object):
     def SetAction(self,index):
         self.action_index = index
         self.action = self.actions[self.action_index]
+        self.InvalidatePathCache()
 
     def MouseMotion(self,pos,vector):
         return
@@ -59,6 +63,9 @@ class BasicActionCreator(object):
         return
 
     def Update(self,t):
+        pass
+
+    def InvalidatePathCache(self):
         pass
 
 
@@ -377,9 +384,12 @@ class BlastActionCreator(BasicActionCreator):
     def __init__(self,wizard,actions):
         super(BlastActionCreator,self).__init__(wizard,actions)
         self.cycle = 0
+        self._valid_vectors = None
         
     @property
     def valid_vectors(self):
+        if self._valid_vectors != None:
+            return self._valid_vectors
         vectors = []
         if self.action.cost > self.actor.action_points:
             return vectors
@@ -397,6 +407,7 @@ class BlastActionCreator(BasicActionCreator):
                     #The epic blast can go through obstacles
                     continue
             vectors.append(p)
+        self._valid_vectors = vectors
         return vectors
 
     def Valid(self,vector):
@@ -411,6 +422,9 @@ class BlastActionCreator(BasicActionCreator):
         #cycle = (float(t)/800)
         #if abs(cycle - self.cycle) > 0.2:
         #    self.cycle = cycle
+
+    def InvalidatePathCache(self):
+        self._valid_vectors = None
 
 def RangeTiles(range):
     return set(Point(x,y) for x in xrange(-range,range+1) \
@@ -595,8 +609,8 @@ class ActionChoice(object):
 
     def Update(self,t):
         self.action.Update(t)
-        for quad,p in zip(self.quads,self.vectors_cache):
-            quad.SetColour(self.action.ColourFunction(p))
+        #for quad,p in zip(self.quads,self.vectors_cache):
+        #    quad.SetColour(self.action.ColourFunction(p))
 
     def Unselected(self):
         self.text.Unselected()
@@ -657,6 +671,9 @@ class ActionChoice(object):
 
     def FriendlyTargetable(self):
         return False   
+
+    def InvalidatePathCache(self):
+        self.action.InvalidatePathCache()
 
 class SpellActionChoice(ActionChoice):
     """
@@ -741,6 +758,10 @@ class ActionChoiceList(ui.UIElement):
         super(ActionChoiceList,self).Disable()
         for action_choice in self.choices:
             action_choice.Disable()
+
+    def InvalidatePathCache(self):
+        for action_choice in self.choices:
+            action_choice.InvalidatePathCache()
 
     def __getitem__(self,index):
         return self.choices[index]

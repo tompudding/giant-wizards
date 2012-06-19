@@ -108,3 +108,7 @@ class Player(object):
 
     def Update(self,t):
         self.current_controlled.Update(t)
+
+    def InvalidatePathCache(self):
+        for actor in self.controlled:
+            actor.InvalidatePathCache()

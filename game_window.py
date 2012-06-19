@@ -626,6 +626,8 @@ class Tiles(ui.RootElement):
     def InvalidateCache(self):
         for path in self.pathcache.values():
             path.Delete()
+        for wizard in self.wizards:
+            wizard.InvalidatePathCache()
         self.pathcache = {}
 
     def GetCell(self,pos):

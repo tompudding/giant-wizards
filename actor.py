@@ -209,3 +209,7 @@ class Actor(object):
         self.quad.Delete()
         self.health_text.Delete()
         self.tiles.RemoveActor(self)
+
+    def InvalidatePathCache(self):
+        self.action_choices.InvalidatePathCache()
+        
