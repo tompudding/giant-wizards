@@ -169,6 +169,7 @@ class Actor(object):
         #raise TypeError
         if self.tiles.player_action is action:
             if action is self.move: #always keep move selected if nothing else is
+                action.Selected()
                 action.UpdateQuads()
                 return
             else:
@@ -211,5 +212,9 @@ class Actor(object):
         self.tiles.RemoveActor(self)
 
     def InvalidatePathCache(self):
-        self.action_choices.InvalidatePathCache()
+        if self.IsPlayer():
+            self.action_choices.InvalidatePathCache()
+        else:
+            for action in self.ai_actions:
+                action.InvalidatePathCache()
         

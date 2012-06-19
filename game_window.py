@@ -165,7 +165,13 @@ class Tiles(ui.RootElement):
             bottom_right_y = top_left_y - float(h*gamedata.tile_dimensions.y)/self.atlas.Subimage(self.tiles_name).size.y
             tc = numpy.array(((top_left_x,bottom_right_y),(top_left_x,top_left_y),(bottom_right_x,top_left_y),(bottom_right_x,bottom_right_y)),numpy.float32)
             self.atlas.TransformCoords(self.tiles_name,tc)
-            self.tex_coords[name] = tc
+            if name.endswith('_grass'):
+                ends = '_grass','_tree','_scorched','_mountain'
+                name = name.split('_grass')[0]
+            else:
+                ends = ['']
+            for end in ends:
+                self.tex_coords[name + end] = tc
 
             
         self.noise = perlin.SimplexNoise(256)
@@ -433,8 +439,8 @@ class Tiles(ui.RootElement):
                             self.current_player.IsPlayer() and \
                             (self.player_action == None or not self.player_action.FriendlyTargetable()):
                         #select them!
-                        self.selected_player = self.current_player
-                        self.selected_player.Select(self.hovered_player)
+                       self.selected_player = self.current_player
+                       self.selected_player.Select(self.hovered_player)
                         
                     elif self.player_action != None:
                         #we've selected and action like move, so tell it where they clicked

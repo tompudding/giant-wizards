@@ -55,9 +55,11 @@ class Player(object):
         self.controlled_index = 0
 
     def Select(self,monster):
-        self.current_controlled.Unselect()
-        monster.Select()
-        self.controlled_index = self.controlled.index(monster)
+        new_index = self.controlled.index(monster)
+        if new_index != self.controlled_index:
+            self.current_controlled.Unselect()
+            monster.Select()
+            self.controlled_index = new_index
 
     def Unselect(self):
         for monster in self.controlled:

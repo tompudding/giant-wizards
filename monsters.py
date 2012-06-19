@@ -32,6 +32,7 @@ class Wizard(actor.Actor):
         self.blast_action_creator = action.BlastActionCreator(self,[action.WizardBlastAction])
         self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinWarriorAction])
         self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
+        self.ai_actions = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
 
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
@@ -40,6 +41,7 @@ class Wizard(actor.Actor):
         if not self.IsPlayer() and len(self.action_list) == 0:
             #For a computer player, decide what to do
             #regular players populate this list themselves
+            self.InvalidatePathCache()
 
             #Find the nearest enemy
             enemies = []
@@ -71,6 +73,7 @@ class Wizard(actor.Actor):
             #  - Shoot any enemy in range
             #  - Summon a Goblin if they can (but stay above 2 mana for shooting)
             #  - 
+            print 'tentative?',self.name,self.player_type == players.PlayerTypes.TENTATIVE
             if self.player_type == players.PlayerTypes.TENTATIVE:
                 if self.move_points > 0:
                     #Go away from the nearest enemy
@@ -154,6 +157,7 @@ class Goblin(actor.Actor):
         for a in self.action_choices:
             a.Disable()
         self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
+        self.ai_actions = [self.move_action_creator]
 
     def Damage(self,value):
         self.health -= value
