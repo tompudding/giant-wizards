@@ -388,11 +388,13 @@ class BlastActionCreator(BasicActionCreator):
         
     @property
     def valid_vectors(self):
-        if self._valid_vectors != None:
-            return self._valid_vectors
         vectors = []
         if self.action.cost > self.actor.action_points:
             return vectors
+
+        if self._valid_vectors != None:
+            return self._valid_vectors
+
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
             tile = self.actor.tiles.GetTile(target)
