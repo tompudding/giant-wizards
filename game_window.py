@@ -73,7 +73,6 @@ class Viewpos(object):
         if self.target:
             if t >= self.target_time:
                 self.pos = self.target
-                #print 'f',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
                 self.NoTarget()
             elif t < self.start_time: #I don't think we should get this
                 return
@@ -81,7 +80,6 @@ class Viewpos(object):
                 partial = float(t-self.start_time)/self.duration
                 partial = partial*partial*(3 - 2*partial) #smoothstep
                 self.pos = (self.start_point + (self.target_change*partial)).to_int()
-                #print 'p',self.start_point,self.target,t,'[%d,%d]' % (self.start_time,self.target_time),self.pos
         
 class TileHighlights(object):
     def __init__(self,tiles,size):
@@ -148,7 +146,6 @@ class Tiles(ui.RootElement):
         #Read the tile data from the tiles.data file
         data = {}
         gamedata.tile_dimensions = Point(48,48)
-        print gamedata.tile_dimensions*self.map_size
         super(Tiles,self).__init__(Point(0,0),gamedata.tile_dimensions*self.map_size)
         with open(data_filename) as f:
             for line in f:
@@ -451,7 +448,6 @@ class Tiles(ui.RootElement):
                     #Remove the ability of the player to deselect his wizard, since we didn't get round to implementing
                     #monsters we don't need it
                     elif self.hovered_player is not self.current_player:
-                        print 'unselect!'
                         self.selected_player.Unselect()
                         self.selected_player = None
         return False,self.IsDragging()
@@ -680,7 +676,6 @@ class Tiles(ui.RootElement):
         #get the object we're going from so we can ignore it in terms of being passable
         start_object = self.map[start.x][start.y].GetActor()
         end_object   = self.map[end.x][end.y].GetActor()
-        #print 'PATH:',start,',',end
         while True:
             if len(Open) == 0: #no path, boo
                 return None
@@ -778,7 +773,6 @@ class Cheat(object):
             self.matched += 1
         else:
             self.matched = 0
-        #print self.keys[key],self.matched,len(self.cheat)
         if self.matched == len(self.word):
             self.matched = 0
             for player in self.tiles.wizards:

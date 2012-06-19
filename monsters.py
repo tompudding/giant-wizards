@@ -73,7 +73,6 @@ class Wizard(actor.Actor):
             #  - Shoot any enemy in range
             #  - Summon a Goblin if they can (but stay above 2 mana for shooting)
             #  - 
-            print 'tentative?',self.name,self.player_type == players.PlayerTypes.TENTATIVE
             if self.player_type == players.PlayerTypes.TENTATIVE:
                 if self.move_points > 0:
                     #Go away from the nearest enemy

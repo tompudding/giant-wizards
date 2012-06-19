@@ -36,7 +36,6 @@ class RenderTarget(object):
         self.x = x
         self.y = y
         self.screensize = screensize
-        print 'x',x,y
         self.texture = glGenTextures(1)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
         glBindTexture(GL_TEXTURE_2D, self.texture)

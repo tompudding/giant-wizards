@@ -401,18 +401,11 @@ class TextBox(UIElement):
         cursor = Point(self.margin.x,-self.viewpos + 1 - row_height-self.margin.y)
         letter_sizes = [Point(float(quad.width *self.scale*texture.global_scale)/self.absolute.size.x,
                               float(quad.height*self.scale*texture.global_scale)/self.absolute.size.y) for quad in self.quads]
-        if self.text == 'CPU':
-            print self.margin
-            print letter_sizes
-            print sum(letter_sizes,Point(0,0)) + self.margin*2
-            print
         #for (i,(quad,letter_size)) in enumerate(zip(self.quads,letter_sizes)):
         i = 0
         while i < len(self.quads):
             quad,letter_size = self.quads[i],letter_sizes[i]
             if cursor.x + letter_size.x > (1-self.margin.x)*1.001:
-                if self.text == 'CPU':
-                    print i,cursor.x,cursor.x + letter_size.x,1-self.margin.x
                 #This would take us over a line. If we're in the middle of a word, we need to go back to the start of the 
                 #word and start the new line there
                 restart = False

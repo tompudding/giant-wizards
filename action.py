@@ -468,10 +468,10 @@ class WeakWizardBlastAction(WizardBlastAction):
 class PowerfulWizardBlastAction(WizardBlastAction):
     name          = 'Powerful Wizard Blast'
     description   = 'Casting this spell causes an instant sonic-boom as a vortex of crackling energy bolts towards your enemies at a terrifying speed. Causing formidable damage and with a chance of disintegration, this spell should not be attempted indoors, or without adult supervision'
-    cost          = 4
+    cost          = 5
     min_damage    = 4
     max_damage    = 8
-    range         = 6
+    range         = 5
     valid_vectors = RangeTiles(range)
 
 class EpicWizardBlastAction(WizardBlastAction):
