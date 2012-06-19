@@ -12,7 +12,7 @@ done - try pixelmix font
 done - info box about spells/what it does, what the current casting chance is, strength + name of the summoned creature if
        it's a creature summoning
 done   - Start this by refactoring the UI code to be more sensible
-       - Make the text boxes scrollable with a drag or scroll wheel    
+done   - Make the text boxes scrollable with a drag or scroll wheel    
 done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"

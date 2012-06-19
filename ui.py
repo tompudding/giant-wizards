@@ -133,6 +133,13 @@ class UIElement(object):
         """
         pass
 
+    def Scroll(self,amount):
+        """
+        Called with the value of 1 for a scroll up, and -1 for a scroll down event. Other things could call
+        this with larger values for a bigger scoll action
+        """
+        pass
+
     def MouseMotion(self,pos,rel,handled):
         """
         Called when the mouse is moved over the element. Pos is absolute coords
@@ -225,17 +232,22 @@ class RootElement(UIElement):
         Return whether it was handled, and whether it started a drag event
         """
         dragging = None
-        if button == 1 and self.hovered:
-            #If you click and hold on a button, it becomes depressed. If you then move the mouse away, 
-            #it becomes undepressed, and you can move the mouse back and depress it again (as long as you
-            #keep the mouse button down. You can't move over another button and depress it though, so 
-            #we record which button is depressed
-            if self.depressed:
-                #Something's got a bit messed up and we must have missed undepressing that last depressed button. Do
-                #that now
-                self.depressed.Undepress()
-            self.depressed = self.hovered
-            dragging = self.depressed.Depress(pos)
+        if self.hovered:
+            if button == 1:
+                #If you click and hold on a button, it becomes depressed. If you then move the mouse away, 
+                #it becomes undepressed, and you can move the mouse back and depress it again (as long as you
+                #keep the mouse button down. You can't move over another button and depress it though, so 
+                #we record which button is depressed
+                if self.depressed:
+                    #Something's got a bit messed up and we must have missed undepressing that last depressed button. Do
+                    #that now
+                    self.depressed.Undepress()
+                self.depressed = self.hovered
+                dragging = self.depressed.Depress(pos)
+            elif button == 4:
+                self.hovered.Scroll(1)
+            elif button == 5:
+                self.hovered.Scroll(-1)
         return True if self.hovered else False,dragging
 
     def MouseButtonUp(self,pos,button):
@@ -565,6 +577,18 @@ class ScrollTextBox(TextBox):
 
     def Undepress(self):
         self.dragging = None
+
+    def Scroll(self,amount):
+        self.viewpos = self.ValidViewpos(self.viewpos - float(amount)/30)
+
+    def ValidViewpos(self,viewpos):
+        low_thresh = 0.05
+        high_thresh = 1.05
+        if viewpos < self.lowest_y - low_thresh:
+            viewpos = self.lowest_y - low_thresh
+        if viewpos > low_thresh:
+            viewpos = low_thresh
+        return viewpos
        
     def MouseMotion(self,pos,rel,handled):
         pos = self.GetRelative(pos)
@@ -572,12 +596,8 @@ class ScrollTextBox(TextBox):
         high_thresh = 1.05
         if self.dragging != None:
             #print pos,'vp:',self.viewpos,(self.dragging - pos).y
-            next_viewpos = self.dragging - pos.y
-            if next_viewpos < self.lowest_y - low_thresh:
-                next_viewpos = self.lowest_y - low_thresh
-            if next_viewpos > low_thresh:
-                next_viewpos = low_thresh
-            self.viewpos = next_viewpos
+            self.viewpos = self.ValidViewpos(self.dragging - pos.y)
+
             self.dragging = self.viewpos + pos.y
             if self.dragging > high_thresh:
                 self.dragging = high_thresh
