@@ -504,6 +504,8 @@ class Tiles(ui.RootElement):
 
     def CancelMouseMotion(self):
         self.selected_quad.Disable()
+        if self.mouse_text.text != ' ':
+            self.mouse_text.SetText(' ')
         self.selected = None
 
     def Update(self,t):
