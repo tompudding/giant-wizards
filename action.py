@@ -500,7 +500,7 @@ class EpicWizardBlastAction(WizardBlastAction):
         if target_tile.name in ('grass','mountain','tree'):
             target_tile.name = 'scorched'
             target_tile.movement_cost = 1
-            self.actor.tiles.SetMapVertices()
+            self.actor.tiles.SetMapVertices((pos.x,pos.x+1),(pos.y,pos.y+1))
         target = target_tile.GetActor()
         if target:
             target.Damage(int(self.total_damage*0.1))
@@ -710,8 +710,8 @@ class SpellActionChoice(ActionChoice):
         #Construct the list of points for the slider
         points = [(action.cost,i) for (i,action) in enumerate(self.action.actions)]
         self.spell_detail_box.slider = ui.Slider(parent   = self.spell_detail_box,
-                                                 bl       = Point(0.1,0.7),
-                                                 tr       = Point(0.9,0.9),
+                                                 bl       = Point(0.1,0.75),
+                                                 tr       = Point(0.9,0.95),
                                                  points   = points,
                                                  callback = self.SetSubAction)
 
