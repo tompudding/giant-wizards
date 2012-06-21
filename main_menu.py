@@ -21,10 +21,6 @@ class MainMenu(ui.RootElement):
         offset = Point(-0.005,-0.045)
         
         #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
-        callbacks = [self.PlayerChange0,
-                     self.PlayerChange1,
-                     self.PlayerChange2,
-                     self.PlayerChange3]
         for i,name in enumerate(names):
             item = ui.TextBox(parent = gamedata.screen_root,
                               bl     = offset + Point(0.05,0.55-i*0.1),
@@ -37,7 +33,7 @@ class MainMenu(ui.RootElement):
                                       gamedata.player_config[i],
                                       button_bl,
                                       size=0.7,
-                                      callback = callbacks[i],
+                                      callback = utils.ExtraArgs(self.PlayerChange,i),
                                       line_width=4)
             self.buttons.append(button)
         self.play_button = ui.TextBoxButton(gamedata.screen_root ,
@@ -85,7 +81,7 @@ class MainMenu(ui.RootElement):
     def Update(self,t):
         self.Draw()
 
-    def PlayerChange(self,i):
+    def PlayerChange(self,pos,i):
         if gamedata.player_config[i] == 'Human':
             gamedata.player_config[i] = 'CPU'
         elif gamedata.player_config[i] == 'CPU':
@@ -93,15 +89,6 @@ class MainMenu(ui.RootElement):
         else:
             gamedata.player_config[i] = 'Human'
         self.buttons[i].SetText(gamedata.player_config[i])
-
-    def PlayerChange0(self,pos):
-        return self.PlayerChange(0)
-    def PlayerChange1(self,pos):
-        return self.PlayerChange(1)
-    def PlayerChange2(self,pos):
-        return self.PlayerChange(2)
-    def PlayerChange3(self,pos):
-        return self.PlayerChange(3)
 
     def Play(self,pos):
         states = []

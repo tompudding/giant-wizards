@@ -854,4 +854,57 @@ class Slider(UIElement):
             return
         self.SetPointer()
         self.callback(self.index)
+
+class TabPage(UIElement):
+    """
+    A UIElement that is suitable for using as the target for a Tabbed environment. Instantiating this class with a Tabbed
+    environment as the parent automatically adds it as a tab
+    """
+    def __init__(self,parent,bl,tr,name):
+        self.name = name
+        super(TabPage,self).__init__(parent,bl,tr)
+
+class TabbedArea(UIElement):
+    """
+    Represents the drawable area in a Tabbed environment. It's necessary to allow TabPages to specify their coordinates from
+    (0,0) to (1,1) and still only take up the part of the TabbedEnvironment reserved for TabPages. It doesn't do much, just
+    pass things up to its parent TabbedEnvironment
+    """
+    def AddChild(self,element):
+        super(TabbedArea,self).AddChild(element)
+        if isinstance(element,TabPage):
+            self.parent.AddTabPage(element)
+
+class NumberDecorator(object):
+    def __init__(self,func,index):
+        self.func  = func
+        self.index = index
+
+    def __call__(self, *args):
+        args.append(self.index)
+        return self.func(*args)
             
+class TabbedEnvironment(UIElement):
+    """
+    An element that has a number of sub-element tabs. To make a tab you just create a TabPage that has tab_area as its parent
+    """
+    def __init__(self,parent,bl,tr):
+        super(TabbedEnvironment,self).__init__(parent,bl,tr)
+        self.tab_area = TabbedArea(self,Point(0,0),Point(1,0.9))
+        self.buttons = []
+
+    def AddTabPage(self,page):
+        print 'Adding page',page.name
+        if len(self.buttons) == 0:
+            xpos = 0
+        else:
+            xpos = self.buttons[-1].pos.x
+        new_button = TextBoxButton(parent   = self           ,
+                                   text     = page.name      ,
+                                   pos      = Point(xpos,0.9),
+                                   tr       = None           ,
+                                   size     = 0.2            ,
+                                   callback = utils.ExtraArgs(self.OnClick,len(self.buttons)))
+
+    def OnClick(self,pos,button):
+        print 'Button %d pressed' % button

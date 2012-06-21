@@ -33,6 +33,7 @@ done     - Make the action creators have a name of their own, like "wizard blast
 
 BUGS
 ----
+      - UI resources are allocated for AI players even though they're never used
 fixed - Mouse-text doesn't disappear when you move over UI elements
 fixed - characters moving onto scorched tiles crash
 fixed - clicking on your wizard removes your move highlights

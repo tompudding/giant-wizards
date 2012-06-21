@@ -381,3 +381,14 @@ def Brensenham(a,b,width):
         d = d + (2 * dy)
     coords.append(Point(x2,y2))
     return coords
+
+class ExtraArgs(object):
+    """
+    A noddy decorator for adding arguments to a function call
+    """
+    def __init__(self,func,*args):
+        self.func  = func
+        self.extra = args
+
+    def __call__(self, *args):
+        return self.func(*(args + self.extra))
