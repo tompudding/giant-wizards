@@ -883,19 +883,40 @@ class TabbedEnvironment(UIElement):
         super(TabbedEnvironment,self).__init__(parent,bl,tr)
         self.tab_area = TabbedArea(self,Point(0,0),Point(1,0.9))
         self.buttons = []
+        self.pages   = []
+        self.current_page = None
 
     def AddTabPage(self,page):
-        print 'Adding page',page.name
+        #print 'Adding page',page.name,len(self.buttons)
         if len(self.buttons) == 0:
             xpos = 0
         else:
-            xpos = self.buttons[-1].pos.x
+            xpos = self.buttons[-1].top_right.x
         new_button = TextBoxButton(parent   = self           ,
                                    text     = page.name      ,
                                    pos      = Point(xpos,0.9),
                                    tr       = None           ,
                                    size     = 0.2            ,
                                    callback = utils.ExtraArgs(self.OnClick,len(self.buttons)))
+        
+        self.buttons.append(new_button)
+        self.pages.append(page)
+        if len(self.pages) == 1:
+            page.Enable()
+            self.current_page = page
+        else:
+            page.Disable()
 
     def OnClick(self,pos,button):
-        print 'Button %d pressed' % button
+        if self.pages[button] is not self.current_page:
+            self.current_page.Disable()
+            self.current_page = self.pages[button]
+            self.current_page.Enable()
+
+    def Enable(self):
+        #Fixme, don't waste time by enabling then disabling the other pages, do some optimisation st
+        #they're not enabled at all
+        super(TabbedEnvironment,self).Enable()
+        for page in self.pages:
+            if page is not self.current_page:
+                page.Disable()

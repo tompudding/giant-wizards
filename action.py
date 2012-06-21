@@ -724,16 +724,19 @@ class SpellActionChoice(ActionChoice):
                                                  text   = self.action.action.description,
                                                  scale  = 0.25)
         self.spell_detail_box.tabs.description_page = description_page
-        
-        #self.spell_detail_box.tabs.other = ui.ScrollTextBox(parent = self.spell_detail_box.tabs,
-        #                                                          bl     = Point(0,0),
-        #                                                          tr     = Point(1,1),
-        #                                                          text   = "bibbage babbage toodly boodly blip blop mumma galimpo crumps",
-        #                                                          scale  = 0.25)
 
-        #self.spell_detail_box.tabs.AddTab(name = 'Description',self.spell_detail_box.tabs.description)
-        #self.spell_detail_box.tabs.AddTab(name = 'Other'      ,self.spell_detail_box.tabs.other)
+        other_page = ui.TabPage( self.spell_detail_box.tabs.tab_area,
+                                 bl   = Point(0,0),
+                                 tr   = Point(1,1),
+                                 name = 'Cabbage')
 
+        other_page.text = ui.ScrollTextBox(parent = other_page,
+                                           bl     = Point(0,0),
+                                           tr     = Point(1,1),
+                                           text   = "bibbage babbage toodly boodly blip blop mumma galimpo crumps",
+                                           scale  = 0.25)
+
+        self.spell_detail_box.tabs.other_page = other_page
 
         self.spell_detail_box.Disable()
 
