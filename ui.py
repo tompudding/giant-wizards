@@ -874,15 +874,6 @@ class TabbedArea(UIElement):
         super(TabbedArea,self).AddChild(element)
         if isinstance(element,TabPage):
             self.parent.AddTabPage(element)
-
-class NumberDecorator(object):
-    def __init__(self,func,index):
-        self.func  = func
-        self.index = index
-
-    def __call__(self, *args):
-        args.append(self.index)
-        return self.func(*args)
             
 class TabbedEnvironment(UIElement):
     """

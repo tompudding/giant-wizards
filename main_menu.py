@@ -20,7 +20,6 @@ class MainMenu(ui.RootElement):
         self.buttons = []
         offset = Point(-0.005,-0.045)
         
-        #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
         for i,name in enumerate(names):
             item = ui.TextBox(parent = gamedata.screen_root,
                               bl     = offset + Point(0.05,0.55-i*0.1),
