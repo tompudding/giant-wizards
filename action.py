@@ -19,7 +19,6 @@ class Action(object):
     def InvalidatePathCache(self):
         pass
 
-
 #Just wrap the static functions of the class
 #This class exists only so we can have a consistent interface
 class BasicActionCreator(object):
@@ -525,6 +524,9 @@ class SummonMonsterAction(BlastAction):
                                    self.actor.IsPlayer(),
                                    self.actor.name + '\'s ' + self.Monster.name,
                                    self.actor)
+            #summoned monsters start with no movement or mana...
+            monster.AdjustMovePoints(-monster.stats.move)
+            monster.AdjustActionPoints(-monster.stats.mana)
             self.actor.player.AddSummoned(monster)
 
     @staticmethod
@@ -790,3 +792,79 @@ class ActionChoiceList(ui.UIElement):
 
     def __getitem__(self,index):
         return self.choices[index]
+
+min_power = -10
+max_power = 10
+                                     # chance of doing damage
+attack_table = { -10 : ( -2  ,1   ), # 
+                  -9 : ( -2 , 1.1 ), # 
+                  -8 : ( -2 , 1.2 ), # 
+                  -7 : ( -2 , 1.3 ), # 
+                  -6 : ( -2 , 1.4 ), # 1.4 %
+                  -5 : ( -2 , 1.8 ), # 4.77
+                  -4 : ( -1 , 1.8 ), 
+                  -3 : (-0.5, 1.5 ), # 15 %
+                  -2 : (-0.5, 1.8 ), # 20 %
+                  -1 : (  0 , 1.5 ), # 25
+                   0 : (  1 , 2.5 ), # 50   %  expected = 1.26
+                   1 : (  2 , 1.5 ), # 75   %, expected = 1.6
+                   2 : (  3 , 1.5 ), # 90   %, expected = 2.5
+                   3 : (3.5 , 2.1 ), # 88   %, expected = 3
+                   4 : (  4 , 1.7 ), # 95   %, expected = 3.5
+                   5 : (  4 , 1.3 ), # 99.9 %, expected = 3.7
+                   6 : (  5 , 1.3 ), # 99.9 %, expected = 4.5
+                   7 : (  7 , 1.4 ), # 98.4 %, expected = 6.34
+                   8 : (  8 , 1.2 ), 
+                   9 : (  9 , 1.3 ),
+                  10 : ( 10 , 1.3 ) }
+
+counter_table  = { -10 : 0,
+                    -9 : 0,
+                    -8 : 0.001,
+                    -7 : 0.005,
+                    -6 : 0.01,
+                    -5 : 0.05,
+                    -4 : 0.08,
+                    -3 : 0.08,
+                    -2 : 0.1,
+                    -1 : 0.15,
+                     0 : 0.2,
+                     1 : 0.25,
+                     2 : 0.3,
+                     3 : 0.4,
+                     4 : 0.5,
+                     5 : 0.6,
+                     6 : 0.7,
+                     8 : 0.75,
+                     9 : 0.8,
+                    10 : 0.9 }
+                    
+
+def ResolveCombat(attacker,defender):
+    """
+    Resolve combat between two attackers. Works as follows:
+      -  Amount of damage done is based on the difference between attack and defence, capped at a max of 10
+      -  Additionaly, there's a chance of a counter attack again based on the difference, where the attacker
+         can be damaged
+    """
+    relative_power = attacker.stats.attack - defender.stats.defence
+    if relative_power > max_power:
+        relative_power = max_power
+    if relative_power < min_power:
+        relative_power = min_power
+
+    mean,sd = attack_table[relative_power]
+    damage = int(random.gauss(mean,sd))
+    if damage < 0:
+        damage = 0
+    print '%s did %d damage to %s! (power:%d)' % (attacker.name,damage,defender.name,relative_power)
+    defender.Damage(damage)
+    counter_chance = counter_table[relative_power]
+    if random.random() < counter_chance:
+        relative_power = defender.stats.attack - attacker.stats.defence
+        mean,sd = attack_table[relative_power]
+        damage = int(random.gauss(mean,sd)/3)
+        if damage < 0:
+            damage = 0
+        print '%s countered with %d damage (power:%d)' % (defender.name,damage,relative_power)
+        attacker.Damage(damage)

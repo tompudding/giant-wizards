@@ -1,4 +1,4 @@
-import players,utils,gamedata,ui,texture,copy
+import players,utils,gamedata,ui,texture,copy,action
 from utils import Point
 
 class Stats(object):
@@ -134,7 +134,6 @@ class Actor(object):
             if self.flash_state:
                 self.quad.SetColour((1,1,1,0.3))
                 self.flash_state = False
-        
 
     def IsPlayer(self):
         return self.player_type == players.PlayerTypes.HUMAN
@@ -167,7 +166,7 @@ class Actor(object):
             #maybe we're attacking a fella?
             target_actor = target_tile.GetActor()
             if target_actor != None:
-                target_actor.Damage(2)
+                action.ResolveCombat(self,target_actor)
             #need to update the pos anyway to cause various update mechanisms to get triggered
             self.SetPos(self.pos)
         else:
@@ -195,7 +194,6 @@ class Actor(object):
         self.tiles.player_action.UpdateQuads()
 
     def AdjustActionPoints(self,value):
-        print 'aap'
         self.stats.mana += value
         self.mana_text.SetText('Mana : %d' % self.stats.mana)
         if self.tiles.player_action:
