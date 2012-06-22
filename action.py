@@ -113,7 +113,7 @@ class MoveActionCreator(BasicActionCreator):
 
     @property
     def valid_vectors(self):
-        if 1:#not self._valid_vectors or self.last_ap != self.wizard.action_points:
+        if 1:#not self._valid_vectors or self.last_ap != self.wizard.mana:
             ap = self.wizard.move_points
             self._valid_vectors = {}
             for x in xrange(-ap,ap+1):
@@ -251,7 +251,7 @@ class TeleportActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.action_points:
+        if self.action.cost > self.actor.mana:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
@@ -327,7 +327,7 @@ class BlastAction(Action):
 
         if self.firing == None:
             #determine whether we can actually fire
-            if self.actor.action_points >= self.cost:
+            if self.actor.mana >= self.cost:
                 self.actor.AdjustActionPoints(-self.cost)
                 self.firing = True
                 self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
@@ -389,7 +389,7 @@ class BlastActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.action_points:
+        if self.action.cost > self.actor.mana:
             return vectors
 
         if self._valid_vectors != None:
@@ -540,7 +540,7 @@ class SummonActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.action_points:
+        if self.action.cost > self.actor.mana:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p

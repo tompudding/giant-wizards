@@ -2,10 +2,10 @@ import random,action,gamedata,actor,players
 from utils import Point
 
 class Wizard(actor.Actor):
-    initial_action_points = 2
+    initial_mana = 2
     initial_move_points   = 2
     initial_health_points = 10
-    max_action_points     = 1000
+    max_mana     = 1000
     def __init__(self,pos,type,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
         self.controlled       = [self]
@@ -89,7 +89,7 @@ class Wizard(actor.Actor):
                     offset = enemy.pos-self.pos
                     if self.blast_action_creator.Valid(offset):
                         self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
-                    elif self.action_points - self.summon_goblin_creator.cost >= 6:
+                    elif self.mana - self.summon_goblin_creator.cost >= 6:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in self.summon_goblin_creator.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
@@ -108,7 +108,7 @@ class Wizard(actor.Actor):
                     offset = enemy.pos-self.pos
                     if self.blast_action_creator.Valid(offset):
                         self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
-                    elif self.action_points - self.summon_goblin_creator.cost >= 2:
+                    elif self.mana - self.summon_goblin_creator.cost >= 2:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in self.summon_goblin_creator.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
@@ -137,7 +137,7 @@ class Wizard(actor.Actor):
         self.tiles.RemoveWizard(self)
 
 class Goblin(actor.Actor):
-    initial_action_points = 0
+    initial_mana = 0
     initial_move_points   = 3
     initial_health_points = 10     
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction])]
@@ -206,20 +206,20 @@ class Goblin(actor.Actor):
         return self.action_list.pop(0)
 
 class GoblinRunt(Goblin):
-    initial_action_points = 0
+    initial_mana = 0
     initial_move_points   = 1
     initial_health_points = 3                
     name = 'Goblin Runt'
 
 class GoblinWarrior(Goblin):
-    initial_action_points = 0
+    initial_mana = 0
     initial_move_points   = 3
     initial_health_points = 6                                                
     name = 'Goblin Warrior'
 
 class GoblinShaman(Goblin):
-    initial_action_points = 1
-    max_action_points     = 6
+    initial_mana = 1
+    max_mana     = 6
     initial_move_points   = 2
     initial_health_points = 4        
     name = 'Goblin Shaman'
@@ -227,7 +227,7 @@ class GoblinShaman(Goblin):
                    (action.BlastActionCreator,[action.WeakWizardBlastAction])]
 
 class GoblinLord(Goblin):
-    initial_action_points = 0
+    initial_mana = 0
     initial_move_points   = 4
     initial_health_points = 14 
     name = 'Goblin Lord'
