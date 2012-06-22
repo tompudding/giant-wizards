@@ -226,7 +226,7 @@ class TeleportAction(Action):
             target_tile      = self.actor.tiles.GetTile(self.end_pos)
         
         if t > self.end_time:
-            self.actor.AdjustActionPoints(-self.cost)
+            self.actor.AdjustMana(-self.cost)
             self.actor.MoveRelative(self.vector)
             return True
         
@@ -327,7 +327,7 @@ class BlastAction(Action):
         if self.firing == None:
             #determine whether we can actually fire
             if self.actor.stats.mana >= self.cost:
-                self.actor.AdjustActionPoints(-self.cost)
+                self.actor.AdjustMana(-self.cost)
                 self.firing = True
                 self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
                 self.visited = {self.start_pos:True}
@@ -526,7 +526,7 @@ class SummonMonsterAction(BlastAction):
                                    self.actor)
             #summoned monsters start with no movement or mana...
             monster.AdjustMovePoints(-monster.stats.move)
-            monster.AdjustActionPoints(-monster.stats.mana)
+            monster.AdjustMana(-monster.stats.mana)
             self.actor.player.AddSummoned(monster)
 
     @staticmethod

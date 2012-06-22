@@ -16,11 +16,12 @@ done   - Make the text boxes scrollable with a drag or scroll wheel
 done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
-     - add stats, attack/defence, weaknesses to damage types, damage types etc
+done - add stats, attack/defence
      - tabs in the description box to separate description, stats, abilities (for summons anyway)
      - area of effect spells
      - heal (with aoe version)
      - info box about current guy with stats
+     - add weaknesses to damage types, damage types etc
 done - Update the current spells to work as described, make the epic blast better, allow the shaman to cast spells
      - nav bar along the bottom for selecting creatures
      - multi-turn commands?

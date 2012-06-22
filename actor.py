@@ -193,7 +193,7 @@ class Actor(object):
             self.tiles.player_action = action
         self.tiles.player_action.UpdateQuads()
 
-    def AdjustActionPoints(self,value):
+    def AdjustMana(self,value):
         self.stats.mana += value
         self.mana_text.SetText('Mana : %d' % self.stats.mana)
         if self.tiles.player_action:

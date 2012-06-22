@@ -121,7 +121,7 @@ class Tiles(ui.RootElement):
                                                textType = texture.TextTypes.MOUSE_RELATIVE)
 
         self.mouse_text_colour    = (1,1,1,1)
-        self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustActionPoints(100)),
+        self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustMana(100)),
                        Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
                        Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)))
         
