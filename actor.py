@@ -1,29 +1,37 @@
-import players,utils,gamedata,ui,texture
+import players,utils,gamedata,ui,texture,copy
 from utils import Point
 
-#class Stats(object):
-    
+class Stats(object):
+    attack      = 0
+    defence     = 0
+    move        = 0
+    health      = 0
+    mana        = 0
+    tangibility = 0
+    def __init__(self,attack,defence,move,health,mana,tangibility=10):
+        self.attack      = attack
+        self.defence     = defence
+        self.move        = move
+        self.health      = health
+        self.mana        = mana
+        self.tangibility = tangibility
 
 class Actor(object):
     """
     Class to represent all characters than can appear on the game board
+    This is supposed to be abstract, so a few things are missing
     """
-    initial_mana = 0
-    initial_move_points   = 0
-    initial_health_points = 0
-    max_mana     = 0
+    initial_stats         = None
+    max_mana              = 0
     def __init__(self,pos,type,tiles,playerType,name,player):
+        self.stats              = copy.copy(self.initial_stats)
         self.colour             = player.colour
         self.colour_name        = players.PlayerColours.NAMES[self.colour]
         self.pos                = pos
         self.player             = player
         self.tiles              = tiles
         self.type               = type
-        self.full               = None
-        self.health             = self.initial_health_points
         self.quad               = utils.Quad(gamedata.quad_buffer)
-        self.mana      = 0
-        self.move_points        = 0
         self.options_box        = ui.HoverableBox(gamedata.screen_root,
                                                   Point(0.7,0.5),
                                                   Point(0.95,0.95),
@@ -37,19 +45,19 @@ class Actor(object):
         self.movement_text      = ui.TextBox(parent  = self.options_box,
                                              bl      = Point(0,0.82)   ,
                                              tr      = None            ,
-                                             text    = 'Movement : %d' % self.move_points,
+                                             text    = 'Movement : %d' % self.stats.move,
                                              scale   = 0.33            )
 
         self.mana_text = ui.TextBox(parent  = self.options_box,
                                              bl      = Point(0.6,0.82) ,
                                              tr      = None            ,
-                                             text    = 'Mana : %d' % self.mana,
+                                             text    = 'Mana : %d' % self.stats.mana,
                                              scale   = 0.33            )
 
         self.health_text        = ui.TextBox(parent  = self.tiles      ,
                                              bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                              tr      = None            ,
-                                             text    = '%d' % self.health,
+                                             text    = '%d' % self.stats.health,
                                              scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
                                       
@@ -132,12 +140,12 @@ class Actor(object):
         return self.player_type == players.PlayerTypes.HUMAN
 
     def NewTurn(self):
-        self.mana += self.initial_mana
-        if self.mana > self.max_mana:
-            self.mana = self.max_mana
-        self.move_points    = self.initial_move_points
-        self.mana_text.SetText('Mana : %d' % self.mana)
-        self.movement_text.SetText('Movement : %d' % self.move_points)
+        self.stats.mana += self.initial_stats.mana
+        if self.stats.mana > self.max_mana:
+            self.stats.mana = self.max_mana
+        self.stats.move    = self.initial_stats.move
+        self.mana_text.SetText('Mana : %d' % self.stats.mana)
+        self.movement_text.SetText('Movement : %d' % self.stats.move)
         if not self.selected:
             self.mana_text.Disable()
             self.movement_text.Disable()
@@ -187,16 +195,17 @@ class Actor(object):
         self.tiles.player_action.UpdateQuads()
 
     def AdjustActionPoints(self,value):
-        self.mana += value
-        self.mana_text.SetText('Mana : %d' % self.mana)
+        print 'aap'
+        self.stats.mana += value
+        self.mana_text.SetText('Mana : %d' % self.stats.mana)
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
         if not self.selected:
             self.mana_text.Disable()
 
     def AdjustMovePoints(self,value):
-        self.move_points += value
-        self.movement_text.SetText('Movement : %d' % self.move_points)
+        self.stats.move += value
+        self.movement_text.SetText('Movement : %d' % self.stats.move)
         if not self.selected:
             self.movement_text.Disable()
 
@@ -204,9 +213,9 @@ class Actor(object):
         return self.player.Controls(other)
 
     def Damage(self,value):
-        self.health -= value
-        self.health_text.SetText('%d' % self.health)
-        if self.health <= 0:
+        self.stats.health -= value
+        self.health_text.SetText('%d' % self.stats.health)
+        if self.stats.health <= 0:
             self.Kill()
 
     def Kill(self):

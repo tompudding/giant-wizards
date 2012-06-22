@@ -84,7 +84,7 @@ class MoveAction(Action):
             self.initialised = True
             self.target_tile = self.actor.tiles.GetTile(self.end_pos)
             self.attacking   = not self.target_tile.Empty() 
-            self.will_move   = self.actor.move_points >= self.target_tile.movement_cost
+            self.will_move   = self.actor.stats.move >= self.target_tile.movement_cost
         
         if t > self.end_time:
             self.actor.AdjustMovePoints(-self.target_tile.movement_cost)
@@ -113,8 +113,8 @@ class MoveActionCreator(BasicActionCreator):
 
     @property
     def valid_vectors(self):
-        if 1:#not self._valid_vectors or self.last_ap != self.wizard.mana:
-            ap = self.wizard.move_points
+        if 1:#not self._valid_vectors or self.last_ap != self.wizard.stats.mana:
+            ap = self.wizard.stats.move
             self._valid_vectors = {}
             for x in xrange(-ap,ap+1):
                 for y in xrange(-ap,ap+1):
@@ -251,7 +251,7 @@ class TeleportActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.mana:
+        if self.action.cost > self.actor.stats.mana:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
@@ -327,7 +327,7 @@ class BlastAction(Action):
 
         if self.firing == None:
             #determine whether we can actually fire
-            if self.actor.mana >= self.cost:
+            if self.actor.stats.mana >= self.cost:
                 self.actor.AdjustActionPoints(-self.cost)
                 self.firing = True
                 self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
@@ -389,7 +389,7 @@ class BlastActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.mana:
+        if self.action.cost > self.actor.stats.mana:
             return vectors
 
         if self._valid_vectors != None:
@@ -540,7 +540,7 @@ class SummonActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.mana:
+        if self.action.cost > self.actor.stats.mana:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p

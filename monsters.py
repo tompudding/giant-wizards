@@ -2,9 +2,11 @@ import random,action,gamedata,actor,players
 from utils import Point
 
 class Wizard(actor.Actor):
-    initial_mana = 2
-    initial_move_points   = 2
-    initial_health_points = 10
+    initial_stats = actor.Stats(attack  = 4,
+                                defence = 2,
+                                move    = 2,
+                                health  = 8,
+                                mana    = 2)
     max_mana     = 1000
     def __init__(self,pos,type,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
@@ -74,7 +76,7 @@ class Wizard(actor.Actor):
             #  - Summon a Goblin if they can (but stay above 2 mana for shooting)
             #  - 
             if self.player_type == players.PlayerTypes.TENTATIVE:
-                if self.move_points > 0:
+                if self.stats.move > 0:
                     #Go away from the nearest enemy
                     opposite_point = enemy.pos + Point(self.tiles.width/2,0)
                     if enemy.pos.y < self.tiles.height/2:
@@ -89,7 +91,7 @@ class Wizard(actor.Actor):
                     offset = enemy.pos-self.pos
                     if self.blast_action_creator.Valid(offset):
                         self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
-                    elif self.mana - self.summon_goblin_creator.cost >= 6:
+                    elif self.stats.mana - self.summon_goblin_creator.cost >= 6:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in self.summon_goblin_creator.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
@@ -100,7 +102,7 @@ class Wizard(actor.Actor):
                             #coun't find a place to put it. pants
                             pass
             elif self.player_type == players.PlayerTypes.GUNGHO:
-                if self.move_points > 0 and path:
+                if self.stats.move > 0 and path:
                     if self.move_action_creator.Valid(path.steps[0]):
                         self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
                 #We've had a chance, at moving, but maybe we decided not to?
@@ -108,7 +110,7 @@ class Wizard(actor.Actor):
                     offset = enemy.pos-self.pos
                     if self.blast_action_creator.Valid(offset):
                         self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
-                    elif self.mana - self.summon_goblin_creator.cost >= 2:
+                    elif self.stats.mana - self.summon_goblin_creator.cost >= 2:
                         #Want to summon a goblin, find the first spot that works
                         choices = sorted([p for p in self.summon_goblin_creator.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
                         for point in choices:
@@ -126,9 +128,9 @@ class Wizard(actor.Actor):
 
 
     def Damage(self,value):
-        self.health -= value
-        self.health_text.SetText('%d' % self.health)
-        if self.health <= 0:
+        self.stats.health -= value
+        self.health_text.SetText('%d' % self.stats.health)
+        if self.stats.health <= 0:
             self.Kill()
 
     def Kill(self):
@@ -137,9 +139,8 @@ class Wizard(actor.Actor):
         self.tiles.RemoveWizard(self)
 
 class Goblin(actor.Actor):
-    initial_mana = 0
-    initial_move_points   = 3
-    initial_health_points = 10     
+    initial_stats = None #this is abstract
+  
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction])]
     def __init__(self,pos,type,tiles,playerType,name,caster):
         super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
@@ -159,9 +160,9 @@ class Goblin(actor.Actor):
         self.ai_actions = [self.move_action_creator]
 
     def Damage(self,value):
-        self.health -= value
-        self.health_text.SetText('%d' % self.health)
-        if self.health <= 0:
+        self.stats.health -= value
+        self.health_text.SetText('%d' % self.stats.health)
+        if self.stats.health <= 0:
             self.quad.Delete()
             self.health_text.Delete()
             self.tiles.RemoveActor(self)
@@ -196,7 +197,7 @@ class Goblin(actor.Actor):
                 #wtf? There are no other wizards? the game should have ended
                 return False
             path,cost,enemy = enemies[0]
-            if self.move_points > 0 and path:
+            if self.stats.move > 0 and path:
                 if self.move_action_creator.Valid(path.steps[0]):
                     self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
                        
@@ -206,30 +207,38 @@ class Goblin(actor.Actor):
         return self.action_list.pop(0)
 
 class GoblinRunt(Goblin):
-    initial_mana = 0
-    initial_move_points   = 1
-    initial_health_points = 3                
+    initial_stats = actor.Stats(attack  = 2,
+                                defence = 2,
+                                move    = 1,
+                                health  = 3,
+                                mana    = 0)                
     name = 'Goblin Runt'
 
 class GoblinWarrior(Goblin):
-    initial_mana = 0
-    initial_move_points   = 3
-    initial_health_points = 6                                                
+    initial_stats = actor.Stats(attack  = 4,
+                                defence = 3,
+                                move    = 3,
+                                health  = 6,
+                                mana    = 0)
     name = 'Goblin Warrior'
 
 class GoblinShaman(Goblin):
-    initial_mana = 1
-    max_mana     = 6
-    initial_move_points   = 2
-    initial_health_points = 4        
-    name = 'Goblin Shaman'
+    initial_stats = actor.Stats(attack  = 2,
+                                defence = 1,
+                                move    = 2,
+                                health  = 4,
+                                mana    = 1)
+    max_mana          = 6
+    name              = 'Goblin Shaman'
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
-                   (action.BlastActionCreator,[action.WeakWizardBlastAction])]
+                         (action.BlastActionCreator,[action.WeakWizardBlastAction])]
 
 class GoblinLord(Goblin):
-    initial_mana = 0
-    initial_move_points   = 4
-    initial_health_points = 14 
+    initial_stats = actor.Stats(attack  = 6,
+                                defence = 4,
+                                move    = 4,
+                                health  = 14,
+                                mana    = 0)
     name = 'Goblin Lord'
 
 class SummonGoblinAction(action.SummonMonsterAction):
