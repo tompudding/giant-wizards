@@ -17,7 +17,7 @@ done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
 done - add stats, attack/defence
-     - visual damage indication
+done - visual damage indication
      - tabs in the description box to separate description, stats, abilities (for summons anyway)
      - area of effect spells
      - heal (with aoe version)
