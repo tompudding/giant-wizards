@@ -33,13 +33,12 @@ class Actor(object):
         self.type               = type
         self.t                  = 0
         self.quad               = utils.Quad(gamedata.quad_buffer)
-        self.damage_text        = ui.FaderTextBox(parent = gamedata.screen_root,
+        self.damage_text        = ui.FaderTextBox(parent = self.tiles,
                                                   bl     = Point(0,0),
                                                   tr     = None,
                                                   text   = ' ',
                                                   colour = (1,0,0,1),
-                                                  scale  = 0.3,
-                                                  tiles  = self.tiles)
+                                                  scale  = 0.3)
         self.damage_text.Disable()
 
         self.options_box        = ui.HoverableBox(gamedata.screen_root,
@@ -137,10 +136,8 @@ class Actor(object):
             if complete:
                 self.damage_text.Disable()
         if not self.selected:
-            self.quad.Enable()
-            self.quad.SetColour((1,1,1,1))
-            self.flash_state = True
             return
+            
         if (t%800) > 400:
             #want to be on
             if not self.flash_state:
@@ -234,27 +231,26 @@ class Actor(object):
         #since by assumption no position is on screen more than once, we'll just check if any of the 3 are on screen, and 
         #choose the first that is (if any)
         #x = utils.WorldCoords(self.tiles.map_size)[0]
-        r = self.tiles.map_size/gamedata.screen_root.absolute.size
-        p = (utils.WorldCoords(self.pos + Point(0.3,0.8)) - self.tiles.viewpos.Get())/gamedata.screen_root.absolute.size
-        for offset in -r.x,0,r.x:
-            if p.x + offset > 0 and p.x + offset < 1:
-                p.x += offset
-                break
-        else:
-            #Don't draw the damage_text as it's off the screen
-            p = None
+        #r = self.tiles.map_size/gamedata.screen_root.absolute.size
+        #p = (utils.WorldCoords(self.pos + Point(0.3,0.8)) - self.tiles.viewpos.Get())/gamedata.screen_root.absolute.size
+        #for offset in -r.x,0,r.x:
+        #    if p.x + offset > 0 and p.x + offset < 1:
+        #        p.x += offset
+        #        break
+        #else:
+        #    #Don't draw the damage_text as it's off the screen
+        #    p = None
         #p.x %= 1
         #   p.x += 1
         #lif p.x > 1:
         #   p.x -= 1
 
-        print p,gamedata.screen_root.absolute.size,self.tiles.viewpos.Get(),self.pos,utils.WorldCoords(self.pos + Point(0.3,0.8))
-        if p != None:
-            self.damage_text.SetPos(p)
-            self.damage_text.SetText('%d' % value)
-            self.damage_text.SetColour((1,0,0,1) if value >= 0 else (0,1,0,1))
-            self.damage_text.Enable()
-            self.damage_text.SetFade(self.t,self.t+800,3,self.damage_text.colour[:3] + (0,))
+        #print p,gamedata.screen_root.absolute.size,self.tiles.viewpos.Get(),self.pos,utils.WorldCoords(self.pos + Point(0.3,0.8))
+        self.damage_text.SetPos((self.pos + Point(0.3,0.8))/self.tiles.map_size)
+        self.damage_text.SetText('%d' % value)
+        self.damage_text.SetColour((1,0,0,1) if value >= 0 else (0,1,0,1))
+        self.damage_text.Enable()
+        self.damage_text.SetFade(self.t,self.t+800,3,self.damage_text.colour[:3] + (0,))
         if self.stats.health <= 0:
             self.Kill()
 

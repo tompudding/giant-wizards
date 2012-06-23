@@ -89,7 +89,7 @@ class TileHighlights(object):
         for q in self.highlight_quads:
             q.Disable()
 
-class Tiles(ui.RootElement):
+class Tiles(ui.UIRoot):
     def __init__(self,atlas,tiles_name,data_filename,map_size):
         #FIXME: Some sort of splitting-up/additional namespacing would help here,
         #this class is getting rather large
@@ -399,6 +399,10 @@ class Tiles(ui.RootElement):
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
+        for item in self.drawable_children:
+            item.Draw()
+
 
     def IsDragging(self):
         return True if self.dragging else False

@@ -65,7 +65,6 @@ class QuadVertex(object):
             self.buffer[self.index + start:self.index+stop:stride] = value
         else:
             self.buffer[self.index + i] = value
-        
 
 class Quad(object):
     def __init__(self,source,vertex = None,tc = None,colour_info = None,index = None):

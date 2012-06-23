@@ -298,7 +298,6 @@ class UIRoot(RootElement):
             del self.drawable_children[item]
         except KeyError:
             pass
-        
             
 class HoverableElement(UIElement):
     """
@@ -465,9 +464,9 @@ class TextBox(UIElement):
                 break
             absolute_bl = self.GetAbsolute(target_bl)
             absolute_tr = self.GetAbsolute(target_tr)
-            quad.SetVertices(absolute_bl,
-                             absolute_tr,
-                             texture.TextTypes.LEVELS[self.text_type])
+            self.SetLetterVertices(i,absolute_bl,
+                                   absolute_tr,
+                                   texture.TextTypes.LEVELS[self.text_type])
             if colour:
                 quad.SetColour(colour)
             cursor.x += letter_size.x
@@ -477,6 +476,9 @@ class TextBox(UIElement):
             quad.SetVertices(Point(0,0),Point(0,0),-10)
         height = max([q.height for q in self.quads])
         super(TextBox,self).UpdatePosition()
+
+    def SetLetterVertices(self,index,bl,tr,textType):
+        self.quads[index].SetVertices(bl,tr,textType)
 
     def UpdatePosition(self):
         """Called by the parent to tell us we need to recalculate our absolute position"""
@@ -542,10 +544,13 @@ class TextBox(UIElement):
 class FaderTextBox(TextBox):
     """A Textbox that can be smoothly faded to a different size / colour"""
     def __init__(self,*args,**kwargs):
-        self.tiles = kwargs['tiles']
-        del kwargs['tiles']
         super(FaderTextBox,self).__init__(*args,**kwargs)
         self.draw_scale = 1
+        self.tiles = self.parent
+
+    def SetLetterVertices(self,index,bl,tr,textType):
+        self.quads[index].SetVertices(bl - self.absolute.bottom_left,tr-bl,textType)
+
 
     def SetFade(self,start_time,end_time,end_size,end_colour):
         self.start_time = start_time
@@ -556,8 +561,8 @@ class FaderTextBox(TextBox):
         self.size_difference = self.end_size - self.start_size
         self.end_colour = end_colour
         self.draw_scale = 1
-        self.bl = (self.absolute.bottom_left - self.absolute.size*1.5).to_int()
-        self.tr = (self.absolute.top_right + self.absolute.size*1.5).to_int()
+        #self.bl = (self.absolute.bottom_left - self.absolute.size*1.5).to_int()
+        #self.tr = (self.absolute.top_right + self.absolute.size*1.5).to_int()
         self.colour_delay = 0.4
         #print bl,tr
         self.Enable()
@@ -594,28 +599,44 @@ class FaderTextBox(TextBox):
         self.quads = [self.text_manager.Letter(char,self.text_type,self.quad_buffer) for char in self.text]
 
     def Draw(self):
-        glPushAttrib(GL_VIEWPORT_BIT)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glScale(self.draw_scale,self.draw_scale,1)
-        #glTranslate(-self.tiles.viewpos.Get().x,-self.tiles.viewpos.Get().y,0)
-        glOrtho(self.bl.x,self.tr.x, self.bl.y, self.tr.y,-10000,10000)
-        
-        glMatrixMode(GL_MODELVIEW)
-        glViewport(self.bl.x,self.bl.y, (self.tr.x-self.bl.x), (self.tr.y-self.bl.y))
+        """
+        Draw the text 3 times for the wrap-around effect, even though we can only see this once as the map is
+        wider than the screen.
+        """
 
-        #glTranslate(0,-self.viewpos*self.absolute.size.y,0)
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.atlas.texture.texture)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+
+        glLoadIdentity()
+        glTranslate(-self.tiles.viewpos.Get().x,-self.tiles.viewpos.Get().y,0)
+        glTranslate(self.absolute.bottom_left.x,self.absolute.bottom_left.y,0)
+        glScale(self.draw_scale,self.draw_scale,1)
         
         glVertexPointerf(self.quad_buffer.vertex_data)
         glTexCoordPointerf(self.quad_buffer.tc_data)
         glColorPointer(4,GL_FLOAT,0,self.quad_buffer.colour_data)
+
+        glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
+
+        glLoadIdentity()
+        glTranslate(-self.tiles.viewpos.Get().x-self.tiles.width*gamedata.tile_dimensions.x,-self.tiles.viewpos.Get().y,0)
+        glTranslate(self.absolute.bottom_left.x,self.absolute.bottom_left.y,0)
+        glScale(self.draw_scale,self.draw_scale,1)
+        glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
+
+        glLoadIdentity()
+        glTranslate(-self.tiles.viewpos.Get().x+self.tiles.width*gamedata.tile_dimensions.x,-self.tiles.viewpos.Get().y,0)
+        glTranslate(self.absolute.bottom_left.x,self.absolute.bottom_left.y,0)
+        glScale(self.draw_scale,self.draw_scale,1)
         glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
         
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, gamedata.screen.x, 0, gamedata.screen.y,-10000,10000)
-        glMatrixMode(GL_MODELVIEW)
-        glPopAttrib()
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+
 
 class ScrollTextBox(TextBox):
     """A TextBox that can be scrolled to see text that doesn't fit in the box"""

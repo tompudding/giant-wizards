@@ -109,7 +109,9 @@ class Player(object):
             self.controlled_index %= len(self.controlled)
 
     def Update(self,t):
-        self.current_controlled.Update(t)
+        #self.current_controlled.Update(t)
+        for monster in self.controlled:
+            monster.Update(t)
 
     def InvalidatePathCache(self):
         for actor in self.controlled:
