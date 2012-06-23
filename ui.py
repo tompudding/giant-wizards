@@ -504,7 +504,10 @@ class TextBox(UIElement):
         self.ReallocateResources()
         self.viewpos = 0
         self.Position(self.pos,self.scale,colour)
-        self.Enable()
+        #Updating the quads with self.Position re-enables them, so if we're disabled: don't draw
+        if not self.enabled:
+            for q in self.quads:
+                q.Disable()
     
     def ReallocateResources(self):
         self.quads = [self.text_manager.Letter(char,self.text_type) for char in self.text]
