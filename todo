@@ -34,6 +34,7 @@ done - Update the current spells to work as described, make the epic blast bette
 
 BUGS
 ----
+      - Switching spell strength while on the non-default tab view causes issues
       - UI resources are allocated for AI players even though they're never used
 fixed - Mouse-text doesn't disappear when you move over UI elements
 fixed - characters moving onto scorched tiles crash

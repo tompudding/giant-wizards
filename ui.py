@@ -62,6 +62,7 @@ class UIElement(object):
         self.root                = parent.root
         self.level               = parent.level + 1
         self.SetBounds(pos,tr)
+        self.enabled             = False
 
     def SetBounds(self,pos,tr):
         self.absolute.bottom_left = self.GetAbsoluteInParent(pos)
@@ -152,10 +153,12 @@ class UIElement(object):
     def Disable(self):
         for child in self.children:
             child.Disable()
+        self.enabled = False
 
     def Enable(self):
         for child in self.children:
             child.Enable()
+        self.enabled = True
 
     def Delete(self):
         for child in self.children:
@@ -310,11 +313,13 @@ class HoverableElement(UIElement):
         super(HoverableElement,self).Delete()
 
     def Disable(self):
-        self.root.RemoveUIElement(self)
+        if self.enabled:
+            self.root.RemoveUIElement(self)
         super(HoverableElement,self).Disable()
 
     def Enable(self):
-        self.root.RegisterUIElement(self)
+        if not self.enabled:
+            self.root.RegisterUIElement(self)
         super(HoverableElement,self).Enable()
     
 
@@ -328,6 +333,7 @@ class Box(UIElement):
         self.quad.SetVertices(self.absolute.bottom_left,
                               self.absolute.top_right,
                               utils.ui_level)
+        self.Enable()
 
     def UpdatePosition(self):
         super(Box,self).UpdatePosition()
@@ -340,12 +346,15 @@ class Box(UIElement):
         self.quad.Delete()
         
     def Disable(self):
+        if self.enabled:
+            self.quad.Disable()
         super(Box,self).Disable()
-        self.quad.Disable()
+        
 
     def Enable(self):
+        if not self.enabled:
+            self.quad.Enable()
         super(Box,self).Enable()
-        self.quad.Enable()
 
     def MakeSelectable(self):
         super(Box,self).MakeSelectable()
@@ -387,6 +396,7 @@ class TextBox(UIElement):
         self.viewpos     = 0
         #that sets the texture coords for us
         self.Position(self.bottom_left,self.scale,self.colour)
+        self.Enable()
 
     def Position(self,pos,scale,colour = None,ignore_height = False):
         """Draw the text at the given location and size. Maybe colour too"""
@@ -501,40 +511,40 @@ class TextBox(UIElement):
 
     def Disable(self):
         """Don't draw for a while, maybe we'll need you again"""
+        if self.enabled:
+            for q in self.quads:
+                q.Disable()
         super(TextBox,self).Disable()
-        for q in self.quads:
-            q.Disable()
+        
 
     def Enable(self):
         """Alright, you're back on the team!"""
+        if not self.enabled:
+            for q in self.quads:
+                q.Enable()
         super(TextBox,self).Enable()
-        for q in self.quads:
-            q.Enable()
-
 
 class ScrollTextBox(TextBox):
     """A TextBox that can be scrolled to see text that doesn't fit in the box"""
     def __init__(self,*args,**kwargs):
         super(ScrollTextBox,self).__init__(*args,**kwargs)
-        self.enabled = False
         self.dragging = None
+        self.Enable()
 
     def Position(self,pos,scale,colour = None):
         super(ScrollTextBox,self).Position(pos,scale,colour,ignore_height = True)
 
     def Enable(self):
-        super(ScrollTextBox,self).Enable()
         if not self.enabled:
-            self.enabled = True
             self.root.RegisterUIElement(self)
             self.root.RegisterDrawable(self)
+        super(ScrollTextBox,self).Enable()
 
     def Disable(self):
-        super(ScrollTextBox,self).Disable()
         if self.enabled:
-            self.enabled = False
             self.root.RemoveUIElement(self)
             self.root.RemoveDrawable(self)
+        super(ScrollTextBox,self).Disable()
 
     def Depress(self,pos):
         self.dragging = self.viewpos + self.GetRelative(pos).y
@@ -566,7 +576,6 @@ class ScrollTextBox(TextBox):
         glOrtho(0, gamedata.screen.x, 0, gamedata.screen.y,-10000,10000)
         glMatrixMode(GL_MODELVIEW)
         glPopAttrib()
-        
 
     def Undepress(self):
         self.dragging = None
@@ -706,9 +715,7 @@ class TextBoxButton(TextBox):
             self.hover_quads[i].SetColour((1,0,0,1))
 
     def Enable(self):
-        super(TextBoxButton,self).Enable()
         if not self.enabled:
-            self.enabled = True
             self.root.RegisterUIElement(self)
             if self.hovered:
                 self.Hover()
@@ -716,19 +723,18 @@ class TextBoxButton(TextBox):
                 self.Selected()
             elif self.depressed:
                 self.Depressed()
+        super(TextBoxButton,self).Enable()
 
     def Disable(self):
-        super(TextBoxButton,self).Disable()
         if self.enabled:
-            self.enabled = False
             self.root.RemoveUIElement(self)
             for i in xrange(4):
                 self.hover_quads[i].Disable()
+        super(TextBoxButton,self).Disable()
 
     def OnClick(self,pos,button):
         if 1 or self.callback != None and button == 1:
             self.callback(pos)
-        
 
 class Slider(UIElement):
     def __init__(self,parent,bl,tr,points,callback):
@@ -776,20 +782,18 @@ class Slider(UIElement):
         self.pointer_quad.SetColour(self.pointer_colour)
 
     def Enable(self):
-        super(Slider,self).Enable()
-        for line in self.lines:
-            line.Enable()
         if not self.enabled:
-            self.enabled = True
             self.root.RegisterUIElement(self)
+            for line in self.lines:
+                line.Enable()
+        super(Slider,self).Enable()
 
     def Disable(self):
-        super(Slider,self).Disable()
-        for line in self.lines:
-            line.Disable()
         if self.enabled:
-            self.enabled = False
             self.root.RemoveUIElement(self)
+            for line in self.lines:
+                line.Disable()
+        super(Slider,self).Disable()
 
     def Depress(self,pos):
         if pos in self.pointer_ui:
@@ -916,7 +920,9 @@ class TabbedEnvironment(UIElement):
     def Enable(self):
         #Fixme, don't waste time by enabling then disabling the other pages, do some optimisation st
         #they're not enabled at all
+        enabled = self.enabled
         super(TabbedEnvironment,self).Enable()
-        for page in self.pages:
-            if page is not self.current_page:
-                page.Disable()
+        if not enabled:
+            for page in self.pages:
+                if page is not self.current_page:
+                    page.Disable()
