@@ -123,7 +123,8 @@ class Tiles(ui.RootElement):
         self.mouse_text_colour    = (1,1,1,1)
         self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustMana(100)),
                        Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
-                       Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)))
+                       Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)),
+                       CursorCheat('d',self,lambda x:x.Damage(1)))
         
         self.control_box = ui.HoverableBox(gamedata.screen_root,
                                            Point(0.01,0.07),
@@ -579,7 +580,6 @@ class Tiles(ui.RootElement):
         toremove = [actor for actor in wizard.player.controlled if actor is not wizard]
         for actor in toremove:
             actor.Kill()
-            wizard.player.RemoveSummoned(actor)
         
         pos = [w.player_character for w in self.wizards].index(wizard)
         del self.wizards[pos]
@@ -778,10 +778,21 @@ class Cheat(object):
             self.matched = 0
         if self.matched == len(self.word):
             self.matched = 0
-            for player in self.tiles.wizards:
-                if player.IsPlayer():
-                    self.action(player.player_character)
+            self.Matched()
 
+    def Matched(self):
+        for player in self.tiles.wizards:
+            if player.IsPlayer():
+                self.action(player.player_character)
+
+class CursorCheat(Cheat):
+    def Matched(self):
+        if self.tiles.selected:
+            tile = self.tiles.GetTile(self.tiles.selected)
+            if tile:
+                actor = tile.GetActor()
+                if actor:
+                    self.action(actor)
 
 def CreateTiles(player_states):
     map_size = (48,24)

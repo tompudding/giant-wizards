@@ -161,6 +161,7 @@ class UIElement(object):
         self.enabled = True
 
     def Delete(self):
+        self.Disable()
         for child in self.children:
             child.Delete()
 
@@ -421,8 +422,11 @@ class TextBox(UIElement):
                 restart = False
                 if quad.letter in ' \t':
                     #It's whitespace, so ok to start a new line, but do it after the whitespace
-                    while self.quads[i].letter in ' \t':
-                        i += 1
+                    try:
+                        while self.quads[i].letter in ' \t':
+                            i += 1
+                    except IndexError:
+                        break
                     restart = True
                 else:
                     #look for the start of the word
@@ -484,6 +488,11 @@ class TextBox(UIElement):
         self.SetBounds(pos,pos + self.size)
         self.Position(pos,self.scale,self.colour)
 
+    def SetColour(self,colour):
+        self.colour = colour
+        for quad in self.quads:
+            quad.SetColour(colour)
+
     def Delete(self):
         """We're done; pack up and go home!"""
         super(TextBox,self).Delete()
@@ -492,7 +501,10 @@ class TextBox(UIElement):
 
     def SetText(self,text,colour = None):
         """Update the text"""
+        enabled = self.enabled
         self.Delete()
+        if enabled:
+            self.Enable()
         self.text = text
         if self.shrink_to_fit:
             text_size          = (gamedata.text_manager.GetSize(text,self.scale).to_float()/self.parent.absolute.size)
@@ -526,6 +538,84 @@ class TextBox(UIElement):
             for q in self.quads:
                 q.Enable()
         super(TextBox,self).Enable()
+
+class FaderTextBox(TextBox):
+    """A Textbox that can be smoothly faded to a different size / colour"""
+    def __init__(self,*args,**kwargs):
+        self.tiles = kwargs['tiles']
+        del kwargs['tiles']
+        super(FaderTextBox,self).__init__(*args,**kwargs)
+        self.draw_scale = 1
+
+    def SetFade(self,start_time,end_time,end_size,end_colour):
+        self.start_time = start_time
+        self.end_time   = end_time
+        self.duration   = end_time - start_time
+        self.start_size = 1
+        self.end_size   = end_size
+        self.size_difference = self.end_size - self.start_size
+        self.end_colour = end_colour
+        self.draw_scale = 1
+        self.bl = (self.absolute.bottom_left - self.absolute.size*1.5).to_int()
+        self.tr = (self.absolute.top_right + self.absolute.size*1.5).to_int()
+        self.colour_delay = 0.4
+        #print bl,tr
+        self.Enable()
+
+    def Enable(self):
+        if not self.enabled:
+            self.root.RegisterUIElement(self)
+            self.root.RegisterDrawable(self)
+        super(FaderTextBox,self).Enable()
+
+    def Disable(self):
+        if self.enabled:
+            self.root.RemoveUIElement(self)
+            self.root.RemoveDrawable(self)
+        super(FaderTextBox,self).Disable()
+
+
+    def Update(self,t):
+        if t > self.end_time:
+            return True
+        if t < self.start_time:
+            return False
+        partial = float(t-self.start_time)/self.duration
+        partial = partial*partial*(3 - 2*partial) #smoothstep
+        self.draw_scale = self.start_size + (self.size_difference*partial)
+        if partial > self.colour_delay:
+            new_colour = self.colour[:3] + (1-((partial-self.colour_delay)/(1-self.colour_delay)),)
+            for quad in self.quads:
+                quad.SetColour(new_colour)
+
+    def ReallocateResources(self):
+        self.quad_buffer = utils.QuadBuffer(1024)
+        self.text_type = texture.TextTypes.CUSTOM
+        self.quads = [self.text_manager.Letter(char,self.text_type,self.quad_buffer) for char in self.text]
+
+    def Draw(self):
+        glPushAttrib(GL_VIEWPORT_BIT)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glScale(self.draw_scale,self.draw_scale,1)
+        #glTranslate(-self.tiles.viewpos.Get().x,-self.tiles.viewpos.Get().y,0)
+        glOrtho(self.bl.x,self.tr.x, self.bl.y, self.tr.y,-10000,10000)
+        
+        glMatrixMode(GL_MODELVIEW)
+        glViewport(self.bl.x,self.bl.y, (self.tr.x-self.bl.x), (self.tr.y-self.bl.y))
+
+        #glTranslate(0,-self.viewpos*self.absolute.size.y,0)
+        
+        glVertexPointerf(self.quad_buffer.vertex_data)
+        glTexCoordPointerf(self.quad_buffer.tc_data)
+        glColorPointer(4,GL_FLOAT,0,self.quad_buffer.colour_data)
+        glDrawElements(GL_QUADS,self.quad_buffer.current_size,GL_UNSIGNED_INT,self.quad_buffer.indices)
+        
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, gamedata.screen.x, 0, gamedata.screen.y,-10000,10000)
+        glMatrixMode(GL_MODELVIEW)
+        glPopAttrib()
 
 class ScrollTextBox(TextBox):
     """A TextBox that can be scrolled to see text that doesn't fit in the box"""

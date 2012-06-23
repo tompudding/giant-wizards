@@ -127,15 +127,10 @@ class Wizard(actor.Actor):
         return self.action_list.pop(0)
 
 
-    def Damage(self,value):
-        self.stats.health -= value
-        self.health_text.SetText('%d' % self.stats.health)
-        if self.stats.health <= 0:
-            self.Kill()
-
     def Kill(self):
         self.quad.Delete()
         self.health_text.Delete()
+        self.damage_text.Delete()
         self.tiles.RemoveWizard(self)
 
 class Goblin(actor.Actor):
@@ -159,14 +154,13 @@ class Goblin(actor.Actor):
         self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
         self.ai_actions = [self.move_action_creator]
 
-    def Damage(self,value):
-        self.stats.health -= value
-        self.health_text.SetText('%d' % self.stats.health)
-        if self.stats.health <= 0:
-            self.quad.Delete()
-            self.health_text.Delete()
-            self.tiles.RemoveActor(self)
-            self.caster.player.RemoveSummoned(self)
+    def Kill(self):
+        self.quad.Delete()
+        self.health_text.Delete()
+        self.damage_text.Delete()
+        self.tiles.RemoveActor(self)
+        self.caster.player.RemoveSummoned(self)
+
 
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():

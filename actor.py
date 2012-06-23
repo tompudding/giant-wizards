@@ -31,7 +31,17 @@ class Actor(object):
         self.player             = player
         self.tiles              = tiles
         self.type               = type
+        self.t                  = 0
         self.quad               = utils.Quad(gamedata.quad_buffer)
+        self.damage_text        = ui.FaderTextBox(parent = gamedata.screen_root,
+                                                  bl     = Point(0,0),
+                                                  tr     = None,
+                                                  text   = ' ',
+                                                  colour = (1,0,0,1),
+                                                  scale  = 0.3,
+                                                  tiles  = self.tiles)
+        self.damage_text.Disable()
+
         self.options_box        = ui.HoverableBox(gamedata.screen_root,
                                                   Point(0.7,0.5),
                                                   Point(0.95,0.95),
@@ -58,11 +68,11 @@ class Actor(object):
                                              bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                              tr      = None            ,
                                              text    = '%d' % self.stats.health,
-                                             scale   = 0.3             ,
+                                             scale   = 0.5             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
                                       
         self.ui_elements = [self.title              ,
-                            self.mana_text ,
+                            self.mana_text          ,
                             self.movement_text      ,
                             self.options_box        ]
         for t in self.ui_elements:
@@ -91,6 +101,9 @@ class Actor(object):
 
         self.health_text.Position((self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                   0.3)
+        #I seriously fucked something up that this is necessary; without it the text is drawn too high.
+        #FIXME: Figure out why this is and fix it
+        self.health_text.SetText(self.health_text.text)
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
 
@@ -118,6 +131,11 @@ class Actor(object):
         self.quad.SetColour((1,1,1,1))
 
     def Update(self,t):
+        self.t = t
+        if self.damage_text.enabled:
+            complete = self.damage_text.Update(t)
+            if complete:
+                self.damage_text.Disable()
         if not self.selected:
             self.quad.Enable()
             self.quad.SetColour((1,1,1,1))
@@ -172,8 +190,6 @@ class Actor(object):
         else:
             self.tiles.GetTile(self.pos).SetActor(None)
             self.SetPos(target)
-            
-    
 
     def HandleAction(self,pos,action):
         #raise TypeError
@@ -213,12 +229,39 @@ class Actor(object):
     def Damage(self,value):
         self.stats.health -= value
         self.health_text.SetText('%d' % self.stats.health)
+        
+        #The world wraps, and we draw it 3 times. That means there are 3 possible screen positions that this might be in
+        #since by assumption no position is on screen more than once, we'll just check if any of the 3 are on screen, and 
+        #choose the first that is (if any)
+        #x = utils.WorldCoords(self.tiles.map_size)[0]
+        r = self.tiles.map_size/gamedata.screen_root.absolute.size
+        p = (utils.WorldCoords(self.pos + Point(0.3,0.8)) - self.tiles.viewpos.Get())/gamedata.screen_root.absolute.size
+        for offset in -r.x,0,r.x:
+            if p.x + offset > 0 and p.x + offset < 1:
+                p.x += offset
+                break
+        else:
+            #Don't draw the damage_text as it's off the screen
+            p = None
+        #p.x %= 1
+        #   p.x += 1
+        #lif p.x > 1:
+        #   p.x -= 1
+
+        print p,gamedata.screen_root.absolute.size,self.tiles.viewpos.Get(),self.pos,utils.WorldCoords(self.pos + Point(0.3,0.8))
+        if p != None:
+            self.damage_text.SetPos(p)
+            self.damage_text.SetText('%d' % value)
+            self.damage_text.SetColour((1,0,0,1) if value >= 0 else (0,1,0,1))
+            self.damage_text.Enable()
+            self.damage_text.SetFade(self.t,self.t+800,3,self.damage_text.colour[:3] + (0,))
         if self.stats.health <= 0:
             self.Kill()
 
     def Kill(self):
         self.quad.Delete()
         self.health_text.Delete()
+        self.damage_text.Delete()
         self.tiles.RemoveActor(self)
 
     def InvalidatePathCache(self):

@@ -17,6 +17,7 @@ done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
 done - add stats, attack/defence
+     - visual damage indication
      - tabs in the description box to separate description, stats, abilities (for summons anyway)
      - area of effect spells
      - heal (with aoe version)
@@ -34,7 +35,9 @@ done - Update the current spells to work as described, make the epic blast bette
 
 BUGS
 ----
-      - Switching spell strength while on the non-default tab view causes issues
+      - The health_text gets drawn too high without the ridiculous hack workaround I put in
+      - Damage text is relative to the screen, not tiles
+fixed - Switching spell strength while on the non-default tab view causes issues
       - UI resources are allocated for AI players even though they're never used
 fixed - Mouse-text doesn't disappear when you move over UI elements
 fixed - characters moving onto scorched tiles crash
