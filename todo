@@ -19,12 +19,14 @@ done     - Make the action creators have a name of their own, like "wizard blast
 done - Update the current spells to work as described, make the epic blast better, allow the shaman to cast spells
 done - add stats, attack/defence
 done - visual damage indication
-     - fix outstanding bugs
+done - fix outstanding bugs
      - tabs in the description box to separate description, stats, abilities (for summons anyway)
      - info box about current guy with stats
      - update AI to use current spells
      - release 0.3!
 -------------------------------------------------------------------------------------------------
+     - implement tangibility
+     - try customisable summons?
      - area of effect spells
      - heal (with aoe version)
      - add weaknesses to damage types, damage types etc
@@ -44,7 +46,7 @@ fixed - The damage text doesn't get drawn when someone is killed
 fixed - The health_text gets drawn too high without the ridiculous hack workaround I put in
 fixed - Damage text is relative to the screen, not tiles
 fixed - Switching spell strength while on the non-default tab view causes issues
-      - UI resources are allocated for AI players even though they're never used
+fixed - UI resources are allocated for AI players even though they're never used
 fixed - Mouse-text doesn't disappear when you move over UI elements
 fixed - characters moving onto scorched tiles crash
 fixed - clicking on your wizard removes your move highlights

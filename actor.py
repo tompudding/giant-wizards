@@ -41,27 +41,6 @@ class Actor(object):
                                                   scale  = 0.3)
         self.damage_text.Disable()
 
-        self.options_box        = ui.HoverableBox(gamedata.screen_root,
-                                                  Point(0.7,0.5),
-                                                  Point(0.95,0.95),
-                                                  (0,0,0,0.6))
-        self.title              = ui.TextBox(parent  = self.options_box,
-                                             bl      = Point(0,0.89)   ,
-                                             tr      = None            , #Work it out
-                                             text    = name+':'        ,
-                                             scale   = 0.5             )
-
-        self.movement_text      = ui.TextBox(parent  = self.options_box,
-                                             bl      = Point(0,0.82)   ,
-                                             tr      = None            ,
-                                             text    = 'Movement : %d' % self.stats.move,
-                                             scale   = 0.33            )
-
-        self.mana_text = ui.TextBox(parent  = self.options_box,
-                                             bl      = Point(0.6,0.82) ,
-                                             tr      = None            ,
-                                             text    = 'Mana : %d' % self.stats.mana,
-                                             scale   = 0.33            )
 
         self.health_text        = ui.TextBox(parent  = self.tiles      ,
                                              bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
@@ -69,15 +48,41 @@ class Actor(object):
                                              text    = '%d' % self.stats.health,
                                              scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
-                                      
-        self.ui_elements = [self.title              ,
-                            self.mana_text          ,
-                            self.movement_text      ,
-                            self.options_box        ]
+        self.player_type = playerType
+        #Fixme: I'm not sure if I should split this into another class. If I do though, then I have to have 2
+        #classes for every monster. Hmmmmm
+        if self.IsPlayer():
+            self.options_box        = ui.HoverableBox(gamedata.screen_root,
+                                                      Point(0.7,0.5),
+                                                      Point(0.95,0.95),
+                                                      (0,0,0,0.6))
+            self.title              = ui.TextBox(parent  = self.options_box,
+                                                 bl      = Point(0,0.89)   ,
+                                                 tr      = None            , #Work it out
+                                                 text    = name+':'        ,
+                                                 scale   = 0.5             )
+            
+            self.movement_text      = ui.TextBox(parent  = self.options_box,
+                                                 bl      = Point(0,0.82)   ,
+                                                 tr      = None            ,
+                                                 text    = 'Movement : %d' % self.stats.move,
+                                                 scale   = 0.33            )
+            
+            self.mana_text = ui.TextBox(parent  = self.options_box,
+                                        bl      = Point(0.6,0.82) ,
+                                        tr      = None            ,
+                                        text    = 'Mana : %d' % self.stats.mana,
+                                        scale   = 0.33            )
+            self.ui_elements = [self.title              ,
+                                self.mana_text          ,
+                                self.movement_text      ,
+                                self.options_box        ]
+        else:
+            self.ui_elements = []
+
         for t in self.ui_elements:
             t.Disable()
-                          
-        self.player_type = playerType
+
         self.name        = name
         self.action_list = []
         self.selected    = False
@@ -121,15 +126,13 @@ class Actor(object):
             t.Disable()
         self.flash_state = False
         self.quad.Enable()
-        self.action_choices.Unselected()
+        if self.IsPlayer():
+            self.action_choices.Unselected()
         self.quad.SetColour((1,1,1,1))
 
     def Update(self,t):
         self.t = t
-        if self.damage_text.enabled:
-            complete = self.damage_text.Update(t)
-            if complete:
-                self.damage_text.Disable()
+
         if not self.selected:
             return
             
@@ -153,11 +156,12 @@ class Actor(object):
         if self.stats.mana > self.max_mana:
             self.stats.mana = self.max_mana
         self.stats.move    = self.initial_stats.move
-        self.mana_text.SetText('Mana : %d' % self.stats.mana)
-        self.movement_text.SetText('Movement : %d' % self.stats.move)
-        if not self.selected:
-            self.mana_text.Disable()
-            self.movement_text.Disable()
+        if self.IsPlayer():
+            self.mana_text.SetText('Mana : %d' % self.stats.mana)
+            self.movement_text.SetText('Movement : %d' % self.stats.move)
+            if not self.selected:
+                self.mana_text.Disable()
+                self.movement_text.Disable()
 
     def EndTurn(self,pos):
         self.Unselect()
@@ -203,17 +207,20 @@ class Actor(object):
 
     def AdjustMana(self,value):
         self.stats.mana += value
-        self.mana_text.SetText('Mana : %d' % self.stats.mana)
+        if self.IsPlayer():
+            self.mana_text.SetText('Mana : %d' % self.stats.mana)
+            if not self.selected:
+                self.mana_text.Disable()
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
-        if not self.selected:
-            self.mana_text.Disable()
+        
 
     def AdjustMovePoints(self,value):
         self.stats.move += value
-        self.movement_text.SetText('Movement : %d' % self.stats.move)
-        if not self.selected:
-            self.movement_text.Disable()
+        if self.IsPlayer():
+            self.movement_text.SetText('Movement : %d' % self.stats.move)
+            if not self.selected:
+                self.movement_text.Disable()
 
     def Friendly(self,other):
         return self.player.Controls(other)
@@ -245,3 +252,6 @@ class Actor(object):
             for action in self.ai_actions:
                 action.InvalidatePathCache()
         
+class UserControlledActor(Actor):
+    def __init__(self,pos,type,tiles,name,player):
+        super(UserControlledActor,self).__init__(self,pos,type,tiles,players.PlayerTypes.HUMAN,tiles,name,player)

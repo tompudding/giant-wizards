@@ -13,28 +13,33 @@ class Wizard(actor.Actor):
         self.controlled       = [self]
         self.controlled_index = 0
         self.player           = player
-        self.action_choices   = action.ActionChoiceList(self.options_box,
-                                                        self,
-                                                        Point(0,0),
-                                                        Point(1,0.9),
-                                                        ( action.MoveActionCreator    (self,[action.MoveAction]       ),
-                                                          action.BlastActionCreator   (self,[action.WeakWizardBlastAction,
-                                                                                             action.WizardBlastAction,
-                                                                                             action.PowerfulWizardBlastAction,
-                                                                                             action.EpicWizardBlastAction]),
-                                                          action.SummonActionCreator  (self,[SummonGoblinRuntAction,
-                                                                                             SummonGoblinWarriorAction,
-                                                                                             SummonGoblinShamanAction,
-                                                                                             SummonGoblinLordAction]),
-                                                          action.TeleportActionCreator(self,[action.TeleportAction]   )))
+        if self.IsPlayer():
+            self.action_choices   = action.ActionChoiceList(self.options_box,
+                                                            self,
+                                                            Point(0,0),
+                                                            Point(1,0.9),
+                                                            ( action.MoveActionCreator    (self,[action.MoveAction]       ),
+                                                              action.BlastActionCreator   (self,[action.WeakWizardBlastAction,
+                                                                                                 action.WizardBlastAction,
+                                                                                                 action.PowerfulWizardBlastAction,
+                                                                                                 action.EpicWizardBlastAction]),
+                                                              action.SummonActionCreator  (self,[SummonGoblinRuntAction,
+                                                                                                 SummonGoblinWarriorAction,
+                                                                                                 SummonGoblinShamanAction,
+                                                                                                 SummonGoblinLordAction]),
+                                                              action.TeleportActionCreator(self,[action.TeleportAction]   )))
+            self.move = self.action_choices[0]
+            self.action_choices.Disable()
+        else:
+            self.blast_action_creator  = action.BlastActionCreator(self,[action.WizardBlastAction])
+            self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinWarriorAction])
+            self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
+            self.ai_actions            = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
+            self.move = self.move_action_creator
         #move is special so make a shortcut for it
-        self.move = self.action_choices[0]
-        self.action_choices.Disable()
+        
         #This is just for AI players, I need to split them into different classes really
-        self.blast_action_creator  = action.BlastActionCreator(self,[action.WizardBlastAction])
-        self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinWarriorAction])
-        self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
-        self.ai_actions            = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
+        
 
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
@@ -139,17 +144,19 @@ class Goblin(actor.Actor):
         self.caster = caster
         self.ignore_monsters = 0.75 if self.player_type == players.PlayerTypes.TENTATIVE else 0.25
         self.ignore_monsters = True if random.random() < self.ignore_monsters else False
-        self.action_choices = action.ActionChoiceList(self.options_box,
-                                                      self,
-                                                      Point(0,0),
-                                                      Point(1,0.9),
-                                                      [creator(self,types) for creator,types in self.actionchoice_list])
-        self.action_choices.Disable()
-        self.move = self.action_choices[0]
-        for a in self.action_choices:
-            a.Disable()
-        self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
-        self.ai_actions = [self.move_action_creator]
+        if self.IsPlayer():
+            self.action_choices = action.ActionChoiceList(self.options_box,
+                                                          self,
+                                                          Point(0,0),
+                                                          Point(1,0.9),
+                                                          [creator(self,types) for creator,types in self.actionchoice_list])
+            self.action_choices.Disable()
+            self.move = self.action_choices[0]
+            for a in self.action_choices:
+                a.Disable()
+        else:
+            self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
+            self.ai_actions = [self.move_action_creator]
 
     def KillFinal(self):
         self.tiles.RemoveActor(self)
