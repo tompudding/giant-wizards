@@ -67,7 +67,7 @@ class Actor(object):
                                              bl      = (self.pos + Point(0.6,0.8)) / self.tiles.map_size,
                                              tr      = None            ,
                                              text    = '%d' % self.stats.health,
-                                             scale   = 0.5             ,
+                                             scale   = 0.3             ,
                                              textType = texture.TextTypes.GRID_RELATIVE)
                                       
         self.ui_elements = [self.title              ,
@@ -98,11 +98,6 @@ class Actor(object):
         self.quad.tc[0:4] = self.tiles.tex_coords[self.full_type]
         tile_data.SetActor(self)
 
-        self.health_text.Position((self.pos + Point(0.6,0.8)) / self.tiles.map_size,
-                                  0.3)
-        #I seriously fucked something up that this is necessary; without it the text is drawn too high.
-        #FIXME: Figure out why this is and fix it
-        self.health_text.SetText(self.health_text.text)
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
 
