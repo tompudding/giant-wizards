@@ -179,6 +179,9 @@ class TeleportAction(Action):
     generic_name = 'Teleport'
     cost = 5
     range         = 15
+    stats    = (('range'     ,range),
+                ('safe range',5))
+
     valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
                             for y in xrange(-15,16) \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 15)
@@ -439,7 +442,8 @@ class WizardBlastAction(BlastAction):
     cost        = 2
     min_damage  = 1
     max_damage  = 3
-
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,int(BlastAction.range)))
     def Impact(self):
         target_tile = self.actor.tiles.GetTile(self.end_pos)
         target = target_tile.GetActor()
@@ -462,6 +466,8 @@ class WeakWizardBlastAction(WizardBlastAction):
     min_damage    = 1
     max_damage    = 2
     range         = 3
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,range))
     valid_vectors = RangeTiles(range)
 
 class PowerfulWizardBlastAction(WizardBlastAction):
@@ -471,6 +477,8 @@ class PowerfulWizardBlastAction(WizardBlastAction):
     min_damage    = 4
     max_damage    = 8
     range         = 5
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,range))
     valid_vectors = RangeTiles(range)
 
 class EpicWizardBlastAction(WizardBlastAction):
@@ -480,6 +488,9 @@ class EpicWizardBlastAction(WizardBlastAction):
     min_damage    = 100
     max_damage    = 1000
     range         = 16
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,range),
+                ('special','Damages everything it touches, including terrain'))
     valid_vectors = RangeTiles(range)
 
     def __init__(self,*args,**kwargs):
@@ -727,25 +738,25 @@ class SpellActionChoice(ActionChoice):
                                                  scale  = 0.25)
         self.spell_detail_box.tabs.description_page = description_page
 
-        other_page = ui.TabPage( self.spell_detail_box.tabs.tab_area,
+        stats_page = ui.TabPage( self.spell_detail_box.tabs.tab_area,
                                  bl   = Point(0,0),
                                  tr   = Point(1,1),
-                                 name = 'Cabbage')
+                                 name = 'Stats')
 
-        other_page.text = ui.ScrollTextBox(parent = other_page,
-                                           bl     = Point(0,0),
-                                           tr     = Point(1,1),
-                                           text   = "bibbage babbage toodly boodly blip blop mumma galimpo crumps",
-                                           scale  = 0.25)
+        stats_page.list = ui.ListBox(parent    = stats_page,
+                                     bl        = Point(0,0),
+                                     tr        = Point(1,1),
+                                     text_size = 0.25      ,
+                                     items     = self.action.action.stats)
 
-        self.spell_detail_box.tabs.other_page = other_page
-
+        self.spell_detail_box.tabs.stats_page = stats_page
         self.spell_detail_box.Disable()
 
     def SetSubAction(self,index):
         self.action.SetAction(index)
         self.spell_detail_box.name.SetText(self.action.action.name)
         self.spell_detail_box.tabs.description_page.text.SetText(self.action.action.description)
+        self.spell_detail_box.tabs.stats_page.list.UpdateItems(self.action.action.stats)
         self.spell_detail_box.cost.SetText('cost : %d' % self.action.action.cost)
         self.UpdateQuads()
 

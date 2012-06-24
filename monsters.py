@@ -245,6 +245,7 @@ class SummonGoblinRuntAction(SummonGoblinAction):
     name         = 'Summon Goblin Runt'
     Monster      = GoblinRunt
     monster_type = 'goblin' #FIXME, make the goblins look different
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonGoblinWarriorAction(SummonGoblinAction):
     cost         = 4
@@ -252,6 +253,7 @@ class SummonGoblinWarriorAction(SummonGoblinAction):
     name         = 'Summon Goblin Warrior'
     Monster      = GoblinWarrior
     monster_type = 'goblin' #FIXME, make the goblins look different
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonGoblinShamanAction(SummonGoblinAction):
     description  = 'Goblins are not usually magical by nature, so this one is something of a rarity. Use it well'
@@ -259,6 +261,7 @@ class SummonGoblinShamanAction(SummonGoblinAction):
     name         = 'Summon Goblin Shaman'
     Monster      = GoblinShaman
     monster_type = 'goblin' #FIXME, make the goblins look different
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonGoblinLordAction(SummonGoblinAction):
     description  = 'Whole tribes give feality to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
@@ -266,3 +269,4 @@ class SummonGoblinLordAction(SummonGoblinAction):
     name         = 'Summon Goblin Lord'
     Monster      = GoblinLord
     monster_type = 'goblin' #FIXME, make the goblins look different
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']

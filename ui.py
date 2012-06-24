@@ -207,6 +207,9 @@ class RootElement(UIElement):
             pass
 
     def RemoveAllUIElements(self):
+        toremove = [child for child in self.active_children.items]
+        for child in toremove:
+            child.Delete()
         self.active_children = UIElementList()
 
     def MouseMotion(self,pos,rel,handled):
@@ -995,6 +998,55 @@ class Slider(UIElement):
             return
         self.SetPointer()
         self.callback(self.index)
+
+class ListBox(UIElement):
+    def __init__(self,parent,bl,tr,text_size,items):
+        super(ListBox,self).__init__(parent,bl,tr)
+        self.text_size = text_size
+        self.UpdateItems(items)
+
+    def UpdateItems(self,items):
+        #This is a massive hack, using hardcoded values, and generally being shit. I'm bored of UI things now
+        enabled = self.enabled
+        self.Delete()
+        if enabled:
+            self.Enable()
+        self.children = []
+        self.items = items
+        height = 0.8
+        maxx   = 0
+        
+        for name,value in self.items:
+            t = TextBox(parent = self            ,
+                        bl    = Point(0.05,height),
+                        tr    = None             ,
+                        text  = name             ,
+                        scale = self.text_size   )
+            height -= t.size.y
+            if t.top_right.x > maxx:
+                maxx = t.top_right.x
+            if not self.enabled:
+                t.Disable()
+        
+        last_height = height = 0.8
+        for i,(name,value) in enumerate(self.items):
+            if i == len(self.items) -1:
+                bl = Point(maxx+0.02,0)
+                tr = Point(1,last_height)
+            else:
+                bl = Point(maxx+0.05,height)
+                tr = None
+            t = TextBox(parent = self           ,
+                        bl     = bl             ,
+                        tr     = tr             ,
+                        text   = '%s' % value   ,
+                        scale  = self.text_size )
+            if not self.enabled:
+                t.Disable()
+            last_height = height
+            height -= t.size.y
+        
+        
 
 class TabPage(UIElement):
     """
