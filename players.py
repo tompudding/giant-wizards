@@ -11,11 +11,11 @@ class PlayerColours:
     PURPLE    = 1
     RED       = 2
     YELLOW    = 3
-    GREEN     = 4
+    BLUE      = 4
     NAMES     = {PURPLE : 'purple',
                  RED    : 'red'   ,
                  YELLOW : 'yellow',
-                 GREEN  : 'green' }
+                 BLUE   : 'blue' }
 
 class Player(object):
     def __init__(self,pos,type,tiles,playerType,name,colour):

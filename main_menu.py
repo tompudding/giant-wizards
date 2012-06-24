@@ -5,7 +5,7 @@ from OpenGL.GL import *
 import texture,game_window,ui,random,gamedata,players
 
 #This is a terrible hack
-names = ['Purple Wizard','Red Wizard','Yellow Wizard','Green Wizard']
+names = ['Purple Wizard','Red Wizard','Yellow Wizard','Blue Wizard']
 
 class MainMenu(ui.RootElement):
     def __init__(self):

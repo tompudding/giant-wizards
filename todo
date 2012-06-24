@@ -20,12 +20,13 @@ done - Update the current spells to work as described, make the epic blast bette
 done - add stats, attack/defence
 done - visual damage indication
 done - fix outstanding bugs
-     - tabs in the description box to separate description, stats, abilities (for summons anyway)
-     - info box about current guy with stats
+done - tabs in the description box to separate description, stats, abilities (for summons anyway)
+     - Sort out character drawing
      - update AI to use current spells
      - release 0.3!
 -------------------------------------------------------------------------------------------------
      - implement tangibility
+     - info box about current guy with stats
      - try customisable summons?
      - area of effect spells
      - heal (with aoe version)

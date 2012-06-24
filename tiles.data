@@ -24,22 +24,52 @@ coast_bottom_left_right_top : 5,2,1,1
 selected            : 0,2,1,1
 selected_hover      : 1,2,1,1
 highlight           : 6,2,1,1
+
 purple_wizard_grass : 0,3,1,1
 red_wizard_grass    : 0,4,1,1
 yellow_wizard_grass : 0,5,1,1
-green_wizard_grass  : 0,6,1,1
+blue_wizard_grass  : 0,6,1,1
 purple_wizard_water : 1,3,1,1
 red_wizard_water    : 1,4,1,1
 yellow_wizard_water : 1,5,1,1
-green_wizard_water  : 1,6,1,1
-purple_goblin_grass : 3,7,1,1
-purple_goblin_water : 3,7,1,1
-green_goblin_grass  : 0,7,1,1
-green_goblin_water  : 0,7,1,1
-yellow_goblin_grass : 1,7,1,1
-yellow_goblin_water : 1,7,1,1
-red_goblin_grass    : 2,7,1,1
-red_goblin_water    : 2,7,1,1
+blue_wizard_water  : 1,6,1,1
+
+purple_goblin_runt_grass    : 3,9,1,1
+purple_goblin_runt_water    : 3,9,1,1
+purple_goblin_warrior_grass : 3,7,1,1
+purple_goblin_warrior_water : 3,7,1,1
+purple_goblin_shaman_grass  : 3,8,1,1
+purple_goblin_shaman_water  : 3,8,1,1
+purple_goblin_lord_grass    : 7,9,1,1
+purple_goblin_lord_water    : 7,9,1,1
+
+blue_goblin_runt_grass     : 0,9,1,1
+blue_goblin_runt_water     : 0,9,1,1
+blue_goblin_warrior_grass  : 0,7,1,1
+blue_goblin_warrior_water  : 0,7,1,1
+blue_goblin_shaman_grass   : 0,8,1,1
+blue_goblin_shaman_water   : 0,8,1,1
+blue_goblin_lord_grass     : 4,9,1,1
+blue_goblin_lord_water     : 4,9,1,1
+
+yellow_goblin_runt_grass    : 1,9,1,1
+yellow_goblin_runt_water    : 1,9,1,1
+yellow_goblin_warrior_grass : 1,7,1,1
+yellow_goblin_warrior_water : 1,7,1,1
+yellow_goblin_shaman_grass  : 1,8,1,1
+yellow_goblin_shaman_water  : 1,8,1,1
+yellow_goblin_lord_grass    : 5,9,1,1
+yellow_goblin_lord_water    : 5,9,1,1
+
+red_goblin_runt_grass       : 2,9,1,1
+red_goblin_runt_water       : 2,9,1,1
+red_goblin_warrior_grass    : 2,7,1,1
+red_goblin_warrior_water    : 2,7,1,1
+red_goblin_shaman_grass     : 2,8,1,1
+red_goblin_shaman_water     : 2,8,1,1
+red_goblin_lord_grass       : 6,9,1,1
+red_goblin_lord_water       : 6,9,1,1
+
 blast               : 2,2,1,1
 
 path_right : 7,2,1,1
