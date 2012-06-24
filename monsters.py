@@ -27,7 +27,8 @@ class Wizard(actor.Actor):
                                                                                                  SummonGoblinWarriorAction,
                                                                                                  SummonGoblinShamanAction,
                                                                                                  SummonGoblinLordAction]),
-                                                              action.TeleportActionCreator(self,[action.TeleportAction]   )))
+                                                              action.TeleportActionCreator(self,[action.TeleportAction,
+                                                                                                 action.RefinedTeleportAction])))
             self.move = self.action_choices[0]
             self.action_choices.Disable()
         else:

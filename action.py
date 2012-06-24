@@ -185,9 +185,11 @@ class TeleportAction(Action):
     valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
                             for y in xrange(-15,16) \
                             if Point(x,y).length() != 0 and Point(x,y).length() < 15)
-    close_vectors  = set(v for v in valid_vectors if v.length() < 5)
-    medium_vectors = set(v for v in valid_vectors if v.length() >=5 and v.length() < 10)
-    far_vectors    = set(v for v in valid_vectors if v.length() >= 10)
+    close_distance  = 5
+    medium_distance = 10
+    close_vectors   = set(v for v in valid_vectors if v.length() < 5)
+    medium_vectors  = set(v for v in valid_vectors if v.length() >=5 and v.length() < 10)
+    far_vectors     = set(v for v in valid_vectors if v.length() >= 10)
 
     def __init__(self,vector,t,actor,speed):
         self.initialised = False
@@ -244,6 +246,24 @@ class TeleportAction(Action):
                                         0.3)
         return False
 
+class RefinedTeleportAction(TeleportAction):
+    description = 'Teleportation done with a little extra effort and concentration makes for a safer ride'
+    name = 'Refined Teleport'
+    generic_name = 'Teleport'
+    cost = 8
+    range = 15
+    stats = (('range',range),
+             ('safe range',8))
+    valid_vectors = set(Point(x,y) for x in xrange(-15,16) \
+                            for y in xrange(-15,16) \
+                            if Point(x,y).length() != 0 and Point(x,y).length() < 15)
+    close_distance  = 8
+    medium_distance = 12
+    #Why am I not allowed to use the variables I just defined in the following set definitions?
+    close_vectors   = set(v for v in valid_vectors if v.length() < 8)
+    medium_vectors  = set(v for v in valid_vectors if v.length() >=8 and v.length() < 12)
+    far_vectors     = set(v for v in valid_vectors if v.length() >= 12)
+
 
 class TeleportActionCreator(BasicActionCreator):
     def __init__(self,wizard,actions):
@@ -289,9 +309,9 @@ class TeleportActionCreator(BasicActionCreator):
 
     def ColourFunction(self,pos):
         distance = pos.length()
-        if distance < 5:
+        if distance < self.action.close_distance:
             return self.ColourFunctionClose(pos)
-        elif distance < 10:
+        elif distance < self.action.medium_distance:
             return self.ColourFunctionMedium(pos)
         else:
             return self.ColourFunctionFar(pos)
