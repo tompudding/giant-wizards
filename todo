@@ -35,6 +35,7 @@ done - Update the current spells to work as described, make the epic blast bette
 
 BUGS
 ----
+      - After casting a wizard blast the tab text gets drawn over itself
       - The damage text doesn't get drawn when someone is killed
       - The health_text gets drawn too high without the ridiculous hack workaround I put in
 fixed - Damage text is relative to the screen, not tiles

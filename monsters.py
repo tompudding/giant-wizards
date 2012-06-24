@@ -1,4 +1,4 @@
-import random,action,gamedata,actor,players
+import random,action,actor,players
 from utils import Point
 
 class Wizard(actor.Actor):
@@ -8,7 +8,7 @@ class Wizard(actor.Actor):
                                 health  = 8,
                                 mana    = 2)
     max_mana     = 1000
-    def __init__(self,pos,type,tiles,playerType,name,player):
+    def __init__(self,pos,wizardType,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
         self.controlled       = [self]
         self.controlled_index = 0
@@ -31,10 +31,10 @@ class Wizard(actor.Actor):
         self.move = self.action_choices[0]
         self.action_choices.Disable()
         #This is just for AI players, I need to split them into different classes really
-        self.blast_action_creator = action.BlastActionCreator(self,[action.WizardBlastAction])
+        self.blast_action_creator  = action.BlastActionCreator(self,[action.WizardBlastAction])
         self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinWarriorAction])
-        self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
-        self.ai_actions = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
+        self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
+        self.ai_actions            = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
 
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
@@ -137,8 +137,8 @@ class Goblin(actor.Actor):
     initial_stats = None #this is abstract
   
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction])]
-    def __init__(self,pos,type,tiles,playerType,name,caster):
-        super(Goblin,self).__init__(pos,type,tiles,playerType,name,caster.player)
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(Goblin,self).__init__(pos,goblin_type,tiles,playerType,name,caster.player)
         self.caster = caster
         self.ignore_monsters = 0.75 if self.player_type == players.PlayerTypes.TENTATIVE else 0.25
         self.ignore_monsters = True if random.random() < self.ignore_monsters else False

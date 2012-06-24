@@ -1036,7 +1036,7 @@ class TabbedEnvironment(UIElement):
         #they're not enabled at all
         enabled = self.enabled
         super(TabbedEnvironment,self).Enable()
-        if not enabled:
-            for page in self.pages:
-                if page is not self.current_page:
-                    page.Disable()
+        for page in self.pages:
+            if page is not self.current_page:
+                page.Disable()
+                
