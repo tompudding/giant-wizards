@@ -574,8 +574,7 @@ class FaderTextBox(TextBox):
         self.tiles = self.parent
 
     def SetLetterVertices(self,index,bl,tr,textType):
-        self.quads[index].SetVertices(bl - self.absolute.bottom_left,tr-bl,textType)
-
+        self.quads[index].SetVertices(bl - self.absolute.bottom_left,tr-self.absolute.bottom_left,textType)
 
     def SetFade(self,start_time,end_time,end_size,end_colour):
         self.start_time = start_time
@@ -629,7 +628,7 @@ class FaderTextBox(TextBox):
         Draw the text 3 times for the wrap-around effect, even though we can only see this once as the map is
         wider than the screen.
         """
-
+        #Fixme, just draw the one of these that's necessary
         glEnable(GL_TEXTURE_2D)
         glBindTexture(GL_TEXTURE_2D, gamedata.text_manager.atlas.texture.texture)
         glEnableClientState(GL_VERTEX_ARRAY)

@@ -42,7 +42,7 @@ done - Sort out character drawing (sort of done anyway)
 
 BUGS
 ----
-      - damage doesn't show double figures correctly
+done  - damage doesn't show double figures correctly
 fixed - After casting a wizard blast the tab text gets drawn over itself
 fixed - The damage text doesn't get drawn when someone is killed
 fixed - The health_text gets drawn too high without the ridiculous hack workaround I put in

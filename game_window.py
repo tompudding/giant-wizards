@@ -124,7 +124,7 @@ class Tiles(ui.UIRoot):
         self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustMana(100)),
                        Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
                        Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)),
-                       CursorCheat('d',self,lambda x:x.Damage(1)))
+                       CursorCheat('d',self,lambda x:x.Damage(random.randint(0,4))))
         
         self.control_box = ui.HoverableBox(gamedata.screen_root,
                                            Point(0.01,0.07),

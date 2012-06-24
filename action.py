@@ -521,7 +521,7 @@ class EpicWizardBlastAction(WizardBlastAction):
         target_tile = self.actor.tiles.GetTile(self.end_pos)
         target = target_tile.GetActor()
         if target:
-            damage = random.randint(self.total_damage)
+            damage = self.total_damage
             target.Damage(damage)
 
     def VisitTile(self,pos):
