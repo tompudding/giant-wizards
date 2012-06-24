@@ -764,7 +764,7 @@ class Tiles(ui.UIRoot):
 colours = [players.PlayerColours.PURPLE,
            players.PlayerColours.RED   ,
            players.PlayerColours.YELLOW,
-           players.PlayerColours.BLUE ]
+           players.PlayerColours.GREEN ]
 
 class Cheat(object):
     keys = {getattr(pygame,'K_%s' % c):c for c in 'abcdefghijklmnopqrstuvwxyz'}
