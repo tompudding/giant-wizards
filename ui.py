@@ -275,6 +275,7 @@ class UIRoot(RootElement):
     def __init__(self,*args,**kwargs):
         super(UIRoot,self).__init__(*args,**kwargs)
         self.drawable_children = {}
+        self.updateable_children = {}
 
     def Draw(self):
         glDisable(GL_TEXTURE_2D)
@@ -290,12 +291,33 @@ class UIRoot(RootElement):
         for item in self.drawable_children:
             item.Draw()
 
+    def Update(self,t):
+        #Would it be faster to make a list of items to remove and then remove them, rather than build a new list?
+        to_remove = []
+        for item in self.updateable_children:
+            if item.enabled:
+                complete = item.Update(t)
+                if complete:
+                    to_remove.append(item)
+        if len(to_remove) > 0:
+            for item in to_remove:
+                self.RemoveUpdatable(item)
+
     def RegisterDrawable(self,item):
         self.drawable_children[item] = True
 
     def RemoveDrawable(self,item):
         try:
             del self.drawable_children[item]
+        except KeyError:
+            pass
+
+    def RegisterUpdateable(self,item):
+        self.updateable_children[item] = True
+
+    def RemoveUpdatable(self,item):
+        try:
+            del self.updateable_children[item]
         except KeyError:
             pass
             
@@ -571,6 +593,7 @@ class FaderTextBox(TextBox):
         if not self.enabled:
             self.root.RegisterUIElement(self)
             self.root.RegisterDrawable(self)
+            self.root.RegisterUpdateable(self)
         super(FaderTextBox,self).Enable()
 
     def Disable(self):

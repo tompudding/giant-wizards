@@ -127,10 +127,7 @@ class Wizard(actor.Actor):
         return self.action_list.pop(0)
 
 
-    def Kill(self):
-        self.quad.Delete()
-        self.health_text.Delete()
-        self.damage_text.Delete()
+    def KillFinal(self):
         self.tiles.RemoveWizard(self)
 
 class Goblin(actor.Actor):
@@ -154,10 +151,7 @@ class Goblin(actor.Actor):
         self.move_action_creator = action.MoveActionCreator(self,[action.MoveAction])
         self.ai_actions = [self.move_action_creator]
 
-    def Kill(self):
-        self.quad.Delete()
-        self.health_text.Delete()
-        self.damage_text.Delete()
+    def KillFinal(self):
         self.tiles.RemoveActor(self)
         self.caster.player.RemoveSummoned(self)
 

@@ -221,26 +221,7 @@ class Actor(object):
     def Damage(self,value):
         self.stats.health -= value
         self.health_text.SetText('%d' % self.stats.health)
-        
-        #The world wraps, and we draw it 3 times. That means there are 3 possible screen positions that this might be in
-        #since by assumption no position is on screen more than once, we'll just check if any of the 3 are on screen, and 
-        #choose the first that is (if any)
-        #x = utils.WorldCoords(self.tiles.map_size)[0]
-        #r = self.tiles.map_size/gamedata.screen_root.absolute.size
-        #p = (utils.WorldCoords(self.pos + Point(0.3,0.8)) - self.tiles.viewpos.Get())/gamedata.screen_root.absolute.size
-        #for offset in -r.x,0,r.x:
-        #    if p.x + offset > 0 and p.x + offset < 1:
-        #        p.x += offset
-        #        break
-        #else:
-        #    #Don't draw the damage_text as it's off the screen
-        #    p = None
-        #p.x %= 1
-        #   p.x += 1
-        #lif p.x > 1:
-        #   p.x -= 1
-
-        #print p,gamedata.screen_root.absolute.size,self.tiles.viewpos.Get(),self.pos,utils.WorldCoords(self.pos + Point(0.3,0.8))
+ 
         self.damage_text.SetPos((self.pos + Point(0.3,0.8))/self.tiles.map_size)
         self.damage_text.SetText('%d' % value)
         self.damage_text.SetColour((1,0,0,1) if value >= 0 else (0,1,0,1))
@@ -252,7 +233,9 @@ class Actor(object):
     def Kill(self):
         self.quad.Delete()
         self.health_text.Delete()
-        self.damage_text.Delete()
+        self.KillFinal()
+
+    def KillFinal(self):
         self.tiles.RemoveActor(self)
 
     def InvalidatePathCache(self):

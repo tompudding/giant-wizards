@@ -16,14 +16,18 @@ done   - Make the text boxes scrollable with a drag or scroll wheel
 done   - Add a slider
 done     - Make the action creators have a name of their own, like "wizard blast" for the different types of blasts, and show
            that in the button rather than the more explicit name like "epic wizard blast"
+done - Update the current spells to work as described, make the epic blast better, allow the shaman to cast spells
 done - add stats, attack/defence
 done - visual damage indication
+     - fix outstanding bugs
      - tabs in the description box to separate description, stats, abilities (for summons anyway)
+     - info box about current guy with stats
+     - update AI to use current spells
+     - release 0.3!
+-------------------------------------------------------------------------------------------------
      - area of effect spells
      - heal (with aoe version)
-     - info box about current guy with stats
      - add weaknesses to damage types, damage types etc
-done - Update the current spells to work as described, make the epic blast better, allow the shaman to cast spells
      - nav bar along the bottom for selecting creatures
      - multi-turn commands?
      - issue commands to more than one unit? Draw box + shift selecting? Depends on balance, if we go for a fewer-stronger-monster
@@ -36,7 +40,7 @@ done - Update the current spells to work as described, make the epic blast bette
 BUGS
 ----
 fixed - After casting a wizard blast the tab text gets drawn over itself
-      - The damage text doesn't get drawn when someone is killed
+fixed - The damage text doesn't get drawn when someone is killed
 fixed - The health_text gets drawn too high without the ridiculous hack workaround I put in
 fixed - Damage text is relative to the screen, not tiles
 fixed - Switching spell strength while on the non-default tab view causes issues

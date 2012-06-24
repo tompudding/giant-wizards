@@ -516,6 +516,7 @@ class Tiles(ui.UIRoot):
     def Update(self,t):
         #Do the mouse motion call even if there hasn't been any; this then allows us to react sensibly when things
         #change under the cursor
+        super(Tiles,self).Update(t)
         self.MouseMotion(self.mouse_pos,Point(0,0),False)
         self.last_time = t
         if self.gameover:
