@@ -391,3 +391,25 @@ class ExtraArgs(object):
 
     def __call__(self, *args):
         return self.func(*(args + self.extra))
+
+def Spiral(length):
+    """A tile-based spiral generator, starts with (0,0) and goes up and around"""
+    n = 0
+    pos = Point(0,0)
+    yield pos
+    side = 0
+    count = 0
+    directions = [Point(0,1),Point(1,0),Point(0,-1),Point(-1,0)]
+    while count < length:
+        direction = directions[side % 4]
+        if (side%2) == 0:
+            n += 1
+        for i in xrange(n):
+            pos = pos + direction
+            yield pos
+            count += 1
+            if count >= length:
+                return
+            
+        side += 1
+        
