@@ -84,8 +84,9 @@ class Wizard(actor.Actor):
                 #wtf? There are no other wizards? the game should have ended
                 return False
             path,cost,enemy = enemies[0]
+            danger_score /= float(self.player.personality.confidence)
             print self.name,danger_score,danger_score/self.player.personality.confidence
-            if (danger_score/self.player.personality.confidence) > 4:
+            if danger_score > 4:
                 #we want to leave
                 target = self.pos + away_vector
                 away_path = None
@@ -99,7 +100,7 @@ class Wizard(actor.Actor):
                         #walk that way
                          if self.move_action_creator.Valid(away_path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(away_path.steps[0],t,self) )
-                    elif self.stats.mana > 0 and (danger_score/self.player.personality.confidence) > 6:
+                    elif self.stats.mana > 0 and danger_score > 6:
                         #try a teleport
                         if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
                             target_action = 1
