@@ -491,14 +491,11 @@ class GoblinShaman(Goblin):
 
         #Check first if we can blast anyone
         for index,action in utils.r_enumerate(self.blast_action_creator.actions):
-            print action.name,action.cost,self.stats.mana,offset
             if action.cost < self.stats.mana:
                 self.blast_action_creator.SetAction(index)
                 if self.blast_action_creator.Valid(offset):
                     self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
                     return self.action_list.pop(0)
-                else:
-                    print offset,'not valid'
 
         #If we get here there's nothing to return
         return super(GoblinShaman,self).TakeAction(t)
