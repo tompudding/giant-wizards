@@ -1,5 +1,5 @@
 from OpenGL.GL import *
-import math,numpy,gamedata
+import math,numpy,gamedata,itertools,random
 
 grid_level = 0
 ui_level   = 2
@@ -391,3 +391,43 @@ class ExtraArgs(object):
 
     def __call__(self, *args):
         return self.func(*(args + self.extra))
+
+def Spiral(length):
+    """A tile-based spiral generator, starts with (0,0) and goes up and around"""
+    n = 0
+    pos = Point(0,0)
+    yield pos
+    side = 0
+    count = 0
+    directions = [Point(0,1),Point(1,0),Point(0,-1),Point(-1,0)]
+    while count < length:
+        direction = directions[side % 4]
+        if (side%2) == 0:
+            n += 1
+        for i in xrange(n):
+            pos = pos + direction
+            yield pos
+            count += 1
+            if count >= length:
+                return
+            
+        side += 1
+        
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return itertools.izip(a, b)
+
+def Ratios(n):
+    if n < 2:
+        return [1]
+    points = sorted([0,1] + [random.random() for i in xrange(n-1)])
+    ratios = [b-a for a,b in pairwise(points)]
+    return ratios
+
+def r_enumerate(container):
+    i = len(container)
+    for item in reversed(container):
+        i = i - 1
+        yield i, item

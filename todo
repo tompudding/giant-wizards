@@ -22,8 +22,8 @@ done - visual damage indication
 done - fix outstanding bugs
 done - tabs in the description box to separate description, stats, abilities (for summons anyway)
 done - Sort out character drawing (sort of done anyway)
-     - update AI to use current spells
-     - release 0.3!
+done - update AI to use current spells (done but needs re-doing)
+done - release 0.3!
 -------------------------------------------------------------------------------------------------
      - implement tangibility
      - info box about current guy with stats

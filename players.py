@@ -1,4 +1,4 @@
-import monsters
+import monsters,random
 
 class PlayerTypes:
     HUMAN     = 1
@@ -17,6 +17,24 @@ class PlayerColours:
                  YELLOW : 'yellow',
                  GREEN  : 'green' }
 
+class Personality(object):
+    def __init__(self,type):
+        if type == PlayerTypes.TENTATIVE:
+            self.confidence = random.random()*5
+            self.emergency_mana = int(abs(random.gauss(5,2)))
+            self.necessary_monsters = random.randint(2,6)
+            self.desired_monsters = int(abs(random.gauss(6,2)))
+        elif type == PlayerTypes.GUNGHO:
+            self.confidence = 5 + random.random()*5
+            self.emergency_mana = int(abs(random.randint(2,5)))
+            self.necessary_monsters = random.randint(0,3)
+            self.desired_monsters = int(abs(random.gauss(3,4)))
+        else:
+            #it's a human so don't care
+            self.confidence = 1
+        if self.confidence == 0:
+            self.confidence = 0.1
+
 class Player(object):
     def __init__(self,pos,type,tiles,playerType,name,colour):
         self.colour           = colour
@@ -26,6 +44,7 @@ class Player(object):
         self.player_character = monsters.Wizard(pos,type,tiles,playerType,name,self)
         self.controlled       = [self.player_character]
         self.controlled_index = 0
+        self.personality      = Personality(playerType)
 
         # if player_type:
         #     self.controlled.append(Goblin(pos+Point(1,1),
