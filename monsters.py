@@ -16,8 +16,6 @@ class AIMonsterChoice(object):
         if self.monster.initial_stats.move == 1:
             #this is pretty fucking useless in water and I can't be bothered to check where we're casting yet
             total /= 100
-        if self.monster.initial_stats.mana > 0:
-            total *= 100
             
         return total
 
@@ -448,7 +446,7 @@ class Goblin(actor.Actor):
         if len(enemies) == 0:
             #wtf? There are no other wizards? the game should have ended
             return None,0,None
-        return path,cost,enemy
+        return enemies[0]
 
 
 class GoblinRunt(Goblin):
@@ -493,11 +491,14 @@ class GoblinShaman(Goblin):
 
         #Check first if we can blast anyone
         for index,action in utils.r_enumerate(self.blast_action_creator.actions):
+            print action.name,action.cost,self.stats.mana,offset
             if action.cost < self.stats.mana:
                 self.blast_action_creator.SetAction(index)
                 if self.blast_action_creator.Valid(offset):
                     self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
                     return self.action_list.pop(0)
+                else:
+                    print offset,'not valid'
 
         #If we get here there's nothing to return
         return super(GoblinShaman,self).TakeAction(t)
