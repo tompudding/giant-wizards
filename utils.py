@@ -425,3 +425,9 @@ def Ratios(n):
     points = sorted([0,1] + [random.random() for i in xrange(n-1)])
     ratios = [b-a for a,b in pairwise(points)]
     return ratios
+
+def r_enumerate(container):
+    i = len(container)
+    for item in reversed(container):
+        i = i - 1
+        yield i, item

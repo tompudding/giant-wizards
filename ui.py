@@ -935,11 +935,12 @@ class Slider(UIElement):
         super(Slider,self).Disable()
 
     def Depress(self,pos):
-        if pos in self.pointer_ui:
-            self.dragging = True
-            return self
-        else:
-            return None
+        #if pos in self.pointer_ui:
+        self.dragging = True
+        self.MouseMotion(pos,Point(0,0),False)
+        #    return self
+        #else:
+        #    return None
 
     def MouseMotion(self,pos,rel,handled):
         if not self.dragging:
@@ -985,6 +986,7 @@ class Slider(UIElement):
 
     def OnClick(self,pos,button):
         #For now try just changing which is selected
+        return
         if pos in self.pointer_ui or self.dragging:
             #It's a click on the pointer, which we ignore
             return

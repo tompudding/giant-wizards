@@ -2,16 +2,22 @@ import random,action,actor,players,utils,itertools
 from utils import Point
 
 class AIMonsterChoice(object):
-    def __init__(self,creator,index,monster):
+    def __init__(self,creator,index,monster,cost):
         self.creator = creator
         self.index   = index
         self.monster = monster
+        self.cost    = cost
 
     def GetDesirability(self,wizard):
         #Fixme: make stats iterable?
         total = 0
-        for stat in 'health','attack','defence','mana':
+        for stat,weight in zip(('health','attack','defence','mana'),(1,1,1,2)):
             total += getattr(self.monster.initial_stats,stat)*getattr(wizard.preferred_stats,stat)
+        if self.monster.initial_stats.move == 1:
+            #this is pretty fucking useless in water and I can't be bothered to check where we're casting yet
+            total /= 100
+        if self.monster.initial_stats.mana > 0:
+            total *= 100
             
         return total
 
@@ -21,7 +27,7 @@ class AIMonsterChoices(object):
         self.caster   = caster
         for creator in creators:
             for i,action in enumerate(creator.actions):
-                self.monsters.append(AIMonsterChoice(creator,i,action.Monster))
+                self.monsters.append(AIMonsterChoice(creator,i,action.Monster,action.cost))
 
         #set up desired ratios for these
         #points = sorted([0,1] + [random.random() for i in xrange(len(self.monsters)-1)])
@@ -30,7 +36,11 @@ class AIMonsterChoices(object):
         for monster in self.monsters:
             #monster.desirablility = monster.GetDesirability(self.wizard)*ratio
             monster.desirablility = monster.GetDesirability(self.caster)*random.random()
+        total = sum(monster.desirablility for monster in self.monsters)
+        for monster in self.monsters:
+            monster.desirablility /= total
         self.monsters.sort(lambda x,y:cmp(y.desirablility,x.desirablility))
+        
 
 class Wizard(actor.Actor):
     initial_stats = actor.Stats(attack  = 4,
@@ -85,6 +95,37 @@ class Wizard(actor.Actor):
         
 
     def TakeAction(self,t):
+
+     # +-----------------------------------------------------------------------------------+
+     # |                   ..-#.--                         .  -.                           |
+     # |                   -.%--+                         . .+..+..                        |
+     # |                   .m##-m.                           ###+m                         |
+     # |                   -m-*%%+.                         -m+%+--                        |
+     # |                    +%m% .                          .++++                          |
+     # |                     +-.-.       ..++-   ..            -.                          |
+     # |                     .  .   . . .m--+.-. -- . .      .                             |
+     # |                            .. +-. .mm-%.-. -..-                                   |
+     # |                          ..  m.#**###-*#%##+.m +                                  |
+     # |                         -%%.#*#m. -m-+.. +.*#+* -.                                |
+     # |                         -.+#-m-+.  -..- +.+-+##-                                  |
+     # |                        +-##m.  .-.... . . .-.+*%+.                                |
+     # |                      - +-#%.               --m.%m-.                               |
+     # |                     ...m+m+..              . ..#+-.                               |
+     # |                      .m#%-..                ..-#...                               |
+     # |                     +.-+m--.                .-.-                                  |
+     # |                       -..                    - .                                  |
+     # |                                                ..                                 |
+     # |                                                                                   |
+     # |                            ____                                                   |
+     # |                           |  _ \ ___   ___                                        |
+     # |                           | |_) / _ \ / _ \                                       |
+     # |                           |  __/ (_) | (_) |                                      |
+     # |                           |_|   \___/ \___/                                       |
+     # |                                                                                   |
+     # |                                                                                   |
+     # |FIXME: This code is hacked-together rubbish. Implement something sensible          |
+     # +-----------------------------------------------------------------------------------+
+
         if len(self.action_list) == 0 and self.IsPlayer():
             return None
 
@@ -119,23 +160,38 @@ class Wizard(actor.Actor):
                 return False
             path,cost,enemy = enemies[0]
             danger_score /= float(self.player.personality.confidence + self.stats.health + self.stats.mana)
-            print self.name,danger_score,away_vector,Point(0 if away_vector.x == 0 else 5.0/away_vector.x,0 if away_vector.y == 0 else 5.0/away_vector.y)
-            if danger_score > 1:
-                #we want to leave
-                target = self.pos + away_vector
-                away_path = None
+            #print self.name,danger_score,away_vector,Point(0 if away_vector.x == 0 else 5.0/away_vector.x,0 if away_vector.y == 0 else 5.0/away_vector.y)
+            target = self.pos + away_vector
+            away_path = None
+            if away_vector != Point(0,0):
                 for adjust in utils.Spiral(15):
                     final_target = target + adjust
                     away_path = self.tiles.PathTo(self.pos,final_target)
                     if away_path:
                         break
+
+            if danger_score < 1 or self.player.personality.confidence > 5:
+                #We're either not in danger or we're brash, so try wizard blasting the nearest enemy
+                offset = enemy.pos-self.pos
+                for index,action in utils.r_enumerate(self.blast_action_creator.actions):
+                    if action.cost < self.stats.mana:
+                        self.blast_action_creator.SetAction(index)
+                        if self.blast_action_creator.Valid(offset):
+                            self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
+                            return self.action_list.pop(0)
+
+            if danger_score > 1:
+                #Stop saving, this is serious
+                self.saving_for = None
+                #we want to leave
+                target = self.pos + away_vector
                 if away_path:
                     if self.stats.move > 0:
                         #walk that way
-                         if self.move_action_creator.Valid(away_path.steps[0]):
+                        if self.move_action_creator.Valid(away_path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(away_path.steps[0],t,self) )
                     elif self.stats.mana > 0:
-                        if danger_score > 2:
+                        if danger_score > 2 and self.confidence < 4:
                             #try a teleport to get away fast
                             if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
                                 target_action = 1
@@ -160,7 +216,7 @@ class Wizard(actor.Actor):
                                 if offset != None:
                                     #Woop can teleport
                                     self.action_list.extend( self.teleport_action_creator.Create(offset,t,self) )
-            else:
+            elif self.ReadyToAttack():
                 #Not too dangerous, so attack!
                 #Teleports are cool for getting in striking distance quickly If we've got enough mana left over to
                 #strike, and we can get in there, lets give it a go
@@ -180,6 +236,7 @@ class Wizard(actor.Actor):
                         for adjust in utils.Spiral(16):
                             if self.teleport_action_creator.Valid(offset + adjust):
                                 self.action_list.extend( self.teleport_action_creator.Create(offset + adjust,t,self) )
+                                return self.action_list.pop(0)
                             break
 
                 if len(self.action_list) == 0:
@@ -187,14 +244,60 @@ class Wizard(actor.Actor):
                     if self.stats.move > 0 and path:
                         if self.move_action_creator.Valid(path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
+                            return self.action_list.pop(0)
+            elif self.stats.move > 0:
+                #move away to give us time to build up forces and look busy
+                if away_path:
+                    path = away_path
+                else:
+                    opposite_point = enemy.pos + Point(self.tiles.width/2,0)
+                    if enemy.pos.y < self.tiles.height/2:
+                        opposite_point.y = self.tiles.height-1
+                    opposite_point.x %= self.tiles.width
+                    path = self.tiles.PathTo(self.pos,opposite_point)
+                if path:
+                    if self.move_action_creator.Valid(path.steps[0]):
+                        self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
+
+        if len(self.action_list) == 0:
+            if self.saving_for and self.saving_for.cost + self.player.personality.emergency_mana <= self.stats.mana:
+                self.saving_for.creator.SetAction(self.saving_for.index)
+                self.SummonMonster(self.saving_for.creator,t)
+                self.saving_for = None
 
         if len(self.action_list) == 0:
             #We've dealt with the logic of getting away from or towards the enemy, but maybe we've 
             #got mana to burn and we should summon some monsters
-            pass
-                
             
-
+            #Which monster? Ideally we want the number of monsters we have to match our preference ratio
+            #so cast the one which is furthest out
+            if len(self.player.controlled) < self.player.personality.necessary_monsters and danger_score > self.player.personality.confidence/4:
+                #just cast the first one we can afford
+                for monster in self.monsters.monsters:
+                    if monster.cost + self.player.personality.emergency_mana <= self.stats.mana:
+                        monster.creator.SetAction(monster.index)
+                        self.SummonMonster(monster.creator,t)
+                        break
+                        
+            elif len(self.player.controlled) < self.player.personality.desired_monsters:
+                #We've already got a few (probably shitty) ones, so lets save up for a better one
+                actual_counts = []
+                for monster in self.monsters.monsters:
+                    count = len([m for m in self.player.controlled if type(m) == monster.monster])
+                    actual_counts.append(count)
+                #print self.name,[(monster.monster.name,c) for (monster,c) in zip(self.monsters.monsters,actual_counts)]
+                total = sum(actual_counts)
+                actual_ratios = [0 if total == 0 else float(c)/total for c in actual_counts]
+                required = sorted([(monster,monster.desirablility - actual_ratio) for actual_ratio,monster in itertools.izip(actual_ratios,self.monsters.monsters)],lambda x,y:cmp(y[1],x[1]))
+                
+                #print self.name,[(monster.monster.name,needed) for (monster,needed) in required]
+                monster,needed = required[0]
+                if monster.cost + self.player.personality.emergency_mana <= self.stats.mana:
+                    monster.creator.SetAction(monster.index)
+                    self.SummonMonster(monster.creator,t)
+                else:
+                    self.saving_for = monster
+                
             #Stand-in AI logic until the game rules are fixed. There are two types,
             # tentative wizards do:
             #  - Move away from the enemy if possible
@@ -260,6 +363,22 @@ class Wizard(actor.Actor):
     def KillFinal(self):
         self.tiles.RemoveWizard(self)
 
+    def SummonMonster(self,creator,t):
+        choices = sorted([p for p in creator.valid_vectors],lambda x,y:cmp(x.length(),y.length()))
+        for point in choices:
+            if creator.Valid(point):
+                self.action_list.extend( creator.Create(point,t,self) )
+                return
+
+    def ReadyToAttack(self):
+        if len(self.player.controlled) > self.player.personality.necessary_monsters and \
+                self.stats.health > 20.0/self.player.personality.confidence           and \
+                self.stats.mana > 10.0/self.player.personality.confidence:
+                return True
+        return False
+            
+            
+
 class Goblin(actor.Actor):
     initial_stats = None #this is abstract
   
@@ -296,27 +415,9 @@ class Goblin(actor.Actor):
             #For a computer player, decide what to do
             #regular players populate this list themselves
 
-            #Find the nearest enemy
-            enemies = []
-            for player in self.tiles.wizards:
-                for enemy in player.controlled:
-                    if enemy.player is self.player:
-                        continue
-                    if self.ignore_monsters and not isinstance(enemy,Wizard):
-                        continue
-                    #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
-                    #distance = offset.length()
-                    path = self.tiles.PathTo(self.pos,enemy.pos)
-                    if path == None:
-                        cost = (enemy.pos-self.pos).length()
-                    else:
-                        cost = path.cost
-                    enemies.append((path,cost,enemy))
-            enemies.sort(lambda x,y : cmp(x[1],y[1]))
-            if len(enemies) == 0:
-                #wtf? There are no other wizards? the game should have ended
+            path,cost,enemy = self.FindNearestEnemy()
+            if not enemy:
                 return False
-            path,cost,enemy = enemies[0]
             if self.stats.move > 0 and path:
                 if self.move_action_creator.Valid(path.steps[0]):
                     self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
@@ -325,6 +426,30 @@ class Goblin(actor.Actor):
             #we failed to think of anything to do, so this guy is done
             return False
         return self.action_list.pop(0)
+
+    def FindNearestEnemy(self):
+        #Find the nearest enemy
+        enemies = []
+        for player in self.tiles.wizards:
+            for enemy in player.controlled:
+                if enemy.player is self.player:
+                    continue
+                if self.ignore_monsters and not isinstance(enemy,Wizard):
+                    continue
+                #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
+                #distance = offset.length()
+                path = self.tiles.PathTo(self.pos,enemy.pos)
+                if path == None:
+                    cost = (enemy.pos-self.pos).length()
+                else:
+                    cost = path.cost
+                enemies.append((path,cost,enemy))
+        enemies.sort(lambda x,y : cmp(x[1],y[1]))
+        if len(enemies) == 0:
+            #wtf? There are no other wizards? the game should have ended
+            return None,0,None
+        return path,cost,enemy
+
 
 class GoblinRunt(Goblin):
     initial_stats = actor.Stats(attack  = 2,
@@ -352,6 +477,30 @@ class GoblinShaman(Goblin):
     name              = 'Goblin Shaman'
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
                          (action.BlastActionCreator,[action.WeakWizardBlastAction])]
+
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(GoblinShaman,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        self.blast_action_creator = action.BlastActionCreator(self,[action.WeakWizardBlastAction])
+
+    def TakeAction(self,t):
+        if len(self.action_list) == 0 and self.IsPlayer():
+            return None
+
+        path,cost,enemy = self.FindNearestEnemy()
+        if not enemy:
+            return False
+        offset = enemy.pos-self.pos
+
+        #Check first if we can blast anyone
+        for index,action in utils.r_enumerate(self.blast_action_creator.actions):
+            if action.cost < self.stats.mana:
+                self.blast_action_creator.SetAction(index)
+                if self.blast_action_creator.Valid(offset):
+                    self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
+                    return self.action_list.pop(0)
+
+        #If we get here there's nothing to return
+        return super(GoblinShaman,self).TakeAction(t)
 
 class GoblinLord(Goblin):
     initial_stats = actor.Stats(attack  = 6,

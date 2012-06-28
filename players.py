@@ -21,8 +21,14 @@ class Personality(object):
     def __init__(self,type):
         if type == PlayerTypes.TENTATIVE:
             self.confidence = random.random()*5
+            self.emergency_mana = int(abs(random.gauss(5,2)))
+            self.necessary_monsters = random.randint(2,6)
+            self.desired_monsters = int(abs(random.gauss(6,2)))
         elif type == PlayerTypes.GUNGHO:
             self.confidence = 5 + random.random()*5
+            self.emergency_mana = int(abs(random.randint(2,5)))
+            self.necessary_monsters = random.randint(0,3)
+            self.desired_monsters = int(abs(random.gauss(3,4)))
         else:
             #it's a human so don't care
             self.confidence = 1
