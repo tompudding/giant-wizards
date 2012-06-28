@@ -1,5 +1,36 @@
-import random,action,actor,players,utils
+import random,action,actor,players,utils,itertools
 from utils import Point
+
+class AIMonsterChoice(object):
+    def __init__(self,creator,index,monster):
+        self.creator = creator
+        self.index   = index
+        self.monster = monster
+
+    def GetDesirability(self,wizard):
+        #Fixme: make stats iterable?
+        total = 0
+        for stat in 'health','attack','defence','mana':
+            total += getattr(self.monster.initial_stats,stat)*getattr(wizard.preferred_stats,stat)
+            
+        return total
+
+class AIMonsterChoices(object):
+    def __init__(self,creators,caster):
+        self.monsters = []
+        self.caster   = caster
+        for creator in creators:
+            for i,action in enumerate(creator.actions):
+                self.monsters.append(AIMonsterChoice(creator,i,action.Monster))
+
+        #set up desired ratios for these
+        #points = sorted([0,1] + [random.random() for i in xrange(len(self.monsters)-1)])
+        #ratios = [b-a for a,b in utils.pairwise(points)]
+        #for monster,ratio in itertools.izip(self.monsters,ratios):
+        for monster in self.monsters:
+            #monster.desirablility = monster.GetDesirability(self.wizard)*ratio
+            monster.desirablility = monster.GetDesirability(self.caster)*random.random()
+        self.monsters.sort(lambda x,y:cmp(y.desirablility,x.desirablility))
 
 class Wizard(actor.Actor):
     initial_stats = actor.Stats(attack  = 4,
@@ -13,6 +44,8 @@ class Wizard(actor.Actor):
         self.controlled       = [self]
         self.controlled_index = 0
         self.player           = player
+        self.saving_for       = None
+        self.preferred_stats = actor.Stats(*utils.Ratios(5))
         if self.IsPlayer():
             self.action_choices   = action.ActionChoiceList(self.options_box,
                                                             self,
@@ -45,6 +78,7 @@ class Wizard(actor.Actor):
             self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
             self.ai_actions            = [self.blast_action_creator,self.summon_goblin_creator,self.move_action_creator]
             self.move = self.move_action_creator
+            self.monsters = AIMonsterChoices([self.summon_goblin_creator],self)
         #move is special so make a shortcut for it
         
         #This is just for AI players, I need to split them into different classes really
@@ -76,7 +110,7 @@ class Wizard(actor.Actor):
                     else:
                         cost = path.cost
                     if cost < 6:
-                        danger_score += (enemy.stats.attack + enemy.stats.health)/cost
+                        danger_score += (enemy.stats.attack + enemy.stats.health + enemy.stats.mana)/cost
                         away_vector -= (enemy.pos - self.pos)
                     enemies.append((path,cost,enemy))
             enemies.sort(lambda x,y : cmp(x[1],y[1]))
@@ -84,9 +118,9 @@ class Wizard(actor.Actor):
                 #wtf? There are no other wizards? the game should have ended
                 return False
             path,cost,enemy = enemies[0]
-            danger_score /= float(self.player.personality.confidence)
-            print self.name,danger_score,danger_score/self.player.personality.confidence
-            if danger_score > 4:
+            danger_score /= float(self.player.personality.confidence + self.stats.health + self.stats.mana)
+            print self.name,danger_score,away_vector,Point(0 if away_vector.x == 0 else 5.0/away_vector.x,0 if away_vector.y == 0 else 5.0/away_vector.y)
+            if danger_score > 1:
                 #we want to leave
                 target = self.pos + away_vector
                 away_path = None
@@ -100,38 +134,39 @@ class Wizard(actor.Actor):
                         #walk that way
                          if self.move_action_creator.Valid(away_path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(away_path.steps[0],t,self) )
-                    elif self.stats.mana > 0 and danger_score > 6:
-                        #try a teleport
-                        if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
-                            target_action = 1
-                        elif self.stats.mana > self.teleport_action_creator.actions[0].cost:
-                            target_action = 0
-                        else:
-                            #we can't do a teleport
-                            target_action = None
-                        if target_action != None:
-                            self.teleport_action_creator.SetAction(target_action)
-                            offset = final_target - self.pos
-                            if not self.teleport_action_creator.Valid(offset):
-                                #shit, we can't teleport there for some reason, let's try others in the same direction
-                                candidates = utils.Brensenham(final_target,self.pos,self.tiles.width)
-                                for point in candidates:
-                                    if self.teleport_action_creator.Valid(point - self.pos):
-                                        final_target = point
-                                        offset = final_target - self.pos
-                                        break
-                                else:
-                                    offset = None
-                            if offset != None:
-                                #Woop can teleport
-                                self.action_list.extend( self.teleport_action_creator.Create(offset,t,self) )
+                    elif self.stats.mana > 0:
+                        if danger_score > 2:
+                            #try a teleport to get away fast
+                            if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
+                                target_action = 1
+                            elif self.stats.mana > self.teleport_action_creator.actions[0].cost:
+                                target_action = 0
+                            else:
+                                #we can't do a teleport
+                                target_action = None
+                            if target_action != None:
+                                self.teleport_action_creator.SetAction(target_action)
+                                offset = final_target - self.pos
+                                if not self.teleport_action_creator.Valid(offset):
+                                    #shit, we can't teleport there for some reason, let's try others in the same direction
+                                    candidates = utils.Brensenham(final_target,self.pos,self.tiles.width)
+                                    for point in candidates:
+                                        if self.teleport_action_creator.Valid(point - self.pos):
+                                            final_target = point
+                                            offset = final_target - self.pos
+                                            break
+                                    else:
+                                        offset = None
+                                if offset != None:
+                                    #Woop can teleport
+                                    self.action_list.extend( self.teleport_action_creator.Create(offset,t,self) )
             else:
                 #Not too dangerous, so attack!
                 #Teleports are cool for getting in striking distance quickly If we've got enough mana left over to
                 #strike, and we can get in there, lets give it a go
                 offset = enemy.pos - self.pos
 
-                if offset.length() < 10:
+                if not self.saving_for and offset.length() < 10:
                     if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
                         target_action = 1
                     elif self.stats.mana > self.teleport_action_creator.actions[0].cost*2:
@@ -153,6 +188,12 @@ class Wizard(actor.Actor):
                         if self.move_action_creator.Valid(path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
 
+        if len(self.action_list) == 0:
+            #We've dealt with the logic of getting away from or towards the enemy, but maybe we've 
+            #got mana to burn and we should summon some monsters
+            pass
+                
+            
 
             #Stand-in AI logic until the game rules are fixed. There are two types,
             # tentative wizards do:

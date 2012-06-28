@@ -1,5 +1,5 @@
 from OpenGL.GL import *
-import math,numpy,gamedata
+import math,numpy,gamedata,itertools,random
 
 grid_level = 0
 ui_level   = 2
@@ -413,3 +413,15 @@ def Spiral(length):
             
         side += 1
         
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return itertools.izip(a, b)
+
+def Ratios(n):
+    if n < 2:
+        return [1]
+    points = sorted([0,1] + [random.random() for i in xrange(n-1)])
+    ratios = [b-a for a,b in pairwise(points)]
+    return ratios
