@@ -42,6 +42,11 @@ purple_goblin_shaman_grass  : 3,8,1,1
 purple_goblin_shaman_water  : 3,8,1,1
 purple_goblin_lord_grass    : 7,9,1,1
 purple_goblin_lord_water    : 7,9,1,1
+purple_brontosaurus_grass   : 7,8,1,1
+purple_brontosaurus_water   : 7,8,1,1
+purple_velociraptor_grass   : 7,7,1,1
+purple_velociraptor_water   : 7,7,1,1
+
 
 green_goblin_runt_grass     : 0,9,1,1
 green_goblin_runt_water     : 0,9,1,1
@@ -51,6 +56,11 @@ green_goblin_shaman_grass   : 0,8,1,1
 green_goblin_shaman_water   : 0,8,1,1
 green_goblin_lord_grass     : 4,9,1,1
 green_goblin_lord_water     : 4,9,1,1
+green_brontosaurus_grass    : 4,8,1,1
+green_brontosaurus_water    : 4,8,1,1
+green_velociraptor_grass    : 4,7,1,1
+green_velociraptor_water    : 4,7,1,1
+
 
 yellow_goblin_runt_grass    : 1,9,1,1
 yellow_goblin_runt_water    : 1,9,1,1
@@ -60,6 +70,11 @@ yellow_goblin_shaman_grass  : 1,8,1,1
 yellow_goblin_shaman_water  : 1,8,1,1
 yellow_goblin_lord_grass    : 5,9,1,1
 yellow_goblin_lord_water    : 5,9,1,1
+yellow_brontosaurus_grass   : 5,8,1,1
+yellow_brontosaurus_water   : 5,8,1,1
+yellow_velociraptor_grass   : 5,7,1,1
+yellow_velociraptor_water   : 5,7,1,1
+
 
 red_goblin_runt_grass       : 2,9,1,1
 red_goblin_runt_water       : 2,9,1,1
@@ -69,6 +84,12 @@ red_goblin_shaman_grass     : 2,8,1,1
 red_goblin_shaman_water     : 2,8,1,1
 red_goblin_lord_grass       : 6,9,1,1
 red_goblin_lord_water       : 6,9,1,1
+red_brontosaurus_grass      : 6,8,1,1
+red_brontosaurus_water      : 6,8,1,1
+red_velociraptor_grass      : 6,7,1,1
+red_velociraptor_water      : 6,7,1,1
+
+
 
 blast               : 2,2,1,1
 

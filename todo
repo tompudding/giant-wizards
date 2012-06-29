@@ -25,7 +25,11 @@ done - Sort out character drawing (sort of done anyway)
 done - update AI to use current spells (done but needs re-doing)
 done - release 0.3!
 -------------------------------------------------------------------------------------------------
+     - dinosaurs
+     - heal
+     - spell limits
      - implement tangibility
+     - aoe
      - info box about current guy with stats
      - try customisable summons?
      - area of effect spells

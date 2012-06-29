@@ -68,8 +68,11 @@ class Wizard(actor.Actor):
                                                                                                  SummonGoblinWarriorAction,
                                                                                                  SummonGoblinShamanAction,
                                                                                                  SummonGoblinLordAction]),
+                                                              action.SummonActionCreator(self,[SummonBrontosaurusAction,
+                                                                                               SummonVelociraptorAction]),
                                                               action.TeleportActionCreator(self,[action.TeleportAction,
                                                                                                  action.RefinedTeleportAction])))
+                                                            
             self.move = self.action_choices[0]
             self.action_choices.Disable()
         else:
@@ -80,7 +83,8 @@ class Wizard(actor.Actor):
             self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinRuntAction,
                                                                           SummonGoblinWarriorAction,
                                                                           SummonGoblinShamanAction,
-                                                                          SummonGoblinLordAction])
+                                                                          SummonGoblinLordAction,
+                                                                          SummonVelociraptorAction])
             self.teleport_action_creator = action.TeleportActionCreator(self,[action.TeleportAction,
                                                                       action.RefinedTeleportAction])
             self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
@@ -377,12 +381,12 @@ class Wizard(actor.Actor):
             
             
 
-class Goblin(actor.Actor):
+class Monster(actor.Actor):
     initial_stats = None #this is abstract
   
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction])]
     def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
-        super(Goblin,self).__init__(pos,goblin_type,tiles,playerType,name,caster.player)
+        super(Monster,self).__init__(pos,goblin_type,tiles,playerType,name,caster.player)
         self.caster = caster
         self.ignore_monsters = 0.75 if self.player_type == players.PlayerTypes.TENTATIVE else 0.25
         self.ignore_monsters = True if random.random() < self.ignore_monsters else False
@@ -449,7 +453,7 @@ class Goblin(actor.Actor):
         return enemies[0]
 
 
-class GoblinRunt(Goblin):
+class GoblinRunt(Monster):
     initial_stats = actor.Stats(attack  = 2,
                                 defence = 2,
                                 move    = 1,
@@ -457,7 +461,7 @@ class GoblinRunt(Goblin):
                                 mana    = 0)                
     name = 'Goblin Runt'
 
-class GoblinWarrior(Goblin):
+class GoblinWarrior(Monster):
     initial_stats = actor.Stats(attack  = 4,
                                 defence = 3,
                                 move    = 3,
@@ -465,7 +469,7 @@ class GoblinWarrior(Goblin):
                                 mana    = 0)
     name = 'Goblin Warrior'
 
-class GoblinShaman(Goblin):
+class GoblinShaman(Monster):
     initial_stats = actor.Stats(attack  = 2,
                                 defence = 1,
                                 move    = 2,
@@ -500,7 +504,7 @@ class GoblinShaman(Goblin):
         #If we get here there's nothing to return
         return super(GoblinShaman,self).TakeAction(t)
 
-class GoblinLord(Goblin):
+class GoblinLord(Monster):
     initial_stats = actor.Stats(attack  = 6,
                                 defence = 4,
                                 move    = 4,
@@ -536,9 +540,53 @@ class SummonGoblinShamanAction(SummonGoblinAction):
     stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonGoblinLordAction(SummonGoblinAction):
-    description  = 'Whole tribes give feality to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
+    description  = 'Whole tribes give fealty to this mighty goblin, who used his/her prodigious strength and cunning to become Lord of the goblins.'
     cost         = 8
     name         = 'Summon Goblin Lord'
     Monster      = GoblinLord
     monster_type = 'goblin_lord'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
+
+class Dinosaur(Monster):
+    #maybe put some dinosaur specific stuff in here later
+    pass
+
+class Brontosaurus(Dinosaur):
+    initial_stats = actor.Stats(attack  = 0,
+                                defence = 30,
+                                move    = 1,
+                                health  = 30,
+                                mana    = 0)                
+    name = 'Brontosaurus'
+
+    def TakeAction(self,t):
+        "The Brontosaurus can't attack, so it should try to interpose itself between enemies and the wizard"
+        return super(Brontosaurus,self).TakeAction(t)
+
+class Velociraptor(Dinosaur):
+    initial_stats = actor.Stats(attack  = 6,
+                                defence = 0,
+                                move    = 4,
+                                health  = 3,
+                                mana    = 0)                
+    name = 'Velociraptor'
+
+
+class SummonDinosaurAction(action.SummonMonsterAction):
+    generic_name = 'Summon Dinosaur'
+
+class SummonBrontosaurusAction(SummonDinosaurAction):
+    cost         = 5
+    description  = 'The brontosaurus (or apatosaurus if you\'re an intolerable pedant) is the gentle giant of the dinosaur world. With its dapper top-hat and monacle combination and refined tastes in organic produce it will add a touch of class to your line-up, but it\'s too laid back to attack under any circumstances.'
+    name         = 'Summon Brontosaurus'
+    Monster      = Brontosaurus
+    monster_type = 'brontosaurus'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
+
+class SummonVelociraptorAction(SummonDinosaurAction):
+    cost         = 3
+    description  = 'Raptors are fast and deadly, but have very little health or defence. They also apparently have feathers.'
+    name         = 'Summon Velociraptor'
+    Monster      = Velociraptor
+    monster_type = 'velociraptor'
     stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']

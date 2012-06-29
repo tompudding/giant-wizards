@@ -126,8 +126,9 @@ class MoveActionCreator(BasicActionCreator):
                         continue
                     actor = tile.GetActor()
                     #Don't move onto friendly chaps
-                    if actor and self.wizard.Friendly(actor):
-                        continue
+                    if actor:
+                        if self.wizard.Friendly(actor) or self.wizard.stats.attack == 0:
+                            continue
                     path = self.wizard.tiles.PathTo(self.wizard.pos,target)
                     if path and path.cost <= ap:
                         self._valid_vectors[p] = path
