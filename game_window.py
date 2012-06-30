@@ -655,7 +655,7 @@ class Tiles(ui.UIRoot):
     def CrowFliesCost(self,start,end):
         #Diagonals are the same as horizontal or vertical, so the cost for a going (n,n) is n,
         #and the cost for going (n,m) with m > n is m
-        diff = end-start
+        diff = utils.WrapDistance(end,start,self.width)
         return max(abs(diff.x),abs(diff.y))
 
     def PathTo(self,start,end):

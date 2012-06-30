@@ -152,20 +152,24 @@ class Wizard(actor.Actor):
                         continue
                     #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                     #distance = offset.length()
-                    path = self.tiles.PathTo(self.pos,enemy.pos)
-                    if path == None:
-                        cost = (enemy.pos-self.pos).length()
-                    else:
-                        cost = path.cost
+                    #path = self.tiles.PathTo(self.pos,enemy.pos)
+                    #if path == None:
+                    #    cost = (enemy.pos-self.pos).length()
+                    #else:
+                    #    cost = path.cost
+                    cost = (enemy.pos - self.pos).length()
                     if cost < 6:
                         danger_score += (enemy.stats.attack + enemy.stats.health + enemy.stats.mana)/cost
                         away_vector -= (enemy.pos - self.pos)
-                    enemies.append((path,cost,enemy))
-            enemies.sort(lambda x,y : cmp(x[1],y[1]))
+                    enemies.append((cost,enemy))
+            enemies.sort(lambda x,y : cmp(x[0],y[0]))
             if len(enemies) == 0:
                 #wtf? There are no other wizards? the game should have ended
                 return False
-            path,cost,enemy = enemies[0]
+            cost,enemy = enemies[0]
+            path = self.tiles.PathTo(self.pos,enemy.pos)
+            if path:
+                cost = path.cost
             danger_score /= float(self.player.personality.confidence + self.stats.health + self.stats.mana)
             #print self.name,danger_score,away_vector,Point(0 if away_vector.x == 0 else 5.0/away_vector.x,0 if away_vector.y == 0 else 5.0/away_vector.y)
             target = self.pos + away_vector

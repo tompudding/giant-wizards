@@ -25,14 +25,14 @@ done - Sort out character drawing (sort of done anyway)
 done - update AI to use current spells (done but needs re-doing)
 done - release 0.3!
 -------------------------------------------------------------------------------------------------
-     - dinosaurs
-     - flying
-     - dragon
-     - sea monster - ( whale / giant-squid /  kraken
+done - dinosaurs
+done - flying
+     - dragons
      - heal
      - spell limits
      - implement tangibility
      - mind control
+     - sea monster - ( whale / giant-squid /  kraken
      - aoe
      - improve pathfinding speed
      - info box about current guy with stats
