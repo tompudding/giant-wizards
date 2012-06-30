@@ -23,7 +23,7 @@ class Action(object):
 #This class exists only so we can have a consistent interface
 class BasicActionCreator(object):
     def __init__(self,actor,actions):
-        self.actions      = actions
+        self.actions      = sorted(actions,lambda x,y:cmp(x.cost,y.cost))
         self.action_index = 0
         self.action       = self.actions[self.action_index]
         self.actor        = actor
@@ -867,6 +867,7 @@ counter_table  = { -10 : 0,
                      4 : 0.5,
                      5 : 0.6,
                      6 : 0.7,
+                     7 : 0.725,
                      8 : 0.75,
                      9 : 0.8,
                     10 : 0.9 }

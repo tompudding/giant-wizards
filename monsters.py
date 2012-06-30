@@ -68,8 +68,9 @@ class Wizard(actor.Actor):
                                                                                                  SummonGoblinWarriorAction,
                                                                                                  SummonGoblinShamanAction,
                                                                                                  SummonGoblinLordAction]),
-                                                              action.SummonActionCreator(self,[SummonBrontosaurusAction,
-                                                                                               SummonVelociraptorAction]),
+                                                              action.SummonActionCreator(self,[SummonVelociraptorAction,
+                                                                                               SummonTRexAction,
+                                                                                               SummonBrontosaurusAction]),
                                                               action.TeleportActionCreator(self,[action.TeleportAction,
                                                                                                  action.RefinedTeleportAction])))
                                                             
@@ -84,7 +85,8 @@ class Wizard(actor.Actor):
                                                                           SummonGoblinWarriorAction,
                                                                           SummonGoblinShamanAction,
                                                                           SummonGoblinLordAction,
-                                                                          SummonVelociraptorAction])
+                                                                          SummonVelociraptorAction,
+                                                                          SummonTRexAction])
             self.teleport_action_creator = action.TeleportActionCreator(self,[action.TeleportAction,
                                                                       action.RefinedTeleportAction])
             self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
@@ -571,6 +573,14 @@ class Velociraptor(Dinosaur):
                                 mana    = 0)                
     name = 'Velociraptor'
 
+class TRex(Dinosaur):
+    initial_stats = actor.Stats(attack  = 9,
+                                defence = 8,
+                                move    = 4,
+                                health  = 21,
+                                mana    = 0)                
+    name = 'T-Rex'
+
 
 class SummonDinosaurAction(action.SummonMonsterAction):
     generic_name = 'Summon Dinosaur'
@@ -589,4 +599,12 @@ class SummonVelociraptorAction(SummonDinosaurAction):
     name         = 'Summon Velociraptor'
     Monster      = Velociraptor
     monster_type = 'velociraptor'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
+
+class SummonTRexAction(SummonDinosaurAction):
+    cost         = 12
+    description  = 'Thud. Thud. Thud. The king of the dinosaurs is coming'
+    name         = 'Summon T-Rex'
+    Monster      = TRex
+    monster_type = 'trex'
     stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']

@@ -46,6 +46,8 @@ purple_brontosaurus_grass   : 7,8,1,1
 purple_brontosaurus_water   : 7,8,1,1
 purple_velociraptor_grass   : 7,7,1,1
 purple_velociraptor_water   : 7,7,1,1
+purple_trex_grass           : 7,6,1,1
+purple_trex_water           : 7,6,1,1
 
 
 green_goblin_runt_grass     : 0,9,1,1
@@ -60,6 +62,8 @@ green_brontosaurus_grass    : 4,8,1,1
 green_brontosaurus_water    : 4,8,1,1
 green_velociraptor_grass    : 4,7,1,1
 green_velociraptor_water    : 4,7,1,1
+green_trex_grass            : 4,6,1,1
+green_trex_water            : 4,6,1,1
 
 
 yellow_goblin_runt_grass    : 1,9,1,1
@@ -74,6 +78,8 @@ yellow_brontosaurus_grass   : 5,8,1,1
 yellow_brontosaurus_water   : 5,8,1,1
 yellow_velociraptor_grass   : 5,7,1,1
 yellow_velociraptor_water   : 5,7,1,1
+yellow_trex_grass           : 5,6,1,1
+yellow_trex_water           : 5,6,1,1
 
 
 red_goblin_runt_grass       : 2,9,1,1
@@ -88,6 +94,8 @@ red_brontosaurus_grass      : 6,8,1,1
 red_brontosaurus_water      : 6,8,1,1
 red_velociraptor_grass      : 6,7,1,1
 red_velociraptor_water      : 6,7,1,1
+red_trex_grass              : 6,6,1,1
+red_trex_water              : 6,6,1,1
 
 
 

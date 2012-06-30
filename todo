@@ -28,6 +28,7 @@ done - release 0.3!
      - dinosaurs
      - heal
      - spell limits
+     - improve pathfinding speed
      - implement tangibility
      - aoe
      - info box about current guy with stats
