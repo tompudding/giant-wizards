@@ -225,17 +225,24 @@ class Actor(object):
     def Friendly(self,other):
         return self.player.Controls(other)
 
-    def Damage(self,value):
+    def Damage(self,value,healing = False):
         self.stats.health -= value
         self.health_text.SetText('%d' % self.stats.health)
  
         self.damage_text.SetPos((self.pos + Point(0.3,0.8))/self.tiles.map_size)
         self.damage_text.SetText('%d' % value)
-        self.damage_text.SetColour((1,0,0,1) if value >= 0 else (0,1,0,1))
+        self.damage_text.SetColour((1,0,0,1) if value >= 0 or healing else (0,1,0,1))
         self.damage_text.Enable()
         self.damage_text.SetFade(self.t,self.t+800,3,self.damage_text.colour[:3] + (0,))
         if self.stats.health <= 0:
             self.Kill()
+
+    def Heal(self,value):
+        if value < 0 or self.stats.health > self.initial_stats.health:
+            return
+        if self.stats.health + value > self.initial_stats.health:
+            value = self.initial_stats.health - self.stats.health
+        self.Damage(-value,healing = True)
 
     def Kill(self):
         self.quad.Delete()

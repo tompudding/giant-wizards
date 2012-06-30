@@ -32,12 +32,13 @@ class AIMonsterChoices(object):
         #ratios = [b-a for a,b in utils.pairwise(points)]
         #for monster,ratio in itertools.izip(self.monsters,ratios):
         for monster in self.monsters:
-            #monster.desirablility = monster.GetDesirability(self.wizard)*ratio
-            monster.desirablility = monster.GetDesirability(self.caster)*random.random()
-        total = sum(monster.desirablility for monster in self.monsters)
+            #monster.desirability = monster.GetDesirability(self.wizard)*ratio
+            monster.desirability = monster.GetDesirability(self.caster)*random.random()
+        total = sum(monster.desirability for monster in self.monsters)
         for monster in self.monsters:
-            monster.desirablility /= total
-        self.monsters.sort(lambda x,y:cmp(y.desirablility,x.desirablility))
+            monster.desirability /= total
+        self.monsters.sort(lambda x,y:cmp(y.desirability,x.desirability))
+        print caster.name,[(monster.monster.name,monster.desirability) for monster in self.monsters]
         
 
 class Wizard(actor.Actor):
@@ -70,6 +71,7 @@ class Wizard(actor.Actor):
                                                                                                  SummonGoblinLordAction]),
                                                               action.SummonActionCreator(self,[SummonVelociraptorAction,
                                                                                                SummonTRexAction,
+                                                                                               SummonPteranodonAction,
                                                                                                SummonBrontosaurusAction]),
                                                               action.TeleportActionCreator(self,[action.TeleportAction,
                                                                                                  action.RefinedTeleportAction])))
@@ -86,6 +88,7 @@ class Wizard(actor.Actor):
                                                                           SummonGoblinShamanAction,
                                                                           SummonGoblinLordAction,
                                                                           SummonVelociraptorAction,
+                                                                          SummonPteranodonAction,
                                                                           SummonTRexAction])
             self.teleport_action_creator = action.TeleportActionCreator(self,[action.TeleportAction,
                                                                       action.RefinedTeleportAction])
@@ -195,7 +198,7 @@ class Wizard(actor.Actor):
                         if self.move_action_creator.Valid(away_path.steps[0]):
                             self.action_list.extend( self.move_action_creator.Create(away_path.steps[0],t,self) )
                     elif self.stats.mana > 0:
-                        if danger_score > 2 and self.confidence < 4:
+                        if danger_score > 2 and self.player.personality.confidence < 4:
                             #try a teleport to get away fast
                             if self.stats.mana > self.teleport_action_creator.actions[1].cost*2:
                                 target_action = 1
@@ -292,7 +295,7 @@ class Wizard(actor.Actor):
                 #print self.name,[(monster.monster.name,c) for (monster,c) in zip(self.monsters.monsters,actual_counts)]
                 total = sum(actual_counts)
                 actual_ratios = [0 if total == 0 else float(c)/total for c in actual_counts]
-                required = sorted([(monster,monster.desirablility - actual_ratio) for actual_ratio,monster in itertools.izip(actual_ratios,self.monsters.monsters)],lambda x,y:cmp(y[1],x[1]))
+                required = sorted([(monster,monster.desirability - actual_ratio) for actual_ratio,monster in itertools.izip(actual_ratios,self.monsters.monsters)],lambda x,y:cmp(y[1],x[1]))
                 
                 #print self.name,[(monster.monster.name,needed) for (monster,needed) in required]
                 monster,needed = required[0]
@@ -581,17 +584,21 @@ class TRex(Dinosaur):
                                 mana    = 0)                
     name = 'T-Rex'
 
+class Pteranodon(Dinosaur):
+    initial_stats = actor.Stats(attack  = 4,
+                                defence = 4,
+                                move    = 5,
+                                health  = 5,
+                                mana    = 0)                
+    name = 'Pteranodon'
+    
+    actionchoice_list = [(action.FlyActionCreator,[action.FlyAction])]
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(Pteranodon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
 
 class SummonDinosaurAction(action.SummonMonsterAction):
     generic_name = 'Summon Dinosaur'
-
-class SummonBrontosaurusAction(SummonDinosaurAction):
-    cost         = 5
-    description  = 'The brontosaurus (or apatosaurus if you\'re an intolerable pedant) is the gentle giant of the dinosaur world. With its dapper top-hat and monacle combination and refined tastes in organic produce it will add a touch of class to your line-up, but it\'s too laid back to attack under any circumstances.'
-    name         = 'Summon Brontosaurus'
-    Monster      = Brontosaurus
-    monster_type = 'brontosaurus'
-    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonVelociraptorAction(SummonDinosaurAction):
     cost         = 3
@@ -599,6 +606,22 @@ class SummonVelociraptorAction(SummonDinosaurAction):
     name         = 'Summon Velociraptor'
     Monster      = Velociraptor
     monster_type = 'velociraptor'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
+
+class SummonPteranodonAction(SummonDinosaurAction):
+    cost         = 4
+    description  = 'The arch-alchemists tell us that strictly speaking Pteranodon isn\'t actually a dinosaur. If you see one bearing down on you, with it\'s massive 7.5m wingspan, it might be best not to bring that up'
+    name         = 'Summon Pteranodon'
+    Monster      = Pteranodon
+    monster_type = 'pteranodon'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana'] + [('special','Flying')]
+
+class SummonBrontosaurusAction(SummonDinosaurAction):
+    cost         = 5
+    description  = 'The brontosaurus (or apatosaurus if you\'re an intolerable pedant) is the gentle giant of the dinosaur world. With its dapper top-hat and monacle combination and refined tastes in organic produce it will add a touch of class to your line-up, but it\'s too laid back to attack under any circumstances.'
+    name         = 'Summon Brontosaurus'
+    Monster      = Brontosaurus
+    monster_type = 'brontosaurus'
     stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana']
 
 class SummonTRexAction(SummonDinosaurAction):

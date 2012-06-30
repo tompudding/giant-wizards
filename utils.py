@@ -239,11 +239,14 @@ class Path(object):
                        Point(-1,-1):'down_left',
                        Point( 0,-1):'down'     ,
                        Point( 1,-1):'down_right'}
-    def __init__(self,start,tc,width):
+    def __init__(self,start,tc,width,reversed = False):
         self.path = [start]
         node = start.parent
         while node:
-            self.path.insert(0,node)
+            if reversed:
+                self.path.append(node)
+            else:
+                self.path.insert(0,node)
             node = node.parent
 
         self.steps = [WrapDistance(self.path[i+1],self.path[i],width) for i in xrange(len(self.path)-1)]
@@ -251,6 +254,11 @@ class Path(object):
         self.tc    = tc
         self.width = width
         self.cost  = start.g
+
+    def Reversed(self):
+        path = Path(self.path[-1],self.tc,self.width)
+        path.path = self.path[::-1]
+        path.steps = self.steps
 
     def Enable(self):
         if self.quads:

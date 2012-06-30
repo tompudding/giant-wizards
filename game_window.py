@@ -164,8 +164,9 @@ class Tiles(ui.UIRoot):
             tc = numpy.array(((top_left_x,bottom_right_y),(top_left_x,top_left_y),(bottom_right_x,top_left_y),(bottom_right_x,bottom_right_y)),numpy.float32)
             self.atlas.TransformCoords(self.tiles_name,tc)
             if name.endswith('_grass'):
-                ends = '_grass','_tree','_scorched','_mountain'
                 name = name.split('_grass')[0]
+                ends = [end for end in ('_tree','_scorched','_mountain','_water') if (name + end) not in data]
+                ends.append('_grass')
             else:
                 ends = ['']
             for end in ends:
@@ -406,7 +407,6 @@ class Tiles(ui.UIRoot):
 
     def IsDragging(self):
         return True if self.dragging else False
-
             
     def MouseButtonDown(self,pos,button):
         if button == 3:
@@ -652,6 +652,12 @@ class Tiles(ui.UIRoot):
         except IndexError:
             return None
 
+    def CrowFliesCost(self,start,end):
+        #Diagonals are the same as horizontal or vertical, so the cost for a going (n,n) is n,
+        #and the cost for going (n,m) with m > n is m
+        diff = end-start
+        return max(abs(diff.x),abs(diff.y))
+
     def PathTo(self,start,end):
         #A noddy my-first implementation of A* in python
         #update the map items with current positions of the sprites
@@ -693,12 +699,18 @@ class Tiles(ui.UIRoot):
                 #yay, we're finished
                 path = utils.Path(current,self.tex_coords,len(self.map))
                 self.pathcache[start,end] = path
+                #self.pathcache[end,start] = path.Reversed()
                 return path
             elif current != start:
+                #FIXME: put the path in the other way
                 p = start,current
                 path = utils.Path(current,self.tex_coords,len(self.map))
                 if (p in self.pathcache and path.cost < self.pathcache[p]) or p not in self.pathcache:
                     self.pathcache[p] = path
+            #        self.pathcache[current,start] = path.Reversed()
+            #elif (current,end) in self.pathcache:
+                #FIXME: handle this case
+            #    print 'jim'
                 
                 
             Closed.add(current)

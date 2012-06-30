@@ -174,6 +174,110 @@ class MoveActionCreator(BasicActionCreator):
             self.shown_path.Delete()
             self.shown_path = None
 
+
+class FlyAction(Action):
+    name = 'Fly'
+    generic_name = 'Fly'
+    cost = 1
+        
+    def Update(self,t):
+        if not self.initialised:
+            self.start_time  = t
+            self.end_time    = t + (self.vector.length()*1000/self.speed)
+            self.duration    = self.end_time - self.start_time
+            self.start_pos   = self.actor.pos
+            self.end_pos     = self.start_pos + self.vector
+            self.initialised = True
+            self.target_tile = self.actor.tiles.GetTile(self.end_pos)
+            self.attacking   = not self.target_tile.Empty()
+            if self.attacking:
+                #How far to go before coming back. We need to make it look like we've collided
+                self.partial_amount = (self.end_pos - self.start_pos).length()
+                self.partial_amount = float(self.partial_amount - 1) / self.partial_amount
+            else:
+                self.partial_amount = 0.5
+            self.move_cost   = self.actor.tiles.CrowFliesCost(self.start_pos,self.end_pos)
+            self.will_move   = self.actor.stats.move >= self.move_cost
+        
+        if t > self.end_time:
+            self.actor.AdjustMovePoints(-self.move_cost)
+            self.actor.MoveRelative(self.vector)
+            return True
+        elif self.will_move:
+            part = float(t-self.start_time)/self.duration
+            if not self.attacking:
+                pos = self.start_pos + self.vector*part
+            else:
+                #go halfway then come back
+                pos = self.start_pos + self.vector*(part*self.partial_amount*2 if part < 0.5 else (1-part)*self.partial_amount*2)
+                
+            self.actor.SetDrawPos(pos)
+
+        return False
+
+
+class FlyActionCreator(BasicActionCreator):
+    def __init__(self,wizard,actions):
+        self.last_ap        = -1
+        self._valid_vectors = None
+        self.wizard         = wizard
+        self.shown_path     = None
+        self.action         = actions[0]
+
+    @property
+    def valid_vectors(self):
+        ap = self.wizard.stats.move
+        vectors = []
+        for x in xrange(-ap,ap+1):
+            for y in xrange(-ap,ap+1):
+                if x == 0 and y == 0:
+                    continue
+                p = Point(x,y)
+                target = self.wizard.pos + p
+                tile = self.wizard.tiles.GetTile(target)
+                if not tile:
+                    continue
+                actor = tile.GetActor()
+                #Don't move onto friendly chaps
+                if actor:
+                    if self.wizard.Friendly(actor) or self.wizard.stats.attack == 0:
+                        continue
+                path_cost = self.wizard.tiles.CrowFliesCost(self.wizard.pos,target)
+                if path_cost != None and path_cost <= ap:
+                    vectors.append(p)
+        return vectors
+
+    def Create(self,vector,t,wizard,speed=4):
+        yield self.action(vector,t,wizard,speed)
+
+    def ColourFunction(self,pos):
+        #try:
+        #    path = self.valid_vectors[pos]
+        #except KeyError:
+        return (1-pos.length()/6.,1-pos.length()/6.,1-pos.length()/6.,0.6)
+        #return (1-path.cost/4.0,1-path.cost/4.0,1-path.cost/4.0,0.6)
+        #return (1,1,1,1)
+
+    def Valid(self,vector):
+        return vector in self.valid_vectors
+
+    # def MouseMotion(self,pos,vector):
+    #     try:
+    #         newpath = self.valid_vectors[vector]
+    #     except KeyError:
+    #         return
+    #     if newpath != self.shown_path:
+    #         if self.shown_path:
+    #             self.shown_path.Delete()
+    #         newpath.Enable()
+    #         self.shown_path = newpath
+
+    # def Unselected(self):
+    #     if self.shown_path != None:
+    #         self.shown_path.Delete()
+    #         self.shown_path = None
+
+
 class TeleportAction(Action):
     description = 'Tunnel through space to arrive at a new location instantaneously. The further you want to go, the more likely you are to find yourself somewhere unexpected...'
     name = 'Teleport'
@@ -455,6 +559,41 @@ def RangeTiles(range):
     return set(Point(x,y) for x in xrange(-range,range+1) \
                    for y in xrange(-range,range+1)        \
                    if Point(x,y).length() != 0 and Point(x,y).length() < range)
+
+class HealAction(Action):
+    description  = 'Magical energies can heal as well as harm. Try not to heal your enemies by mistake'
+    name         = 'Weak Heal'
+    generic_name = 'Heal'
+    cost         = 2
+    range        = 4
+    min_healed   = 1
+    max_healed   = 3
+    stats        = (('range'  , range),
+                    ('health restored','%d - %d' % (min_healed,max_healed)))
+    def Impact(self):
+        target_tile = self.actor.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if target:
+            damage = random.randint(self.min_healed,self.max_healed)
+            target.Heal(damage)
+
+class HealAction(Action):
+    description  = 'Even the most'
+    name         = 'Comprehensive Heal'
+    generic_name = 'Heal'
+    cost         = 5
+    range        = 4
+    min_healed   = 3
+    max_healed   = 7
+    stats        = (('range'  , range),
+                    ('health restored','%d - %d' % (min_healed,max_healed)))
+    def Impact(self):
+        target_tile = self.actor.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if target:
+            damage = random.randint(self.min_healed,self.max_healed)
+            target.Heal(damage)
+
 
 class WizardBlastAction(BlastAction):
     name         = 'Wizard Blast'
@@ -789,6 +928,8 @@ class SpellActionChoice(ActionChoice):
         super(SpellActionChoice,self).Unselected()
         self.spell_detail_box.Disable()
 
+move_action_creators = (MoveActionCreator,FlyActionCreator)
+
 class ActionChoiceList(ui.UIElement):
     def __init__(self,parent,actor,pos,tr,creators):
         super(ActionChoiceList,self).__init__(parent,pos,tr)
@@ -796,7 +937,7 @@ class ActionChoiceList(ui.UIElement):
         self.choices = []
         self.itemheight = 0.1
         for creator in creators:
-            if isinstance(creator,MoveActionCreator):
+            if any(isinstance(creator,creator_type) for creator_type in move_action_creators):
                 action_class = ActionChoice
             else:
                 action_class = SpellActionChoice

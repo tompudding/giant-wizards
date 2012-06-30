@@ -26,11 +26,15 @@ done - update AI to use current spells (done but needs re-doing)
 done - release 0.3!
 -------------------------------------------------------------------------------------------------
      - dinosaurs
+     - flying
+     - dragon
+     - sea monster - ( whale / giant-squid /  kraken
      - heal
      - spell limits
-     - improve pathfinding speed
      - implement tangibility
+     - mind control
      - aoe
+     - improve pathfinding speed
      - info box about current guy with stats
      - try customisable summons?
      - area of effect spells
