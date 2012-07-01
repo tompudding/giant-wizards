@@ -52,7 +52,7 @@ green_brontosaurus_grass    : 4,8,1,1
 green_velociraptor_grass    : 4,7,1,1
 green_trex_grass            : 4,6,1,1
 green_pteranodon_grass      : 4,5,1,1
-green_dragn_grass           : 3,3,1,1
+green_dragon_grass          : 3,3,1,1
 
 yellow_goblin_runt_grass    : 1,9,1,1
 yellow_goblin_warrior_grass : 1,7,1,1
