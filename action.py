@@ -247,7 +247,7 @@ class FlyActionCreator(BasicActionCreator):
                     vectors.append(p)
         return vectors
 
-    def Create(self,vector,t,wizard,speed=4):
+    def Create(self,vector,t,wizard,speed=8):
         yield self.action(vector,t,wizard,speed)
 
     def ColourFunction(self,pos):
@@ -618,6 +618,44 @@ class WizardBlastAction(BlastAction):
     @staticmethod
     def MouseMotion(pos,vector):
         pass
+
+class DragonFlameAction(BlastAction):
+    name         = 'Dragon Flame'
+    generic_name = 'Dragon Flame'
+    description = 'A great deal of research has been conducted into establishing just how hot dragon flame actually is. Sadly none of it has been conclusive since the experiments invariably end with little more than a smoking hole in the ground. Safe to say, it\'s pretty hot'
+    cost        = 0
+    min_damage  = 5
+    max_damage  = 20
+    range       = 4
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,int(range)))
+    valid_vectors = RangeTiles(range)
+    def Impact(self):
+        target_tile = self.actor.tiles.GetTile(self.end_pos)
+        target = target_tile.GetActor()
+        if target:
+            damage = random.randint(self.min_damage,self.max_damage)
+            target.Damage(damage)
+
+    @staticmethod
+    def Create(vector,t,wizard,speed=4):
+        yield DragonFlameAction(vector,t,wizard,speed)
+
+    @staticmethod
+    def MouseMotion(pos,vector):
+        pass
+
+class WeakDragonFlameAction(DragonFlameAction):
+    name          = 'Weak Dragon Flame'
+    generic_name  = 'Dragon Flame'
+    description   = 'a'
+    cost          = 0
+    min_damage    = 2
+    max_damage    = 5
+    range         = 3
+    stats    = (('damage','%d - %d' % (min_damage,max_damage)),
+                ('range' ,int(range)))
+    valid_vectors = RangeTiles(range)
 
 class WeakWizardBlastAction(WizardBlastAction):
     name          = 'Weak Wizard Blast'

@@ -73,6 +73,8 @@ class Wizard(actor.Actor):
                                                                                                SummonTRexAction,
                                                                                                SummonPteranodonAction,
                                                                                                SummonBrontosaurusAction]),
+                                                              action.SummonActionCreator(self,[SummonJuvenileDragonAction,
+                                                                                               SummonRedDragonAction]),
                                                               action.TeleportActionCreator(self,[action.TeleportAction,
                                                                                                  action.RefinedTeleportAction])))
                                                             
@@ -89,6 +91,8 @@ class Wizard(actor.Actor):
                                                                           SummonGoblinLordAction,
                                                                           SummonVelociraptorAction,
                                                                           SummonPteranodonAction,
+                                                                          SummonJuvenileDragonAction,
+                                                                          SummonRedDragonAction,
                                                                           SummonTRexAction])
             self.teleport_action_creator = action.TeleportActionCreator(self,[action.TeleportAction,
                                                                       action.RefinedTeleportAction])
@@ -461,38 +465,7 @@ class Monster(actor.Actor):
             return None,0,None
         return enemies[0]
 
-
-class GoblinRunt(Monster):
-    initial_stats = actor.Stats(attack  = 2,
-                                defence = 2,
-                                move    = 1,
-                                health  = 3,
-                                mana    = 0)                
-    name = 'Goblin Runt'
-
-class GoblinWarrior(Monster):
-    initial_stats = actor.Stats(attack  = 4,
-                                defence = 3,
-                                move    = 3,
-                                health  = 6,
-                                mana    = 0)
-    name = 'Goblin Warrior'
-
-class GoblinShaman(Monster):
-    initial_stats = actor.Stats(attack  = 2,
-                                defence = 1,
-                                move    = 2,
-                                health  = 4,
-                                mana    = 1)
-    max_mana          = 6
-    name              = 'Goblin Shaman'
-    actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
-                         (action.BlastActionCreator,[action.WeakWizardBlastAction])]
-
-    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
-        super(GoblinShaman,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
-        self.blast_action_creator = action.BlastActionCreator(self,[action.WeakWizardBlastAction])
-
+class BlastingMonster(Monster):
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
             return None
@@ -511,7 +484,39 @@ class GoblinShaman(Monster):
                     return self.action_list.pop(0)
 
         #If we get here there's nothing to return
-        return super(GoblinShaman,self).TakeAction(t)
+        return super(BlastingMonster,self).TakeAction(t)
+
+class GoblinRunt(Monster):
+    initial_stats = actor.Stats(attack  = 2,
+                                defence = 2,
+                                move    = 1,
+                                health  = 3,
+                                mana    = 0)                
+    name = 'Goblin Runt'
+
+class GoblinWarrior(Monster):
+    initial_stats = actor.Stats(attack  = 4,
+                                defence = 3,
+                                move    = 3,
+                                health  = 6,
+                                mana    = 0)
+    name = 'Goblin Warrior'
+
+class GoblinShaman(BlastingMonster):
+    initial_stats = actor.Stats(attack  = 2,
+                                defence = 1,
+                                move    = 2,
+                                health  = 4,
+                                mana    = 1)
+    max_mana          = 6
+    name              = 'Goblin Shaman'
+    actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
+                         (action.BlastActionCreator,[action.WeakWizardBlastAction])]
+
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(GoblinShaman,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        self.blast_action_creator = action.BlastActionCreator(self,[action.WeakWizardBlastAction])
+
 
 class GoblinLord(Monster):
     initial_stats = actor.Stats(attack  = 6,
@@ -600,6 +605,56 @@ class Pteranodon(Dinosaur):
     def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
         super(Pteranodon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
         self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
+
+class JuvenileDragon(BlastingMonster):
+    initial_stats = actor.Stats(attack  = 6,
+                                defence = 7,
+                                move    = 4,
+                                health  = 14,
+                                mana    = 0)                
+    name = 'Juvenile Dragon'
+    
+    actionchoice_list = [(action.FlyActionCreator,[action.FlyAction]),
+                         (action.BlastActionCreator,[action.WeakDragonFlameAction])]
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(RedDragon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
+        self.blast_action_creator = action.BlastActionCreator(self,[action.WeakDragonFlameAction])
+
+
+class RedDragon(BlastingMonster):
+    initial_stats = actor.Stats(attack  = 10,
+                                defence = 10,
+                                move    = 5,
+                                health  = 28,
+                                mana    = 0)                
+    name = 'Red Dragon'
+    
+    actionchoice_list = [(action.FlyActionCreator,[action.FlyAction]),
+                         (action.BlastActionCreator,[action.DragonFlameAction])]
+    def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
+        super(RedDragon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
+        self.blast_action_creator = action.BlastActionCreator(self,[action.DragonFlameAction])
+
+class SummonDragonAction(action.SummonMonsterAction):
+    generic_name = 'Summon Dragon'
+
+class SummonJuvenileDragonAction(SummonDragonAction):
+    cost         = 9
+    description  = 'Don\'t take this dragon lightly just because it\'s not fully grown. It can still tear you to pieces with its sword-sharp claws and turn your bones into a super-heated plasma. Not to mention that its parents wont be far behind... '
+    name         = 'Summon Juvenile Dragon'
+    Monster      = JuvenileDragon
+    monster_type = 'dragon'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana'] + [('special','flying, dragon flame')]
+
+class SummonRedDragonAction(SummonDragonAction):
+    cost         = 25
+    description  = 'Few sights compare to that of a fully-grown dragon. When angered, nothing on the battlefield can withstand it.'
+    name         = 'Summon Red Dragon'
+    Monster      = RedDragon
+    monster_type = 'dragon'
+    stats        = [(stat_name,getattr(Monster.initial_stats,stat_name)) for stat_name in 'attack','defence','move','health','mana'] + [('special','flying, dragon flame')]
 
 class SummonDinosaurAction(action.SummonMonsterAction):
     generic_name = 'Summon Dinosaur'
