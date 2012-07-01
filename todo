@@ -27,9 +27,10 @@ done - release 0.3!
 -------------------------------------------------------------------------------------------------
 done - dinosaurs
 done - flying
-     - dragons
-     - heal
+done - dragons
      - spell limits
+     - sort out AI movement for flying monsters and blasting for blasting monsters
+     - heal
      - implement tangibility
      - mind control
      - sea monster - ( whale / giant-squid /  kraken
