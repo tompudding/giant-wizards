@@ -780,7 +780,8 @@ colours = [players.PlayerColours.PURPLE,
            players.PlayerColours.GREEN ]
 
 class Cheat(object):
-    keys = {getattr(pygame,'K_%s' % c):c for c in 'abcdefghijklmnopqrstuvwxyz'}
+    #keys = {getattr(pygame,'K_%s' % c):c for c in 'abcdefghijklmnopqrstuvwxyz'}
+    keys = dict([(getattr(pygame,'K_%s' % c),c) for c in 'abcdefghijklmnopqrstuvwxyz'])
     def __init__(self,word,tiles,action):
         self.word    = word
         self.matched = 0
