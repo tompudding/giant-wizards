@@ -488,21 +488,19 @@ class FlyingMonster(Monster):
 class BlastingMonster(Monster):
     """A monster that has a blast action. It's AI needs to shoot at people when possible"""
     def TakeAction(self,t):
-        if len(self.action_list) == 0 and self.IsPlayer():
-            return None
+        if not self.IsPlayer() and len(self.action_list) == 0:
+            path,cost,enemy = self.FindNearestEnemy()
+            if not enemy:
+                return False
+            offset = enemy.pos-self.pos
 
-        path,cost,enemy = self.FindNearestEnemy()
-        if not enemy:
-            return False
-        offset = enemy.pos-self.pos
-
-        #Check first if we can blast anyone
-        for index,action in utils.r_enumerate(self.blast_action_creator.actions):
-            if action.cost <= self.stats.mana:
-                self.blast_action_creator.SetAction(index)
-                if self.blast_action_creator.Valid(offset):
-                    self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
-                    return self.action_list.pop(0)
+            #Check first if we can blast anyone
+            for index,action in utils.r_enumerate(self.blast_action_creator.actions):
+                if action.cost <= self.stats.mana:
+                    self.blast_action_creator.SetAction(index)
+                    if self.blast_action_creator.Valid(offset):
+                        self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
+                        return self.action_list.pop(0)
 
         #If we get here there's nothing to return
         return super(BlastingMonster,self).TakeAction(t)

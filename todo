@@ -54,7 +54,7 @@ done - spell limits
 
 BUGS
 ----
-      - when dragons kill with movement it seems to cast the dragon flame automatically
+fixed - when dragons kill with movement it seems to cast the dragon flame automatically, but only sometimes
 fixed - damage doesn't show double figures correctly
 fixed - After casting a wizard blast the tab text gets drawn over itself
 fixed - The damage text doesn't get drawn when someone is killed

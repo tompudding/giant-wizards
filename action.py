@@ -650,7 +650,7 @@ class DragonFlameAction(BlastAction):
 class WeakDragonFlameAction(DragonFlameAction):
     name          = 'Weak Dragon Flame'
     generic_name  = 'Dragon Flame'
-    description   = 'a'
+    description   = 'Dragons can breathe fire from birth, but until adolesence they are only capable of producing a cooler flame that cannot melt metal or stone.'
     cost          = 0
     min_damage    = 2
     max_damage    = 5
