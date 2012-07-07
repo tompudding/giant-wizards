@@ -337,7 +337,7 @@ class TeleportAction(Action):
         
         if t > self.end_time:
             self.actor.AdjustMana(-self.cost)
-            self.actor.AjustAbilityCount(-1)
+            self.actor.AdjustAbilityCount(-1)
             self.actor.MoveRelative(self.vector)
             return True
         
