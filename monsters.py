@@ -85,7 +85,8 @@ class Wizard(actor.Actor):
             self.blast_action_creator  = action.BlastActionCreator(self,[action.WeakWizardBlastAction,
                                                                          action.WizardBlastAction,
                                                                          action.PowerfulWizardBlastAction,
-                                                                         action.EpicWizardBlastAction])
+                                                                         action.EpicWizardBlastAction
+                                                                         ])
             self.summon_goblin_creator = action.SummonActionCreator(self,[SummonGoblinRuntAction,
                                                                           SummonGoblinWarriorAction,
                                                                           SummonGoblinShamanAction,
@@ -94,7 +95,8 @@ class Wizard(actor.Actor):
                                                                           SummonPteranodonAction,
                                                                           SummonJuvenileDragonAction,
                                                                           SummonRedDragonAction,
-                                                                          SummonTRexAction])
+                                                                          SummonTRexAction,
+                                                                          ])
             self.teleport_action_creator = action.TeleportActionCreator(self,[action.TeleportAction,
                                                                       action.RefinedTeleportAction])
             self.move_action_creator   = action.MoveActionCreator(self,[action.MoveAction])
@@ -473,7 +475,15 @@ class Monster(actor.Actor):
 class FlyingMonster(Monster):
     """Flying monsters have a different pathing algorithm since they can fly over things"""
     def PathTo(self,pos):
-        return self.tiles.PathTo(self,pos)
+        targets = [(self.pos + p,(pos-(self.pos+p)).length()) for p in self.move_action_creator.valid_vectors]
+        if len(targets) == 0:
+            return None
+        targets.sort(lambda x,y:cmp(x[1],y[1]))
+        start = targets[0][0]
+        start.parent = Point(self.pos.x,self.pos.y)
+        start.g = targets[0][1]
+        start.parent.parent = None
+        return utils.Path(start,None,self.tiles.width)
 
 class BlastingMonster(Monster):
     """A monster that has a blast action. It's AI needs to shoot at people when possible"""
@@ -605,7 +615,7 @@ class TRex(Dinosaur):
                                 mana    = 0)                
     name = 'T-Rex'
 
-class Pteranodon(Dinosaur):
+class Pteranodon(Dinosaur,FlyingMonster):
     initial_stats = actor.Stats(attack  = 4,
                                 defence = 4,
                                 move    = 5,
@@ -618,7 +628,7 @@ class Pteranodon(Dinosaur):
         super(Pteranodon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
         self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
 
-class JuvenileDragon(BlastingMonster):
+class JuvenileDragon(BlastingMonster,FlyingMonster):
     initial_stats = actor.Stats(attack  = 6,
                                 defence = 7,
                                 move    = 4,
@@ -636,7 +646,7 @@ class JuvenileDragon(BlastingMonster):
         self.blast_action_creator = action.BlastActionCreator(self,[action.WeakDragonFlameAction])
 
 
-class RedDragon(BlastingMonster):
+class RedDragon(BlastingMonster,FlyingMonster):
     initial_stats = actor.Stats(attack  = 10,
                                 defence = 10,
                                 move    = 5,
