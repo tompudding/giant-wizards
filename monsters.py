@@ -172,7 +172,7 @@ class Wizard(actor.Actor):
                 #wtf? There are no other wizards? the game should have ended
                 return False
             cost,enemy = enemies[0]
-            path = self.tiles.PathTo(self.pos,enemy.pos)
+            path = self.PathTo(enemy.pos)
             if path:
                 cost = path.cost
             danger_score /= float(self.player.personality.confidence + self.stats.health + self.stats.mana)
@@ -182,7 +182,7 @@ class Wizard(actor.Actor):
             if away_vector != Point(0,0):
                 for adjust in utils.Spiral(15):
                     final_target = target + adjust
-                    away_path = self.tiles.PathTo(self.pos,final_target)
+                    away_path = self.PathTo(final_target)
                     if away_path:
                         break
 
@@ -270,7 +270,7 @@ class Wizard(actor.Actor):
                     if enemy.pos.y < self.tiles.height/2:
                         opposite_point.y = self.tiles.height-1
                     opposite_point.x %= self.tiles.width
-                    path = self.tiles.PathTo(self.pos,opposite_point)
+                    path = self.PathTo(opposite_point)
                 if path:
                     if self.move_action_creator.Valid(path.steps[0]):
                         self.action_list.extend( self.move_action_creator.Create(path.steps[0],t,self) )
@@ -454,19 +454,29 @@ class Monster(actor.Actor):
                     continue
                 #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                 #distance = offset.length()
-                path = self.tiles.PathTo(self.pos,enemy.pos)
-                if path == None:
-                    cost = (enemy.pos-self.pos).length()
-                else:
-                    cost = path.cost
-                enemies.append((path,cost,enemy))
-        enemies.sort(lambda x,y : cmp(x[1],y[1]))
+                cost = (enemy.pos - self.pos).length()
+                    
+                #path = self.tiles.PathTo(self.pos,enemy.pos)
+                #if path == None:
+                #    cost = (enemy.pos-self.pos).length()
+                #else:
+                #    cost = path.cost
+                enemies.append((cost,enemy))
+        enemies.sort(lambda x,y : cmp(x[0],y[0]))
         if len(enemies) == 0:
             #wtf? There are no other wizards? the game should have ended
             return None,0,None
-        return enemies[0]
+        cost,enemy = enemies[0]
+        path = self.PathTo(enemy.pos)
+        return (path,cost,enemy)
+
+class FlyingMonster(Monster):
+    """Flying monsters have a different pathing algorithm since they can fly over things"""
+    def PathTo(self,pos):
+        return self.tiles.PathTo(self,pos)
 
 class BlastingMonster(Monster):
+    """A monster that has a blast action. It's AI needs to shoot at people when possible"""
     def TakeAction(self,t):
         if len(self.action_list) == 0 and self.IsPlayer():
             return None

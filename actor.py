@@ -280,6 +280,9 @@ class Actor(object):
         else:
             for action in self.ai_actions:
                 action.InvalidatePathCache()
+
+    def PathTo(self,pos):
+        return self.tiles.PathTo(self.pos,pos)
         
 class UserControlledActor(Actor):
     def __init__(self,pos,type,tiles,name,player):
