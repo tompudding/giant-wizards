@@ -28,7 +28,7 @@ done - release 0.3!
 done - dinosaurs
 done - flying
 done - dragons
-     - spell limits
+done - spell limits
      - sort out AI movement for flying monsters and blasting for blasting monsters
      - heal
      - implement tangibility
@@ -54,7 +54,8 @@ done - dragons
 
 BUGS
 ----
-done  - damage doesn't show double figures correctly
+      - when dragons kill with movement it seems to cast the dragon flame automatically
+fixed - damage doesn't show double figures correctly
 fixed - After casting a wizard blast the tab text gets drawn over itself
 fixed - The damage text doesn't get drawn when someone is killed
 fixed - The health_text gets drawn too high without the ridiculous hack workaround I put in

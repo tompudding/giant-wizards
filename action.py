@@ -337,6 +337,7 @@ class TeleportAction(Action):
         
         if t > self.end_time:
             self.actor.AdjustMana(-self.cost)
+            self.actor.AjustAbilityCount(-1)
             self.actor.MoveRelative(self.vector)
             return True
         
@@ -378,7 +379,7 @@ class TeleportActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.stats.mana:
+        if self.action.cost > self.actor.stats.mana or self.actor.stats.ability_count <= 0:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
@@ -454,8 +455,9 @@ class BlastAction(Action):
 
         if self.firing == None:
             #determine whether we can actually fire
-            if self.actor.stats.mana >= self.cost:
+            if self.actor.stats.mana >= self.cost and self.actor.stats.ability_count > 0:
                 self.actor.AdjustMana(-self.cost)
+                self.actor.AdjustAbilityCount(-1)
                 self.firing = True
                 self.path = utils.Brensenham(self.start_pos,self.end_pos,self.actor.tiles.width)[1:]
                 self.visited = {self.start_pos:True}
@@ -516,7 +518,7 @@ class BlastActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.stats.mana:
+        if self.action.cost > self.actor.stats.mana or self.actor.stats.ability_count <= 0:
             return vectors
 
         if self._valid_vectors != None:
@@ -736,13 +738,12 @@ class SummonMonsterAction(BlastAction):
             #summoned monsters start with no movement or mana...
             monster.AdjustMovePoints(-monster.stats.move)
             monster.AdjustMana(-monster.stats.mana)
+            monster.AdjustAbilityCount(-monster.stats.ability_count)
             self.actor.player.AddSummoned(monster)
 
     @staticmethod
     def MouseMotion(pos,vector):
         pass
-
-
 
 class SummonActionCreator(BasicActionCreator):
     def __init__(self,wizard,action):
@@ -751,7 +752,7 @@ class SummonActionCreator(BasicActionCreator):
     @property
     def valid_vectors(self):
         vectors = []
-        if self.action.cost > self.actor.stats.mana:
+        if self.action.cost > self.actor.stats.mana or self.actor.stats.ability_count <= 0:
             return vectors
         for p in self.action.valid_vectors:
             target = self.actor.pos + p
@@ -966,22 +967,21 @@ class SpellActionChoice(ActionChoice):
         super(SpellActionChoice,self).Unselected()
         self.spell_detail_box.Disable()
 
-move_action_creators = (MoveActionCreator,FlyActionCreator)
-
 class ActionChoiceList(ui.UIElement):
+    move_action_creators = (MoveActionCreator,FlyActionCreator)
     def __init__(self,parent,actor,pos,tr,creators):
         super(ActionChoiceList,self).__init__(parent,pos,tr)
         self.actor = actor
         self.choices = []
         self.itemheight = 0.1
         for creator in creators:
-            if any(isinstance(creator,creator_type) for creator_type in move_action_creators):
+            if any(isinstance(creator,creator_type) for creator_type in self.move_action_creators):
                 action_class = ActionChoice
             else:
                 action_class = SpellActionChoice
             action_choice = action_class(self,creator,Point(0,0),self.actor,self.actor.HandleAction)
             self.choices.append(action_choice)
-            action_choice.text.SetPos(self.top_right - Point(self.top_right.x,self.itemheight*len(self.children)))
+            action_choice.text.SetPos(Point(0,1-self.itemheight*len(self.children)))
 
     def Unselected(self):
         for action_choice in self.choices:

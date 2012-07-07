@@ -121,9 +121,10 @@ class Tiles(ui.UIRoot):
                                                textType = texture.TextTypes.MOUSE_RELATIVE)
 
         self.mouse_text_colour    = (1,1,1,1)
-        self.cheats = (Cheat('manaplease',self,lambda x:x.AdjustMana(100)),
-                       Cheat('moveplease',self,lambda x:x.AdjustMovePoints(2)),
-                       Cheat('winwinwin',self,lambda x:x.tiles.GameOver(x)),
+        self.cheats = (Cheat('manaplease'  ,self,lambda x:x.AdjustMana(100)         ),
+                       Cheat('moveplease'  ,self,lambda x:x.AdjustMovePoints(2)     ),
+                       Cheat('winwinwin'   ,self,lambda x:x.tiles.GameOver(x)       ),
+                       Cheat('spellsplease',self,lambda x:x.AdjustAbilityCount(100) ),
                        CursorCheat('d',self,lambda x:x.Damage(random.randint(0,4))))
         
         self.control_box = ui.HoverableBox(gamedata.screen_root,

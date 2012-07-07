@@ -2,19 +2,21 @@ import players,utils,gamedata,ui,texture,copy,action
 from utils import Point
 
 class Stats(object):
-    attack      = 0
-    defence     = 0
-    move        = 0
-    health      = 0
-    mana        = 0
-    tangibility = 0
-    def __init__(self,attack,defence,move,health,mana,tangibility=10):
-        self.attack      = attack
-        self.defence     = defence
-        self.move        = move
-        self.health      = health
-        self.mana        = mana
-        self.tangibility = tangibility
+    attack        = 0
+    defence       = 0
+    move          = 0
+    health        = 0
+    mana          = 0
+    tangibility   = 0
+    ability_count = 0
+    def __init__(self,attack,defence,move,health,mana,ability_count=0,tangibility=10):
+        self.attack        = attack
+        self.defence       = defence
+        self.move          = move
+        self.health        = health
+        self.mana          = mana
+        self.ability_count = ability_count
+        self.tangibility   = tangibility
 
 class Actor(object):
     """
@@ -23,6 +25,7 @@ class Actor(object):
     """
     initial_stats         = None
     max_mana              = 0
+    ability_name          = 'Spell'
     def __init__(self,pos,type,tiles,playerType,name,player):
         self.stats              = copy.copy(self.initial_stats)
         self.colour             = player.colour
@@ -68,14 +71,21 @@ class Actor(object):
                                                  text    = 'Movement : %d' % self.stats.move,
                                                  scale   = 0.33            )
             
-            self.mana_text = ui.TextBox(parent  = self.options_box,
-                                        bl      = Point(0.6,0.82) ,
-                                        tr      = None            ,
-                                        text    = 'Mana : %d' % self.stats.mana,
-                                        scale   = 0.33            )
+            self.mana_text          = ui.TextBox(parent  = self.options_box,
+                                                 bl      = Point(0.6,0.82) ,
+                                                 tr      = None            ,
+                                                 text    = 'Mana : %d' % self.stats.mana,
+                                                 scale   = 0.33            )
+            self.ability_text       = ui.TextBox(parent  = self.options_box,
+                                                 bl      = Point(0,0.75)   ,
+                                                 tr      = None            ,
+                                                 text    = '%ss left : %d' % (self.ability_name,self.stats.ability_count),
+                                                 scale   = 0.33)
+
             self.ui_elements = [self.title              ,
                                 self.mana_text          ,
                                 self.movement_text      ,
+                                self.ability_text       ,
                                 self.options_box        ]
         else:
             self.ui_elements = []
@@ -153,15 +163,18 @@ class Actor(object):
 
     def NewTurn(self):
         self.stats.mana += self.initial_stats.mana
+        self.stats.ability_count = self.initial_stats.ability_count
         if self.stats.mana > self.max_mana:
             self.stats.mana = self.max_mana
         self.stats.move    = self.initial_stats.move
         if self.IsPlayer():
             self.mana_text.SetText('Mana : %d' % self.stats.mana)
             self.movement_text.SetText('Movement : %d' % self.stats.move)
+            self.ability_text.SetText('%ss left : %d' % (self.ability_name,self.stats.ability_count))
             if not self.selected:
                 self.mana_text.Disable()
                 self.movement_text.Disable()
+                self.ability_text.Disable()
 
     def EndTurn(self,pos):
         self.Unselect()
@@ -214,6 +227,15 @@ class Actor(object):
         if self.tiles.player_action:
             self.tiles.player_action.UpdateQuads()
         
+    def AdjustAbilityCount(self,value):
+        self.stats.ability_count += value
+        if self.IsPlayer():
+            self.ability_text.SetText('%ss left : %d' % (self.ability_name,self.stats.ability_count))
+            if not self.selected:
+                self.ability_text.Disable()
+        if self.tiles.player_action:
+            self.tiles.player_action.UpdateQuads()
+
 
     def AdjustMovePoints(self,value):
         self.stats.move += value

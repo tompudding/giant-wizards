@@ -43,10 +43,11 @@ class AIMonsterChoices(object):
 
 class Wizard(actor.Actor):
     initial_stats = actor.Stats(attack  = 4,
-                                defence = 2,
-                                move    = 2,
-                                health  = 8,
-                                mana    = 2)
+                          defence       = 2,
+                          move          = 2,
+                          health        = 8,
+                          mana          = 2,
+                          ability_count = 3)
     max_mana     = 1000
     def __init__(self,pos,wizardType,tiles,playerType,name,player):
         super(Wizard,self).__init__(pos,'wizard',tiles,playerType,name,player)
@@ -59,7 +60,7 @@ class Wizard(actor.Actor):
             self.action_choices   = action.ActionChoiceList(self.options_box,
                                                             self,
                                                             Point(0,0),
-                                                            Point(1,0.9),
+                                                            Point(1,0.7),
                                                             ( action.MoveActionCreator    (self,[action.MoveAction]       ),
                                                               action.BlastActionCreator   (self,[action.WeakWizardBlastAction,
                                                                                                  action.WizardBlastAction,
@@ -407,7 +408,7 @@ class Monster(actor.Actor):
             self.action_choices = action.ActionChoiceList(self.options_box,
                                                           self,
                                                           Point(0,0),
-                                                          Point(1,0.9),
+                                                          Point(1,0.7),
                                                           [creator(self,types) for creator,types in self.actionchoice_list])
             self.action_choices.Disable()
             self.move = self.action_choices[0]
@@ -477,7 +478,7 @@ class BlastingMonster(Monster):
 
         #Check first if we can blast anyone
         for index,action in utils.r_enumerate(self.blast_action_creator.actions):
-            if action.cost < self.stats.mana:
+            if action.cost <= self.stats.mana:
                 self.blast_action_creator.SetAction(index)
                 if self.blast_action_creator.Valid(offset):
                     self.action_list.extend( self.blast_action_creator.Create(offset,t,self) )
@@ -507,7 +508,8 @@ class GoblinShaman(BlastingMonster):
                                 defence = 1,
                                 move    = 2,
                                 health  = 4,
-                                mana    = 1)
+                                mana    = 1,
+                                ability_count = 2)
     max_mana          = 6
     name              = 'Goblin Shaman'
     actionchoice_list = [(action.MoveActionCreator,[action.MoveAction]),
@@ -611,13 +613,15 @@ class JuvenileDragon(BlastingMonster):
                                 defence = 7,
                                 move    = 4,
                                 health  = 14,
-                                mana    = 0)                
+                                mana    = 0,
+                                ability_count = 1)                
     name = 'Juvenile Dragon'
+    ability_name = 'Dragon Flame'
     
     actionchoice_list = [(action.FlyActionCreator,[action.FlyAction]),
                          (action.BlastActionCreator,[action.WeakDragonFlameAction])]
     def __init__(self,pos,goblin_type,tiles,playerType,name,caster):
-        super(RedDragon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
+        super(JuvenileDragon,self).__init__(pos,goblin_type,tiles,playerType,name,caster)
         self.move_action_creator = action.FlyActionCreator(self,[action.FlyAction])
         self.blast_action_creator = action.BlastActionCreator(self,[action.WeakDragonFlameAction])
 
@@ -627,8 +631,10 @@ class RedDragon(BlastingMonster):
                                 defence = 10,
                                 move    = 5,
                                 health  = 28,
-                                mana    = 0)                
+                                mana    = 0,
+                                ability_count = 1)                
     name = 'Red Dragon'
+    ability_name = 'Dragon Flame'
     
     actionchoice_list = [(action.FlyActionCreator,[action.FlyAction]),
                          (action.BlastActionCreator,[action.DragonFlameAction])]
