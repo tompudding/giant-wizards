@@ -68,7 +68,7 @@ class QuadVertex(object):
 
 class Quad(object):
     def __init__(self,source,vertex = None,tc = None,colour_info = None,index = None):
-        if index == None:
+        if index is None:
             self.index = source.next()
         else:
             self.index = index
@@ -76,9 +76,9 @@ class Quad(object):
         self.vertex = QuadVertex(self.index,source.vertex_data)
         self.tc     = QuadVertex(self.index,source.tc_data)
         self.colour = QuadVertex(self.index,source.colour_data)
-        if vertex != None:
+        if vertex is not None:
             self.vertex[0:4] = vertex
-        if tc != None:
+        if tc is not None:
             self.tc[0:4] = tc
         self.old_vertices = None
         self.deleted = False
@@ -93,7 +93,7 @@ class Quad(object):
         #don't disable again if already disabled
         if self.deleted:
             return
-        if self.old_vertices == None:
+        if self.old_vertices is None:
             self.old_vertices = numpy.copy(self.vertex[0:4])
             for i in xrange(4):
                 self.vertex[i] = (0,0,0)
@@ -101,7 +101,7 @@ class Quad(object):
     def Enable(self):
         if self.deleted:
             return
-        if self.old_vertices != None:
+        if self.old_vertices is not None:
             for i in xrange(4):
                 self.vertex[i] = self.old_vertices[i]
             self.old_vertices = None
@@ -110,7 +110,7 @@ class Quad(object):
         if self.deleted:
             return
         setvertices(self.vertex,bl,tr,z)
-        if self.old_vertices != None:
+        if self.old_vertices is not None:
             self.old_vertices = numpy.copy(self.vertex[0:4])
             for i in xrange(4):
                 self.vertex[i] = (0,0,0)

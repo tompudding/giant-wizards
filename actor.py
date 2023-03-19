@@ -192,7 +192,7 @@ class Actor(object):
         if not target_tile.Empty():
             #maybe we're attacking a fella?
             target_actor = target_tile.GetActor()
-            if target_actor != None:
+            if target_actor is not None:
                 action.ResolveCombat(self,target_actor)
             #need to update the pos anyway to cause various update mechanisms to get triggered
             self.SetPos(self.pos)

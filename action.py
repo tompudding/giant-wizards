@@ -170,7 +170,7 @@ class MoveActionCreator(BasicActionCreator):
             self.shown_path = newpath
 
     def Unselected(self):
-        if self.shown_path != None:
+        if self.shown_path is not None:
             self.shown_path.Delete()
             self.shown_path = None
 
@@ -243,7 +243,7 @@ class FlyActionCreator(BasicActionCreator):
                     if self.wizard.Friendly(actor) or self.wizard.stats.attack == 0:
                         continue
                 path_cost = self.wizard.tiles.CrowFliesCost(self.wizard.pos,target)
-                if path_cost != None and path_cost <= ap:
+                if path_cost is not None and path_cost <= ap:
                     vectors.append(p)
         return vectors
 
@@ -273,7 +273,7 @@ class FlyActionCreator(BasicActionCreator):
     #         self.shown_path = newpath
 
     # def Unselected(self):
-    #     if self.shown_path != None:
+    #     if self.shown_path is not None:
     #         self.shown_path.Delete()
     #         self.shown_path = None
 
@@ -390,7 +390,7 @@ class TeleportActionCreator(BasicActionCreator):
             #some blocks multiple times, but oh well
             path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
+            if any( tile is None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
                 continue
             vectors.append(p)
         return vectors
@@ -453,7 +453,7 @@ class BlastAction(Action):
             self.end_pos     = self.start_pos + self.vector
             self.initialised = True
 
-        if self.firing == None:
+        if self.firing is None:
             #determine whether we can actually fire
             if self.actor.stats.mana >= self.cost and self.actor.stats.ability_count > 0:
                 self.actor.AdjustMana(-self.cost)
@@ -521,7 +521,7 @@ class BlastActionCreator(BasicActionCreator):
         if self.action.cost > self.actor.stats.mana or self.actor.stats.ability_count <= 0:
             return vectors
 
-        if self._valid_vectors != None:
+        if self._valid_vectors is not None:
             return self._valid_vectors
 
         for p in self.action.valid_vectors:
@@ -533,7 +533,7 @@ class BlastActionCreator(BasicActionCreator):
             #some blocks multiple times, but oh well
             path = utils.Brensenham(self.actor.pos,target,self.actor.tiles.width)
             path_tiles = [self.actor.tiles.GetTile(point) for point in path]
-            if any( tile == None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
+            if any( tile is None or tile.name in ('tree','mountain') or tile.actor not in (None,self.actor) for tile in path_tiles[:-1]):
                 if self.action != EpicWizardBlastAction:
                     #The epic blast can go through obstacles
                     continue

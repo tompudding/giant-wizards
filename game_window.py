@@ -21,7 +21,7 @@ class TileData(object):
         self.actor = actor
 
     def Empty(self):
-        return self.actor == None
+        return self.actor is None
 
     def Impassable(self):
         return self.movement_cost == self.IMPASSABLE
@@ -64,7 +64,7 @@ class Viewpos(object):
         self.target_time   = self.start_time + self.duration
 
     def HasTarget(self):
-        return self.target != None
+        return self.target is not None
 
     def Get(self):
         return self.pos
@@ -241,8 +241,8 @@ class Tiles(ui.UIRoot):
         else:
             filling = False
         pos = 0
-        for x in xrange(x_range[0],x_range[1] if x_range[1] != None else len(self.map)):
-            for y in xrange(y_range[0],y_range[1] if y_range[1] != None else len(self.map[x])):
+        for x in xrange(x_range[0],x_range[1] if x_range[1] is not None else len(self.map)):
+            for y in xrange(y_range[0],y_range[1] if y_range[1] is not None else len(self.map[x])):
                 tile_data = self.map[x][y]
                 world = WorldCoords(tile_data.pos)
                 #world.y -= (gamedata.tile_dimensions.y/2)
@@ -290,7 +290,7 @@ class Tiles(ui.UIRoot):
         return viewpos
 
     def NextPlayer(self):
-        if self.current_player == None:
+        if self.current_player is None:
             self.current_player_index = 0
             self.current_player = self.wizards[0]
         else:
@@ -432,7 +432,7 @@ class Tiles(ui.UIRoot):
             if button == 1 and not self.current_action: #don't accept clicks while an actions happening
                 #They pressed the left mouse button. If no-one's currently selected and they clicked on their character,
                 #select them for movement
-                if self.selected_player == None:
+                if self.selected_player is None:
                     if self.current_player.Controls(self.hovered_player) and self.current_player.IsPlayer():
                         #select them!
                         self.selected_player = self.current_player
@@ -441,12 +441,12 @@ class Tiles(ui.UIRoot):
                     #Are we hovering over a friendly?
                     if self.current_player.Controls(self.hovered_player) and \
                             self.current_player.IsPlayer() and \
-                            (self.player_action == None or not self.player_action.FriendlyTargetable()):
+                            (self.player_action is None or not self.player_action.FriendlyTargetable()):
                         #select them!
                        self.selected_player = self.current_player
                        self.selected_player.Select(self.hovered_player)
                         
-                    elif self.player_action != None:
+                    elif self.player_action is not None:
                         #we've selected and action like move, so tell it where they clicked
                         current_viewpos = self.viewpos.Get() + pos
                         current_viewpos.x = current_viewpos.x % (self.width*gamedata.tile_dimensions.x)
@@ -474,7 +474,7 @@ class Tiles(ui.UIRoot):
         if hovered_ui:
             #if we're over the ui then obviously nothing is selected
             if hovered_ui is not self.hovered_ui:
-                if self.hovered_ui != None:
+                if self.hovered_ui is not None:
                     self.hovered_ui.EndHover()
                 self.hovered_ui = hovered_ui
                 self.hovered_ui.Hover()
@@ -482,14 +482,14 @@ class Tiles(ui.UIRoot):
             self.selected = None
         else:
             old_hovered = self.hovered_player
-            if self.hovered_ui != None:
+            if self.hovered_ui is not None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
             if not self.gameover and rel != Point(0,0):
                 self.selected_quad.Enable() 
                 selected = GridCoords(current_viewpos).to_int()
                 if selected != self.selected:
-                    if self.player_action != None:
+                    if self.player_action is not None:
                         self.player_action.MouseMotion(selected)
                 self.selected = selected
                 
@@ -544,7 +544,7 @@ class Tiles(ui.UIRoot):
                 action = self.current_player.TakeAction(t)
                 if action == False:
                     self.NextPlayer()
-                if action != None:
+                if action is not None:
                     if self.current_player.current_controlled not in (current_controlled,None):
                         #One of the AI's minions finished it's turn and we're onto the next one...
                         target = WorldCoords(self.current_player.current_controlled.pos)-(gamedata.screen/2)
@@ -668,11 +668,11 @@ class Tiles(ui.UIRoot):
         except KeyError:
             #oh well, it was worth a try
             pass
-        if start == None or end == None:
+        if start is None or end is None:
             return None
         
         cell = self.GetCell(end)
-        if cell == None:
+        if cell is None:
             return None
         if cell.Impassable():
             #if we can't move into the last tile, there's no point
@@ -754,7 +754,7 @@ class Tiles(ui.UIRoot):
                     except KeyError:
                         target_new = None
                     
-                    if target_new == None:
+                    if target_new is None:
                         target.g    = newg
                         #Open is sorted by g+h, so find the position this goes with a binary search
                         #and put it in the right place
@@ -823,7 +823,7 @@ def CreateTiles(player_states):
     #first come up with random positions that aren't too close to each other and aren't on top of a mountain
     positions = []
     total_tried = 0
-    player_list = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] != None]
+    player_list = [(player_states[i],colours[i],i) for i in xrange(len(colours)) if player_states[i] is not None]
     while len(positions) < len(player_list):
         good_position = False
         tries = 0
@@ -854,7 +854,7 @@ def CreateTiles(player_states):
 
     for i in xrange(len(player_list)):
         player_type,colour,type = player_list[i]
-        if player_states[type] != None:
+        if player_states[type] is not None:
             tiles.AddWizard(pos  = positions[i],
                             type = type,
                             playerType = player_type,

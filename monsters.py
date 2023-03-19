@@ -160,7 +160,7 @@ class Wizard(actor.Actor):
                     #offset = utils.WrapDistance(enemy.pos,self.pos,self.tiles.width)
                     #distance = offset.length()
                     #path = self.tiles.PathTo(self.pos,enemy.pos)
-                    #if path == None:
+                    #if path is None:
                     #    cost = (enemy.pos-self.pos).length()
                     #else:
                     #    cost = path.cost
@@ -218,7 +218,7 @@ class Wizard(actor.Actor):
                             else:
                                 #we can't do a teleport
                                 target_action = None
-                            if target_action != None:
+                            if target_action is not None:
                                 self.teleport_action_creator.SetAction(target_action)
                                 offset = final_target - self.pos
                                 if not self.teleport_action_creator.Valid(offset):
@@ -231,7 +231,7 @@ class Wizard(actor.Actor):
                                             break
                                     else:
                                         offset = None
-                                if offset != None:
+                                if offset is not None:
                                     #Woop can teleport
                                     self.action_list.extend( self.teleport_action_creator.Create(offset,t,self) )
             elif self.ReadyToAttack():
@@ -248,7 +248,7 @@ class Wizard(actor.Actor):
                     else:
                         #we we don't want to do a teleport
                         target_action = None
-                    if target_action != None:
+                    if target_action is not None:
                         self.teleport_action_creator.SetAction(target_action)
                         #We can't teleport right onto him, try a spiral
                         for adjust in utils.Spiral(16):
@@ -459,7 +459,7 @@ class Monster(actor.Actor):
                 cost = (enemy.pos - self.pos).length()
                     
                 #path = self.tiles.PathTo(self.pos,enemy.pos)
-                #if path == None:
+                #if path is None:
                 #    cost = (enemy.pos-self.pos).length()
                 #else:
                 #    cost = path.cost
