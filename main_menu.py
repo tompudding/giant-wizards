@@ -1,56 +1,55 @@
-import os,sys
+import os, sys
 import utils
-from utils import Point,GridCoordsY,GridCoordsX,GridCoords,WorldCoords
+from utils import Point, GridCoordsY, GridCoordsX, GridCoords, WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
-import texture,numpy,random,perlin,wizard,pygame,game_window
+import texture, numpy, random, perlin, wizard, pygame, game_window
 
 gamedata = None
 
+
 class MainMenu(object):
     def __init__(self):
-        self.texture = texture.Texture('main.png')
+        self.texture = texture.Texture("main.png")
         self.uielements = {}
-        self.backdrop = utils.Quad(gamedata.quad_buffer,tc = utils.full_tc)
-        utils.setvertices(self.backdrop.vertex,
-                          Point(0,0),
-                          gamedata.screen,
-                          0)
+        self.backdrop = utils.Quad(gamedata.quad_buffer, tc=utils.full_tc)
+        utils.setvertices(self.backdrop.vertex, Point(0, 0), gamedata.screen, 0)
         self.static_text = []
         self.buttons = []
-        
-        #This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
-        callbacks = [self.PlayerChange0,
-                     self.PlayerChange1,
-                     self.PlayerChange2,
-                     self.PlayerChange3]
-        for i,name in enumerate(game_window.names):
-            item = texture.TextObject(name,gamedata.text_manager)
-            item.Position(Point(0.05*gamedata.screen.x,
-                                (0.55-i*0.1)*gamedata.screen.y),
-                          0.7)
+
+        # This is stupid but there's only a few hours to go and I still need to get pyinstaller working!
+        callbacks = [self.PlayerChange0, self.PlayerChange1, self.PlayerChange2, self.PlayerChange3]
+        for i, name in enumerate(game_window.names):
+            item = texture.TextObject(name, gamedata.text_manager)
+            item.Position(Point(0.05 * gamedata.screen.x, (0.55 - i * 0.1) * gamedata.screen.y), 0.7)
             self.static_text.append(item)
-            button = texture.TextButtonUI(gamedata.player_config[i],Point(0.50*gamedata.screen.x,
-                                                         (0.55-i*0.1)*gamedata.screen.y),
-                                          size=0.7,
-                                          callback = callbacks[i],
-                                          line_width=4)
-            self.RegisterUIElement(button,1)
+            button = texture.TextButtonUI(
+                gamedata.player_config[i],
+                Point(0.50 * gamedata.screen.x, (0.55 - i * 0.1) * gamedata.screen.y),
+                size=0.7,
+                callback=callbacks[i],
+                line_width=4,
+            )
+            self.RegisterUIElement(button, 1)
             self.buttons.append(button)
-        self.play_button = texture.TextButtonUI('Play',Point(0.22*gamedata.screen.x,
-                                                             (0.15)*gamedata.screen.y),
-                                                size=0.7,
-                                                callback = self.Play,
-                                                line_width=4)
-        self.RegisterUIElement(self.play_button,1)
-        self.exit_button = texture.TextButtonUI('Exit',Point(0.35*gamedata.screen.x,
-                                                             (0.15)*gamedata.screen.y),
-                                                size=0.7,
-                                                callback = self.Quit,
-                                                line_width=4)
-        self.RegisterUIElement(self.exit_button,1)
+        self.play_button = texture.TextButtonUI(
+            "Play",
+            Point(0.22 * gamedata.screen.x, (0.15) * gamedata.screen.y),
+            size=0.7,
+            callback=self.Play,
+            line_width=4,
+        )
+        self.RegisterUIElement(self.play_button, 1)
+        self.exit_button = texture.TextButtonUI(
+            "Exit",
+            Point(0.35 * gamedata.screen.x, (0.15) * gamedata.screen.y),
+            size=0.7,
+            callback=self.Quit,
+            line_width=4,
+        )
+        self.RegisterUIElement(self.exit_button, 1)
         self.hovered_ui = None
-        
+
     def Draw(self):
         glEnable(GL_TEXTURE_2D)
         glBindTexture(GL_TEXTURE_2D, self.texture.texture)
@@ -58,108 +57,109 @@ class MainMenu(object):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
-        
-        
+
         glVertexPointerf(gamedata.quad_buffer.vertex_data)
         glTexCoordPointerf(gamedata.quad_buffer.tc_data)
-        glColorPointer(4,GL_FLOAT,0,gamedata.quad_buffer.colour_data)
-        glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,gamedata.quad_buffer.indices)
+        glColorPointer(4, GL_FLOAT, 0, gamedata.quad_buffer.colour_data)
+        glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, gamedata.quad_buffer.indices)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisable(GL_TEXTURE_2D)
-        
+
         glVertexPointerf(gamedata.ui_buffer.vertex_data)
         glTexCoordPointerf(gamedata.ui_buffer.tc_data)
-        glColorPointer(4,GL_FLOAT,0,gamedata.ui_buffer.colour_data)
-        glDrawElements(GL_QUADS,gamedata.ui_buffer.current_size,GL_UNSIGNED_INT,gamedata.ui_buffer.indices)
+        glColorPointer(4, GL_FLOAT, 0, gamedata.ui_buffer.colour_data)
+        glDrawElements(GL_QUADS, gamedata.ui_buffer.current_size, GL_UNSIGNED_INT, gamedata.ui_buffer.indices)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
         glEnable(GL_TEXTURE_2D)
-        
 
-    def MouseButtonDown(self,pos,button):
+    def MouseButtonDown(self, pos, button):
         pass
 
-    def MouseButtonUp(self,pos,button):
+    def MouseButtonUp(self, pos, button):
         if self.hovered_ui:
-            self.hovered_ui.OnClick(pos,button)
-    
-    def MouseMotion(self,pos,rel):
+            self.hovered_ui.OnClick(pos, button)
+
+    def MouseMotion(self, pos, rel):
         hovered_ui = self.HoveredUiElement(pos)
         if hovered_ui:
-            #if we're over the ui then obviously nothing is selected
+            # if we're over the ui then obviously nothing is selected
             if hovered_ui is not self.hovered_ui:
-                if self.hovered_ui != None:
+                if self.hovered_ui is not None:
                     self.hovered_ui.EndHover()
                 self.hovered_ui = hovered_ui
                 self.hovered_ui.Hover()
         else:
-            if self.hovered_ui != None:
+            if self.hovered_ui is not None:
                 self.hovered_ui.EndHover()
                 self.hovered_ui = None
 
-    def KeyDown(self,key):
+    def KeyDown(self, key):
         return
 
-    def RegisterUIElement(self,element,height):
+    def RegisterUIElement(self, element, height):
         a = {}
         a[element] = True
         self.uielements[element] = height
 
-    def RemoveUIElement(self,element):
+    def RemoveUIElement(self, element):
         try:
             del self.uielements[element]
         except KeyError:
             pass
 
-    def HoveredUiElement(self,pos):
-        #not very efficient, but I only have 2 days, come on.
-        match = [-1,None]
-        for ui,height in self.uielements.iteritems():
+    def HoveredUiElement(self, pos):
+        # not very efficient, but I only have 2 days, come on.
+        match = [-1, None]
+        for ui, height in self.uielements.items():
             if pos in ui:
                 if height > match[0]:
-                    match = [height,ui]
+                    match = [height, ui]
         return match[1]
 
-    def Update(self,t):
+    def Update(self, t):
         self.Draw()
 
-    def PlayerChange(self,i):
-        if gamedata.player_config[i] == 'Human':
-            gamedata.player_config[i] = 'CPU'
-        elif gamedata.player_config[i] == 'CPU':
-            gamedata.player_config[i] = 'Off'
+    def PlayerChange(self, i):
+        if gamedata.player_config[i] == "Human":
+            gamedata.player_config[i] = "CPU"
+        elif gamedata.player_config[i] == "CPU":
+            gamedata.player_config[i] = "Off"
         else:
-            gamedata.player_config[i] = 'Human'
+            gamedata.player_config[i] = "Human"
         self.buttons[i].SetText(gamedata.player_config[i])
 
-    def PlayerChange0(self,pos):
+    def PlayerChange0(self, pos):
         return self.PlayerChange(0)
-    def PlayerChange1(self,pos):
+
+    def PlayerChange1(self, pos):
         return self.PlayerChange(1)
-    def PlayerChange2(self,pos):
+
+    def PlayerChange2(self, pos):
         return self.PlayerChange(2)
-    def PlayerChange3(self,pos):
+
+    def PlayerChange3(self, pos):
         return self.PlayerChange(3)
 
-    def Play(self,pos):
+    def Play(self, pos):
         states = []
         num_human = 0
-        num_cpu   = 0
+        num_cpu = 0
         for state in gamedata.player_config:
-            if state == 'Human':
+            if state == "Human":
                 states.append(True)
                 num_human += 1
-            elif state == 'CPU':
+            elif state == "CPU":
                 states.append(False)
                 num_cpu += 1
             else:
                 states.append(None)
 
-        #Check that this is a valid configuration before continuing
+        # Check that this is a valid configuration before continuing
         if num_human == 0:
             if num_cpu <= 1:
                 return
-        
+
         for a in self.static_text:
             a.Delete()
         for b in self.buttons:
@@ -170,6 +170,6 @@ class MainMenu(object):
         gamedata.text_manager.Purge()
         game = game_window.GameWindow(states)
         gamedata.current_view = game
-        
-    def Quit(self,pos):
+
+    def Quit(self, pos):
         raise SystemExit
