@@ -1,0 +1,4 @@
+wheel
+pygame==2.3.0
+PyOpenGl==3.1.6
+numpy
