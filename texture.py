@@ -5,6 +5,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import utils, numpy
 from utils import Point
+import pyinst
 
 gamedata = None
 cache = {}
@@ -13,7 +14,7 @@ cache = {}
 class Texture(object):
     def __init__(self, filename):
         if filename not in cache:
-            with open(filename, "rb") as f:
+            with open(pyinst.path(filename), "rb") as f:
                 self.textureSurface = pygame.image.load(f)
             self.textureData = pygame.image.tostring(self.textureSurface, "RGBA", 1)
 
@@ -56,7 +57,7 @@ class TextureAtlas(object):
     def __init__(self, image_filename, data_filename):
         self.texture = Texture(image_filename)
         self.subimages = {}
-        with open(data_filename, "r") as f:
+        with open(pyinst.path(data_filename), "r") as f:
             for line in f:
                 subimage_name, image_name, x, y, w, h = line.strip().split(":")
                 # print image_name,image_filename

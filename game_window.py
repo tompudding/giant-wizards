@@ -4,6 +4,7 @@ from utils import Point, GridCoordsY, GridCoordsX, GridCoords, WorldCoords
 from pygame.locals import *
 from OpenGL.GL import *
 import texture, numpy, random, perlin, wizard, pygame, main_menu
+import pyinst
 
 gamedata = None
 
@@ -54,7 +55,7 @@ class Tiles(object):
         # Read the tile data from the tiles.data file
         data = {}
         gamedata.tile_dimensions = Point(48, 48)
-        with open(data_filename) as f:
+        with open(pyinst.path(data_filename)) as f:
             for line in f:
                 line = line.split("#")[0].strip()
                 if ":" in line:
