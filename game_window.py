@@ -381,6 +381,7 @@ class Tiles(object):
 
     def GetTile(self, pos):
         pos.x = pos.x % self.width
+        pos.y = pos.y % self.height
         return self.map[pos.x][pos.y]
 
     def RegisterUIElement(self, element, height):
