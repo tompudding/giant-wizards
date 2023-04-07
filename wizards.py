@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     try:
         main()
-    except Exception, e:
-        print 'Caught exception, writing to error log...'
+    except Exception as e:
+        print('Caught exception, writing to error log...')
         logging.exception("Oops:")
 
